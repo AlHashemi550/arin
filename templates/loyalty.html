@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}نقاط الولاء | {{ app_name }}{% endblock %}
+{% block page_title %}نقاط الولاء{% endblock %}
+
+{% block content %}
+<div class="loyalty-page">
+    <div class="points-hero">
+        <div class="points-circle">
+            <span class="points-number">{{ points }}</span>
+            <span class="points-label">نقطة</span>
+        </div>
+        <p class="points-sub">كل حجز مؤكد = 20 نقطة | إحالة صديق = 50 نقطة</p>
+    </div>
+
+    <div class="referral-box">
+        <h3>🎁 كود الإحالة الخاص بك</h3>
+        <div class="referral-code" onclick="copyCode(this)">
+            <span>{{ session.get('user_phone','') }}</span>
+            <small>اضغط للنسخ</small>
+        </div>
+        <p class="referral-hint">شارك الكود مع أصدقائك واربح 50 نقطة لكل تسجيل!</p>
+    </div>
+
+    <h3 class="rewards-title">🏆 المكافآت المتاحة</h3>
+    <div class="rewards-grid">
+        {% for r in rewards %}
+        <div class="reward-card {% if points >= r.points %}available{% else %}locked{% endif %}">
+            <div class="reward-icon">{{ r.icon }}</div>
+            <div class="reward-points">{{ r.points }} نقطة</div>
+            <div class="reward-name">{{ r.reward }}</div>
+            {% if points >= r.points %}
+            <form method="POST" action="{{ url_for('claim_reward') }}">
+                <input type="hidden" name="points" value="{{ r.points }}">
+                <input type="hidden" name="reward_name" value="{{ r.reward }}">
+                <button type="submit" class="btn-claim glass-btn">استبدال الآن</button>
+            </form>
+            {% else %}
+            <div class="progress-bar">
+                <div class="progress-fill" style="width:{{ (points / r.points * 100)|int }}%"></div>
+            </div>
+            <span class="progress-text">باقي {{ r.points - points }} نقطة</span>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function copyCode(el) {
+    const code = el.querySelector('span').innerText;
+    navigator.clipboard.writeText(code).then(() => {
+        el.style.background = 'rgba(76,175,80,0.3)';
+        el.style.borderColor = '#4caf50';
+        setTimeout(() => {
+            el.style.background = '';
+            el.style.borderColor = '';
+        }, 1500);
+    });
+}
+</script>
+{% endblock %}

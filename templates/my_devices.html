@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}أجهزتي | {{ app_name }}{% endblock %}
+{% block page_title %}أجهزتي{% endblock %}
+
+{% block content %}
+<div class="devices-page">
+    <div class="devices-intro">
+        <h2>📱 أجهزتي المسجلة</h2>
+        <p>سجل أجهزتك لتتبع الضمان والحصول على تنبيهات</p>
+    </div>
+
+    <form method="POST" action="{{ url_for('add_device') }}" class="add-device-form">
+        <h3>➕ إضافة جهاز جديد</h3>
+        <div class="form-row">
+            <div class="input-group">
+                <label>اسم الجهاز</label>
+                <input type="text" name="device_name" placeholder="مثال: iPhone 13" required>
+            </div>
+            <div class="input-group">
+                <label>القطعة</label>
+                <input type="text" name="part_name" placeholder="مثال: شاشة أصلية" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="input-group">
+                <label>تاريخ الشراء</label>
+                <input type="date" name="purchase_date" required>
+            </div>
+            <div class="input-group">
+                <label>مدة الضمان (شهور)</label>
+                <input type="number" name="warranty_months" value="6" min="1" max="24" required>
+            </div>
+        </div>
+        <button type="submit" class="auth-btn glass-btn gold-shine">إضافة الجهاز (+5 نقاط)</button>
+    </form>
+
+    <h3 class="devices-list-title">📋 قائمة الأجهزة</h3>
+    <div class="devices-list">
+        {% for d in devices %}
+        <div class="device-card">
+            <div class="card-gold-line"></div>
+            <div class="device-header">
+                <span class="device-icon">📱</span>
+                <div class="device-info">
+                    <h4>{{ d.device_name }}</h4>
+                    <span class="device-part">{{ d.part_name }}</span>
+                </div>
+                <form method="POST" action="{{ url_for('delete_device', did=d.id) }}" class="delete-form" onsubmit="return confirm('حذف هذا الجهاز؟');">
+                    <button type="submit" class="btn-delete" title="حذف">🗑️</button>
+                </form>
+            </div>
+            <div class="device-details">
+                <div class="detail-item">
+                    <span class="detail-label">تاريخ الشراء</span>
+                    <span class="detail-value">{{ d.purchase_date }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">مدة الضمان</span>
+                    <span class="detail-value">{{ d.warranty_months }} شهور</span>
+                </div>
+            </div>
+            <div class="device-status">
+                <span class="status-badge active">✅ تحت الضمان</span>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>لا توجد أجهزة مسجلة</p>
+            <p class="empty-hint">سجل جهازك الأول واحصل على 5 نقاط!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.devices-page { padding-bottom: 20px; }
+.devices-intro { text-align: center; margin-bottom: 25px; }
+.devices-intro h2 { color: #d4af37; font-size: 1.3rem; margin-bottom: 8px; }
+.devices-intro p { color: rgba(255,255,255,0.5); font-size: 0.85rem; }
+.add-device-form {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+}
+.add-device-form h3 { color: #d4af37; font-size: 1rem; margin-bottom: 15px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.devices-list-title { color: #d4af37; font-size: 1rem; margin-bottom: 15px; }
+.devices-list { display: flex; flex-direction: column; gap: 12px; }
+.device-card {
+    background: #0a0a0a;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 16px;
+    position: relative;
+}
+.device-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.device-icon { font-size: 1.8rem; }
+.device-info { flex: 1; }
+.device-info h4 { color: #fff; font-size: 0.95rem; margin-bottom: 2px; }
+.device-part { color: rgba(255,255,255,0.4); font-size: 0.8rem; }
+.delete-form { margin: 0; }
+.btn-delete {
+    background: rgba(244,67,54,0.1);
+    border: 1px solid rgba(244,67,54,0.3);
+    color: #f44336;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.3s;
+    padding: 0;
+}
+.btn-delete:hover { background: rgba(244,67,54,0.2); transform: scale(1.1); }
+.device-details { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.detail-item { display: flex; flex-direction: column; }
+.detail-label { color: rgba(255,255,255,0.4); font-size: 0.7rem; }
+.detail-value { color: rgba(255,255,255,0.8); font-size: 0.85rem; font-weight: 600; }
+.device-status { text-align: left; }
+.status-badge.active { background: rgba(76,175,80,0.15); color: #4caf50; padding: 4px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 700; }
+</style>
+{% endblock %}

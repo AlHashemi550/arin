@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+    <style>
+        /* Location Button */
+        .location-btn {
+            position: fixed;
+            top: 70px;
+            left: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(212,175,55,0.15);
+            border: 1px solid rgba(212,175,55,0.3);
+            color: #d4af37;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: pulse 2s infinite;
+        }
+        .location-btn:hover {
+            transform: scale(1.1);
+            background: rgba(212,175,55,0.25);
+            box-shadow: 0 0 25px rgba(212,175,55,0.3);
+        }
+        @keyframes pulse {
+            0%,100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(212,175,55,0); }
+        }
+
+        /* Location Modal */
+        .loc-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            backdrop-filter: blur(15px);
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .loc-modal.open {
+            display: flex;
+            opacity: 1;
+        }
+        .loc-content {
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+            border: 2px solid rgba(212,175,55,0.3);
+            border-radius: 28px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            padding: 0;
+            overflow: hidden;
+            transform: scale(0.8) translateY(30px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+        .loc-modal.open .loc-content {
+            transform: scale(1) translateY(0);
+        }
+        .loc-header {
+            background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05));
+            padding: 30px 20px;
+            position: relative;
+        }
+        .loc-pin {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            display: block;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%,100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .loc-title {
+            color: #d4af37;
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+        .loc-sub {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+        .loc-body {
+            padding: 25px 20px;
+        }
+        .loc-shop-name {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        .loc-address {
+            color: rgba(255,255,255,0.7);
+            font-size: 1rem;
+            line-height: 2;
+            margin-bottom: 20px;
+        }
+        .loc-address span {
+            display: block;
+        }
+        .loc-divider {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+            margin: 0 auto 15px;
+        }
+        .loc-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(76,175,80,0.15);
+            border: 1px solid rgba(76,175,80,0.3);
+            color: #4caf50;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .loc-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 10;
+        }
+        .loc-close:hover {
+            background: rgba(244,67,54,0.15);
+            border-color: rgba(244,67,54,0.3);
+            color: #f44336;
+        }
+        .loc-shine {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(212,175,55,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="app-body">
+    <!-- Location Button -->
+    <div class="location-btn" onclick="openLocModal()" title="موقعنا">
+        📍
+    </div>
+
+    <!-- Location Modal -->
+    <div id="locModal" class="loc-modal" onclick="closeLocModal(event)">
+        <div class="loc-content" onclick="event.stopPropagation()">
+            <div class="loc-shine"></div>
+            <button class="loc-close" onclick="closeLocModal()">✕</button>
+            <div class="loc-header">
+                <span class="loc-pin">📍</span>
+                <div class="loc-title">موقعنا</div>
+                <div class="loc-sub">تفضل بزيارتنا</div>
+            </div>
+            <div class="loc-body">
+                <div class="loc-shop-name">محل الراشد للجوالات</div>
+                <div class="loc-divider"></div>
+                <div class="loc-address">
+                    <span>📍 المهرة - الغيضة</span>
+                    <span>🏪 الهنجر - سوق بن خودم</span>
+                </div>
+                <div class="loc-badge">
+                    <span>✅</span>
+                    <span>خيارك الأفضل</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-content">
+            <div class="logo-mini">
+                <svg viewBox="0 0 200 240" width="30" height="36">
+                    <defs>
+                        <linearGradient id="goldGradMini" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#f9e076"/>
+                            <stop offset="50%" style="stop-color:#d4af37"/>
+                            <stop offset="100%" style="stop-color:#aa8c2c"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M100 20 L180 180 L20 180 Z" fill="url(#goldGradMini)"/>
+                    <text x="100" y="155" text-anchor="middle" fill="#000" font-size="70" font-weight="900" font-family="Cairo">A</text>
+                </svg>
+            </div>
+            <span class="page-title">{% block page_title %}{{ app_name }}{% endblock %}</span>
+            <div class="top-actions">
+                {% if session.get('user_id') %}
+                <a href="{{ url_for('loyalty') }}" class="points-badge">
+                    <span class="points-icon">💎</span>
+                    <span class="points-value">{{ user_points|default(0) }}</span>
+                </a>
+                <a href="#" class="notif-btn" onclick="document.getElementById('notifPanel').classList.toggle('open');return false;">
+                    <span class="notif-icon">🔔</span>
+                    {% if unread_count|default(0) > 0 %}
+                    <span class="notif-count">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div id="notifPanel" class="notif-panel">
+        <div class="notif-header">
+            <h3>التنبيهات</h3>
+            <button onclick="document.getElementById('notifPanel').classList.remove('open')">✕</button>
+        </div>
+        <div class="notif-list">
+            {% if notifications|default([])|length == 0 %}
+            <p class="notif-empty">لا توجد تنبيهات</p>
+            {% else %}
+            {% for n in notifications|default([]) %}
+            <div class="notif-item {% if not n.is_read %}unread{% endif %}">
+                <div class="notif-title">{{ n.title }}</div>
+                <div class="notif-msg">{{ n.message }}</div>
+                <div class="notif-time">{{ n.created_at }}</div>
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="{{ url_for('products') }}" class="nav-item {% if request.endpoint == 'products' %}active{% endif %}">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-label">المتجر</span>
+        </a>
+        <a href="{{ url_for('maintenance') }}" class="nav-item {% if request.endpoint == 'maintenance' %}active{% endif %}">
+            <span class="nav-icon">🔧</span>
+            <span class="nav-label">الصيانة</span>
+        </a>
+        <a href="{{ url_for('programming') }}" class="nav-item {% if request.endpoint == 'programming' %}active{% endif %}">
+            <span class="nav-icon">💻</span>
+            <span class="nav-label">البرمجة</span>
+        </a>
+        <a href="{{ url_for('my_devices') }}" class="nav-item {% if request.endpoint == 'my_devices' %}active{% endif %}">
+            <span class="nav-icon">📱</span>
+            <span class="nav-label">أجهزتي</span>
+        </a>
+        <a href="{{ url_for('loyalty') }}" class="nav-item {% if request.endpoint == 'loyalty' %}active{% endif %}">
+            <span class="nav-icon">💎</span>
+            <span class="nav-label">الولاء</span>
+        </a>
+        {% if session.get('is_admin') %}
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-item {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}">
+            <span class="nav-icon">⚡</span>
+            <span class="nav-label">التحكم</span>
+        </a>
+        {% endif %}
+    </nav>
+
+    <!-- Developer Credit -->
+    <div class="dev-credit-bar">
+        <span class="dev-stars">✨</span>
+        <span class="dev-name">الهاشمي محمد</span>
+        <span class="dev-stars">✨</span>
+    </div>
+
+    <script>
+    function openLocModal() {
+        document.getElementById('locModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLocModal(e) {
+        if (!e || e.target === document.getElementById('locModal')) {
+            document.getElementById('locModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}المتجر | {{ app_name }}{% endblock %}
+{% block page_title %}المتجر{% endblock %}
+
+{% block content %}
+<div class="products-page">
+    <!-- Search & Filter -->
+    <div class="filter-bar">
+        <form method="GET" action="{{ url_for('products') }}" class="search-form">
+            <input type="text" name="search" placeholder="ابحث عن منتج..." value="{{ request.args.get('search','') }}">
+            <button type="submit">🔍</button>
+        </form>
+        <div class="category-pills">
+            <a href="{{ url_for('products') }}" class="pill {% if request.args.get('category','all') == 'all' %}active{% endif %}">الكل</a>
+            <a href="{{ url_for('products', category='شاشات') }}" class="pill {% if request.args.get('category') == 'شاشات' %}active{% endif %}">شاشات</a>
+            <a href="{{ url_for('products', category='بطاريات') }}" class="pill {% if request.args.get('category') == 'بطاريات' %}active{% endif %}">بطاريات</a>
+            <a href="{{ url_for('products', category='سماعات') }}" class="pill {% if request.args.get('category') == 'سماعات' %}active{% endif %}">سماعات</a>
+            <a href="{{ url_for('products', category='كفرات') }}" class="pill {% if request.args.get('category') == 'كفرات' %}active{% endif %}">كفرات</a>
+            <a href="{{ url_for('products', category='شواحن') }}" class="pill {% if request.args.get('category') == 'شواحن' %}active{% endif %}">شواحن</a>
+            <a href="{{ url_for('products', category='هواتف') }}" class="pill {% if request.args.get('category') == 'هواتف' %}active{% endif %}">هواتف</a>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid">
+        {% for p in products %}
+        <div class="product-card {% if p.is_rare %}rare{% endif %}">
+            <div class="card-gold-line"></div>
+            {% if p.is_rare %}
+            <div class="rare-badge">🏆 قطعة نادرة</div>
+            {% endif %}
+            
+            <!-- Admin Delete Button -->
+            {% if is_admin %}
+            <form method="POST" action="{{ url_for('delete_product', pid=p.id) }}" class="admin-delete-form" onsubmit="return confirm('حذف المنتج نهائياً؟');">
+                <button type="submit" class="admin-delete-btn" title="حذف">🗑️</button>
+            </form>
+            {% endif %}
+            
+            <div class="product-image">
+                {% if p.image %}
+                <img src="{{ p.image }}" alt="{{ p.name }}" loading="lazy">
+                {% else %}
+                <div class="no-image">📦</div>
+                {% endif %}
+            </div>
+            <div class="product-info">
+                <h3 class="product-name">{{ p.name }}</h3>
+                <p class="product-desc">{{ p.description|default('') }}</p>
+                <div class="product-price-row">
+                    <span class="price">{{ "{:,}".format(p.price) }} <span class="currency">{{ p.currency|default('ر.ي') }}</span></span>
+                    {% if p.original_price and p.original_price > p.price %}
+                    <span class="original-price">{{ "{:,}".format(p.original_price) }} {{ p.currency|default('ر.ي') }}</span>
+                    {% endif %}
+                </div>
+                <div class="product-stock">
+                    {% if p.stock > 0 %}
+                    <span class="in-stock">✅ متوفر ({{ p.stock }})</span>
+                    {% else %}
+                    <span class="out-stock">❌ نفذت الكمية</span>
+                    {% endif %}
+                </div>
+                
+                <div class="product-actions">
+                    {% if p.stock > 0 %}
+                        {% if user_reservations|default({}) and user_reservations.get(p.id) == 'confirmed' %}
+                        <span class="status-badge confirmed">✅ تم الحجز</span>
+                        {% elif user_reservations|default({}) and user_reservations.get(p.id) == 'pending' %}
+                        <span class="status-badge pending">⏳ حجز معلق</span>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('reserve') }}" class="reserve-form">
+                            <input type="hidden" name="product_id" value="{{ p.id }}">
+                            <button type="submit" class="btn-reserve glass-btn">احجز الآن 📲</button>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                    <form method="POST" action="{{ url_for('notify_me') }}" class="notify-form">
+                        <input type="hidden" name="product_name" value="{{ p.name }}">
+                        <input type="hidden" name="phone" value="{{ session.get('user_phone','') }}">
+                        <button type="submit" class="btn-notify glass-btn">🔔 نبهني عند التوفر</button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('share', pid=p.id) }}" class="btn-share">🔗</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>لا توجد منتجات حالياً</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.admin-delete-form {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    margin: 0;
+}
+.admin-delete-btn {
+    background: rgba(244,67,54,0.15);
+    border: 1px solid rgba(244,67,54,0.4);
+    color: #f44336;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    padding: 0;
+    backdrop-filter: blur(5px);
+}
+.admin-delete-btn:hover {
+    background: rgba(244,67,54,0.3);
+    transform: scale(1.15) rotate(10deg);
+    box-shadow: 0 0 15px rgba(244,67,54,0.3);
+}
+</style>
+{% endblock %}

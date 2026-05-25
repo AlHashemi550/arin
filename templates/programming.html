@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}البرمجة | {{ app_name }}{% endblock %}
+{% block page_title %}البرمجة{% endblock %}
+
+{% block content %}
+<div class="programming-page">
+    <!-- Header -->
+    <div class="prog-header">
+        <div class="prog-avatar">👨‍💻</div>
+        <h2>المبرمج محمد الهاشمي</h2>
+        <p class="prog-phone">📞 783234925</p>
+        <p class="prog-hint">اضغط على أي خيار للتواصل مباشرة</p>
+    </div>
+
+    <!-- Options Grid -->
+    <div class="prog-options">
+        <a href="https://wa.me/967783234925?text={{ '*طلب برمجة من أرين* 💻%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* تفليش نظام%0A*الجهاز:* ' }}" class="prog-option">
+            <div class="option-icon">⚡</div>
+            <div class="option-name">تفليش نظام</div>
+            <div class="option-arrow">❯</div>
+        </a>
+
+        <a href="https://wa.me/967783234925?text={{ '*طلب برمجة من أرين* 💻%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* تفعيل 4G%0A*الجهاز:* ' }}" class="prog-option">
+            <div class="option-icon">📡</div>
+            <div class="option-name">تفعيل 4G</div>
+            <div class="option-arrow">❯</div>
+        </a>
+
+        <a href="https://wa.me/967783234925?text={{ '*طلب برمجة من أرين* 💻%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* تفعيل VoLTE%0A*الجهاز:* ' }}" class="prog-option">
+            <div class="option-icon">📶</div>
+            <div class="option-name">تفعيل VoLTE</div>
+            <div class="option-arrow">❯</div>
+        </a>
+
+        <a href="https://wa.me/967783234925?text={{ '*طلب برمجة من أرين* 💻%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* فك حظر واتساب%0A*الجهاز:* ' }}" class="prog-option">
+            <div class="option-icon">🔓</div>
+            <div class="option-name">فك حظر واتساب</div>
+            <div class="option-arrow">❯</div>
+        </a>
+
+        <a href="https://wa.me/967783234925?text={{ '*طلب برمجة من أرين* 💻%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* خدمات أخرى%0A*الجهاز:* ' }}" class="prog-option">
+            <div class="option-icon">🛠️</div>
+            <div class="option-name">خدمات أخرى</div>
+            <div class="option-arrow">❯</div>
+        </a>
+    </div>
+
+    <!-- Footer -->
+    <div class="prog-footer">
+        <p>✨ المبرمج محمد الهاشمي ✨</p>
+        <p class="prog-sub">خبير برمجة الجوالات</p>
+    </div>
+</div>
+
+<style>
+.programming-page { padding-bottom: 20px; }
+.prog-header {
+    text-align: center;
+    padding: 25px 20px;
+    background: linear-gradient(180deg, rgba(212,175,55,0.1) 0%, transparent 100%);
+    border-radius: 0 0 24px 24px;
+    margin-bottom: 20px;
+}
+.prog-avatar {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    display: block;
+}
+.prog-header h2 {
+    color: #d4af37;
+    font-size: 1.3rem;
+    font-weight: 900;
+    margin-bottom: 6px;
+}
+.prog-phone {
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    direction: ltr;
+}
+.prog-hint {
+    color: rgba(255,255,255,0.4);
+    font-size: 0.8rem;
+}
+.prog-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 0 10px;
+}
+.prog-option {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #0a0a0a;
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 16px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+.prog-option:hover {
+    border-color: rgba(212,175,55,0.3);
+    transform: translateX(-5px);
+    box-shadow: 0 5px 20px rgba(212,175,55,0.1);
+}
+.prog-option::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: linear-gradient(180deg, #d4af37, #aa8c2c);
+    opacity: 0;
+    transition: 0.3s;
+}
+.prog-option:hover::before { opacity: 1; }
+.option-icon {
+    font-size: 1.8rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(212,175,55,0.1);
+    border-radius: 14px;
+    flex-shrink: 0;
+}
+.option-name {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+.option-arrow {
+    color: #d4af37;
+    font-size: 1.2rem;
+    opacity: 0.5;
+    transition: 0.3s;
+}
+.prog-option:hover .option-arrow {
+    opacity: 1;
+    transform: translateX(-5px);
+}
+.prog-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+}
+.prog-footer p {
+    color: #e91e8c;
+    font-size: 1rem;
+    font-weight: 900;
+}
+.prog-sub {
+    color: rgba(255,255,255,0.4) !important;
+    font-size: 0.8rem !important;
+    font-weight: 400 !important;
+    margin-top: 5px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}لوحة التحكم | {{ app_name }}{% endblock %}
+{% block page_title %}لوحة التحكم ⚡{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <div class="admin-welcome">
+        <h2>أهلاً أدمن {{ session.get('user_name','') }} 👑</h2>
+        <p>أرين للجوالات - المهرة - الغيضة</p>
+    </div>
+
+    <div class="admin-menu">
+        <a href="{{ url_for('admin_products') }}" class="admin-card">
+            <div class="card-gold-line"></div>
+            <span class="admin-icon">📦</span>
+            <span class="admin-label">المنتجات</span>
+            <span class="admin-desc">إضافة وتعديل المنتجات</span>
+        </a>
+        
+        <a href="{{ url_for('admin_reservations') }}" class="admin-card">
+            <div class="card-gold-line"></div>
+            <span class="admin-icon">📋</span>
+            <span class="admin-label">الحجوزات</span>
+            <span class="admin-desc">تأكيد أو إلغاء الحجوزات</span>
+        </a>
+        
+        <a href="{{ url_for('products') }}" class="admin-card">
+            <div class="card-gold-line"></div>
+            <span class="admin-icon">🏪</span>
+            <span class="admin-label">المتجر</span>
+            <span class="admin-desc">عرض المتجر كمستخدم</span>
+        </a>
+        
+        <a href="{{ url_for('logout') }}" class="admin-card logout">
+            <div class="card-gold-line"></div>
+            <span class="admin-icon">🚪</span>
+            <span class="admin-label">خروج</span>
+            <span class="admin-desc">تسجيل الخروج</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
