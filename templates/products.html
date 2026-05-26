@@ -62,26 +62,34 @@
                     {% endif %}
                 </div>
                 
+                <!-- Product Actions - Admin sees different view -->
                 <div class="product-actions">
-                    {% if p.stock > 0 %}
-                        {% if user_reservations|default({}) and user_reservations.get(p.id) == 'confirmed' %}
-                        <span class="status-badge confirmed">✅ تم الحجز</span>
-                        {% elif user_reservations|default({}) and user_reservations.get(p.id) == 'pending' %}
-                        <span class="status-badge pending">⏳ حجز معلق</span>
+                    {% if is_admin %}
+                        <!-- Admin: No reserve button, only share -->
+                        <span class="admin-hint">👑 أنت الأدمن</span>
+                        <a href="{{ url_for('share', pid=p.id) }}" class="btn-share">🔗</a>
+                    {% else %}
+                        <!-- Customer: Normal view -->
+                        {% if p.stock > 0 %}
+                            {% if user_reservations|default({}) and user_reservations.get(p.id) == 'confirmed' %}
+                            <span class="status-badge confirmed">✅ تم الحجز</span>
+                            {% elif user_reservations|default({}) and user_reservations.get(p.id) == 'pending' %}
+                            <span class="status-badge pending">⏳ حجز معلق</span>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('reserve') }}" class="reserve-form">
+                                <input type="hidden" name="product_id" value="{{ p.id }}">
+                                <button type="submit" class="btn-reserve glass-btn">احجز الآن 📲</button>
+                            </form>
+                            {% endif %}
                         {% else %}
-                        <form method="POST" action="{{ url_for('reserve') }}" class="reserve-form">
-                            <input type="hidden" name="product_id" value="{{ p.id }}">
-                            <button type="submit" class="btn-reserve glass-btn">احجز الآن 📲</button>
+                        <form method="POST" action="{{ url_for('notify_me') }}" class="notify-form">
+                            <input type="hidden" name="product_name" value="{{ p.name }}">
+                            <input type="hidden" name="phone" value="{{ session.get('user_phone','') }}">
+                            <button type="submit" class="btn-notify glass-btn">🔔 نبهني عند التوفر</button>
                         </form>
                         {% endif %}
-                    {% else %}
-                    <form method="POST" action="{{ url_for('notify_me') }}" class="notify-form">
-                        <input type="hidden" name="product_name" value="{{ p.name }}">
-                        <input type="hidden" name="phone" value="{{ session.get('user_phone','') }}">
-                        <button type="submit" class="btn-notify glass-btn">🔔 نبهني عند التوفر</button>
-                    </form>
+                        <a href="{{ url_for('share', pid=p.id) }}" class="btn-share">🔗</a>
                     {% endif %}
-                    <a href="{{ url_for('share', pid=p.id) }}" class="btn-share">🔗</a>
                 </div>
             </div>
         </div>
@@ -95,33 +103,9 @@
 </div>
 
 <style>
-.admin-delete-form {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10;
-    margin: 0;
-}
-.admin-delete-btn {
-    background: rgba(244,67,54,0.15);
-    border: 1px solid rgba(244,67,54,0.4);
-    color: #f44336;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s;
-    padding: 0;
-    backdrop-filter: blur(5px);
-}
-.admin-delete-btn:hover {
-    background: rgba(244,67,54,0.3);
-    transform: scale(1.15) rotate(10deg);
-    box-shadow: 0 0 15px rgba(244,67,54,0.3);
-}
+.admin-delete-form{position:absolute;top:10px;right:10px;z-index:10;margin:0}
+.admin-delete-btn{background:rgba(244,67,54,0.15);border:1px solid rgba(244,67,54,0.4);color:#f44336;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:all 0.3s;padding:0;backdrop-filter:blur(5px)}
+.admin-delete-btn:hover{background:rgba(244,67,54,0.3);transform:scale(1.15) rotate(10deg);box-shadow:0 0 15px rgba(244,67,54,0.3)}
+.admin-hint{color:#d4af37;font-size:0.8rem;font-weight:600;background:rgba(212,175,55,0.1);padding:6px 12px;border-radius:50px;border:1px solid rgba(212,175,55,0.2)}
 </style>
 {% endblock %}

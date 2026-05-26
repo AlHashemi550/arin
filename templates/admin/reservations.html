@@ -50,7 +50,7 @@
             <div class="res-actions">
                 {% if r.status == 'pending' %}
                 <form method="POST" action="{{ url_for('confirm', rid=r.id) }}" style="display:inline">
-                    <button type="submit" class="btn-confirm glass-btn">✅ تأكيد (+20 نقطة)</button>
+                    <button type="submit" class="btn-confirm glass-btn">✅ تأكيد الحجز (+20 نقطة)</button>
                 </form>
                 <form method="POST" action="{{ url_for('cancel', rid=r.id) }}" style="display:inline">
                     <button type="submit" class="btn-cancel glass-btn">❌ إلغاء</button>
@@ -81,7 +81,7 @@
     position: relative;
 }
 .reservation-card.pending { border-left: 3px solid #ff9800; }
-.reservation-card.confirmed { border-left: 3px solid #4caf50; opacity: 0.8; }
+.reservation-card.confirmed { border-left: 3px solid #4caf50; opacity: 0.9; }
 .reservation-card.cancelled { border-left: 3px solid #f44336; opacity: 0.6; }
 .res-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .res-id { color: rgba(255,255,255,0.3); font-size: 0.8rem; font-weight: 700; }
@@ -90,9 +90,9 @@
 .res-label { color: rgba(255,255,255,0.4); font-size: 0.8rem; min-width: 80px; }
 .res-value { color: rgba(255,255,255,0.85); font-size: 0.85rem; font-weight: 600; }
 .res-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.btn-confirm { flex: 1; min-width: 120px; background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.3); color: #4caf50; padding: 10px; font-size: 0.85rem; }
-.btn-confirm:hover { background: rgba(76,175,80,0.2); }
-.btn-cancel { flex: 1; min-width: 120px; background: rgba(244,67,54,0.1); border-color: rgba(244,67,54,0.3); color: #f44336; padding: 10px; font-size: 0.85rem; }
+.btn-confirm { flex: 1; min-width: 140px; background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.3); color: #4caf50; padding: 12px; font-size: 0.85rem; font-weight: 700; }
+.btn-confirm:hover { background: rgba(76,175,80,0.2); box-shadow: 0 0 20px rgba(76,175,80,0.2); }
+.btn-cancel { flex: 1; min-width: 100px; background: rgba(244,67,54,0.1); border-color: rgba(244,67,54,0.3); color: #f44336; padding: 12px; font-size: 0.85rem; }
 .btn-cancel:hover { background: rgba(244,67,54,0.2); }
 .delete-form { margin: 0; display: inline; }
 .btn-delete { background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3); color: #f44336; width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1rem; transition: 0.3s; padding: 0; }
