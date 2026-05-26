@@ -49,6 +49,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT, phone TEXT UNIQUE, password TEXT,
             points INTEGER DEFAULT 0, is_admin INTEGER DEFAULT 0,
+            is_blocked INTEGER DEFAULT 0, block_reason TEXT,
             referral_code TEXT, referred_by TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS products (
@@ -86,6 +87,12 @@ def init_db():
             phone TEXT, code TEXT, expires_at TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
+        CREATE TABLE IF NOT EXISTS blocked_customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            phone TEXT UNIQUE, name TEXT,
+            reason TEXT, blocked_by TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
     ''')
     db.commit()
 
@@ -98,6 +105,12 @@ def admin_required(f):
             return redirect('/products')
         return f(*args, **kwargs)
     return decorated_function
+
+def check_blocked(phone):
+    """التحقق إذا العميل محظور"""
+    db = get_db()
+    blocked = db.execute("SELECT * FROM blocked_customers WHERE phone = ?", (phone,)).fetchone()
+    return blocked
 
 def generate_code(length=4):
     return ''.join(random.choices(string.digits, k=length))
@@ -174,6 +187,12 @@ def reserve():
     customer_name = request.form.get('customer_name', '').strip()
     phone = request.form.get('phone', '').strip()
     
+    # التحقق من الحظر
+    blocked = check_blocked(phone)
+    if blocked:
+        flash(f'⛔ عذراً، هذا الرقم محظور. السبب: {blocked["reason"]}', 'error')
+        return redirect(url_for('product_detail', product_id=product_id))
+    
     if not all([product_id, customer_name, phone]):
         flash('يرجى إدخال الاسم ورقم الهاتف', 'error')
         return redirect(url_for('product_detail', product_id=product_id))
@@ -237,10 +256,9 @@ def admin_verify():
     if password == ADMIN_PASSWORD:
         session['is_admin'] = True
         session.permanent = True
-        return redirect('/admin/dashboard')
+        return jsonify({'success': True})
     else:
-        flash('كلمة السر غير صحيحة', 'error')
-        return redirect('/products')
+        return jsonify({'success': False}), 403
 
 @app.route('/admin/logout')
 def admin_logout():
@@ -258,7 +276,8 @@ def admin_dashboard():
         'pending_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='pending'").fetchone()['c'],
         'confirmed_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='confirmed'").fetchone()['c'],
         'cancelled_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='cancelled'").fetchone()['c'],
-        'low_stock': db.execute("SELECT COUNT(*) as c FROM products WHERE stock <= 2").fetchone()['c']
+        'low_stock': db.execute("SELECT COUNT(*) as c FROM products WHERE stock <= 2").fetchone()['c'],
+        'blocked_customers': db.execute("SELECT COUNT(*) as c FROM blocked_customers").fetchone()['c']
     }
     
     recent_reservations = db.execute('''
@@ -458,6 +477,50 @@ def delete_reservation(res_id):
     db.commit()
     flash('🗑️ تم حذف الحجز نهائياً', 'success')
     return redirect(url_for('admin_reservations'))
+
+# ==================== BLOCK CUSTOMERS ====================
+
+@app.route('/admin/blocked')
+@admin_required
+def blocked_customers():
+    db = get_db()
+    blocked = db.execute("SELECT * FROM blocked_customers ORDER BY created_at DESC").fetchall()
+    return render_template('admin/blocked.html', blocked=blocked, shop_name=SHOP_NAME)
+
+@app.route('/admin/block/add', methods=['POST'])
+@admin_required
+def add_blocked():
+    db = get_db()
+    phone = request.form.get('phone', '').strip()
+    name = request.form.get('name', '').strip()
+    reason = request.form.get('reason', '').strip()
+    
+    if not phone:
+        flash('يرجى إدخال رقم الهاتف', 'error')
+        return redirect(url_for('blocked_customers'))
+    
+    try:
+        db.execute('''
+            INSERT INTO blocked_customers (phone, name, reason, blocked_by)
+            VALUES (?, ?, ?, ?)
+        ''', (phone, name, reason, session.get('admin_phone', 'Admin')))
+        db.commit()
+        flash(f'⛅ تم حظر العميل {phone} بنجاح', 'success')
+    except sqlite3.IntegrityError:
+        flash('هذا الرقم محظور مسبقاً', 'warning')
+    
+    return redirect(url_for('blocked_customers'))
+
+@app.route('/admin/block/remove/<int:block_id>')
+@admin_required
+def remove_blocked(block_id):
+    db = get_db()
+    blocked = db.execute("SELECT * FROM blocked_customers WHERE id = ?", (block_id,)).fetchone()
+    if blocked:
+        db.execute("DELETE FROM blocked_customers WHERE id = ?", (block_id,))
+        db.commit()
+        flash(f'✅ تم إلغاء حظر {blocked["phone"]}', 'success')
+    return redirect(url_for('blocked_customers'))
 
 # ==================== API ROUTES ====================
 

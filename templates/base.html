@@ -63,75 +63,63 @@
         .flash-warning { background: rgba(255, 136, 0, 0.15); border: 1px solid rgba(255, 136, 0, 0.3); color: #ff8800; }
         .flash-info { background: rgba(33, 150, 243, 0.15); border: 1px solid rgba(33, 150, 243, 0.3); color: #2196f3; }
         
-        /* Location Modal */
-        .location-modal {
-            display: none;
+        /* Admin Lock Button - Top Right Corner */
+        .admin-lock {
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .location-modal.active { display: flex; }
-        
-        .location-content {
-            background: #0a0a0a;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            background: rgba(212, 175, 55, 0.1);
             border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 20px;
-            width: 100%;
-            max-width: 400px;
-            overflow: hidden;
-        }
-        
-        .location-header {
-            background: #d4af37;
-            color: #000;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .location-header h3 { font-size: 16px; font-weight: 700; }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            color: #000;
-            font-size: 20px;
-            cursor: pointer;
-        }
-        
-        .location-body { padding: 20px; }
-        
-        .location-text {
-            font-size: 14px;
-            color: rgba(255,255,255,0.7);
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
-        
-        .location-actions { display: flex; gap: 10px; }
-        
-        .loc-btn {
-            flex: 1;
-            padding: 12px;
             border-radius: 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(212, 175, 55, 0.5);
+            font-size: 16px;
             cursor: pointer;
+            z-index: 998;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
         
-        .loc-btn.primary { background: #d4af37; color: #000; }
-        .loc-btn.secondary { background: transparent; color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); }
+        .admin-lock:hover {
+            background: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            border-color: #d4af37;
+            transform: scale(1.1);
+        }
+        
+        /* Location Button - Top Left Corner */
+        .location-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            width: 36px;
+            height: 36px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(212, 175, 55, 0.5);
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 998;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        
+        .location-btn:hover {
+            background: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            border-color: #d4af37;
+            transform: scale(1.1);
+        }
         
         /* Admin Secret Modal */
         .secret-modal {
@@ -247,21 +235,139 @@
             display: none;
         }
         
-        /* Progress ring for long press */
-        .press-ring {
-            position: fixed;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid rgba(212, 175, 55, 0.3);
-            border-top-color: #d4af37;
-            pointer-events: none;
-            z-index: 99998;
+        /* Location Elegant Modal */
+        .location-modal {
             display: none;
-            animation: spin 1s linear infinite;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .location-modal.active { display: flex; }
+        
+        .location-content {
+            background: #0a0a0a;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 380px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .location-content::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: #d4af37;
+        }
+        
+        .location-header {
+            background: #0a0a0a;
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .location-shop-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .location-shop-name {
+            font-size: 22px;
+            font-weight: 800;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+        
+        .location-tagline {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .location-body {
+            padding: 25px 20px;
+            text-align: center;
+        }
+        
+        .location-address {
+            font-size: 16px;
+            color: rgba(255,255,255,0.8);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .location-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #d4af37;
+            margin-bottom: 20px;
+        }
+        
+        .location-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .loc-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .loc-btn.primary {
+            background: #d4af37;
+            color: #000;
+        }
+        
+        .loc-btn.primary:hover {
+            background: #e8c547;
+            transform: translateY(-2px);
+        }
+        
+        .loc-btn.secondary {
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .loc-btn.secondary:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            color: #d4af37;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+        }
         
         /* Bottom Navigation */
         .bottom-nav {
@@ -300,7 +406,7 @@
         .nav-item:hover { color: #d4af37; }
         .nav-icon { font-size: 22px; line-height: 1; }
         
-        /* Developer Footer - LONG PRESS TARGET */
+        /* Developer Footer */
         .dev-footer {
             text-align: center;
             padding: 15px;
@@ -315,33 +421,6 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .dev-name:active, .dev-name.pressing {
-            background: rgba(233, 30, 140, 0.1);
-            transform: scale(0.95);
-        }
-        
-        .dev-name::after {
-            content: '👆 اضغط مطولاً';
-            position: absolute;
-            top: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 9px;
-            color: rgba(255,255,255,0.2);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            white-space: nowrap;
-        }
-        
-        .dev-name:hover::after {
-            opacity: 1;
         }
         
         .dev-links {
@@ -359,32 +438,6 @@
         }
         
         .dev-links a:hover { color: #e91e8c; transform: scale(1.2); }
-        
-        /* Location FAB */
-        .location-fab {
-            position: fixed;
-            bottom: 80px;
-            left: 15px;
-            width: 45px; height: 45px;
-            background: rgba(212, 175, 55, 0.15);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #d4af37;
-            font-size: 20px;
-            cursor: pointer;
-            z-index: 998;
-            backdrop-filter: blur(10px);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .location-fab:hover {
-            background: rgba(212, 175, 55, 0.3);
-            transform: scale(1.1);
-        }
         
         .content-wrapper { min-height: 100vh; padding-bottom: 20px; }
     </style>
@@ -407,50 +460,58 @@
     {% endif %}
     {% endwith %}
     
-    <!-- Location Modal -->
-    <div class="location-modal" id="locationModal">
-        <div class="location-content">
-            <div class="location-header">
-                <h3>📍 موقع المحل</h3>
-                <button class="close-modal" onclick="closeLocation()">✕</button>
-            </div>
-            <div class="location-body">
-                <div class="location-text">
-                    <strong style="color:#d4af37;">{{ shop_name }}</strong><br>
-                    {{ shop_location }}
-                </div>
-                <div class="location-actions">
-                    <a href="https://maps.google.com/?q={{ shop_location|urlencode }}" class="loc-btn primary" target="_blank">🗺️ فتح في الخرائط</a>
-                    <button class="loc-btn secondary" onclick="closeLocation()">إغلاق</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Admin Lock Button -->
+    <a href="#" class="admin-lock" onclick="openSecret(); return false;" title="لوحة التحكم">🔒</a>
+    
+    <!-- Location Button -->
+    <a href="#" class="location-btn" onclick="openLocation(); return false;" title="موقع المحل">📍</a>
     
     <!-- Admin Secret Modal -->
     <div class="secret-modal" id="secretModal">
         <div class="secret-content">
             <button class="secret-close" onclick="closeSecret()">✕</button>
             <div class="secret-icon">👑</div>
-            <div class="secret-title">وضع الأدمن</div>
-            <div class="secret-hint">أدخل كلمة السر المتفق عليها</div>
+            <div class="secret-title">لوحة التحكم</div>
+            <div class="secret-hint">أدخل كلمة السر</div>
             <input type="password" class="secret-input" id="secretPass" placeholder="•••••" maxlength="10">
-            <button class="secret-btn" onclick="checkSecret()">🔓 فتح</button>
+            <button class="secret-btn" onclick="checkSecret()">🔓 دخول</button>
             <div class="secret-error" id="secretError">❌ كلمة السر غير صحيحة</div>
         </div>
     </div>
     
-    <!-- Location FAB -->
-    <a href="#" class="location-fab" onclick="openLocation(); return false;">📍</a>
+    <!-- Location Elegant Modal -->
+    <div class="location-modal" id="locationModal">
+        <div class="location-content">
+            <button class="close-modal" onclick="closeLocation()">✕</button>
+            <div class="location-header">
+                <div class="location-shop-icon">🏪</div>
+                <div class="location-shop-name">محل الراشد للجوالات</div>
+                <div class="location-tagline">خيارك الأفضل ✅</div>
+            </div>
+            <div class="location-body">
+                <div class="location-badge">🌐 موقعنا</div>
+                <div class="location-address">
+                    المهرة - الغيضة<br>
+                    الهنجر - سوق بن خودم
+                </div>
+                <div class="location-actions">
+                    <a href="https://maps.google.com/?q=المهرة+الغيضة+الهنجر+سوق+بن+خودم" class="loc-btn primary" target="_blank">
+                        🗺️ فتح في الخرائط
+                    </a>
+                    <button class="loc-btn secondary" onclick="closeLocation()">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
     
     <!-- Main Content -->
     <div class="content-wrapper">
         {% block content %}{% endblock %}
     </div>
     
-    <!-- Developer Footer - LONG PRESS TO ENTER ADMIN -->
+    <!-- Developer Footer -->
     <div class="dev-footer">
-        <div class="dev-name" id="devName">
+        <div class="dev-name">
             ✨ الهاشمي محمد ✨
         </div>
         <div class="dev-links">
@@ -486,18 +547,7 @@
     </nav>
     
     <script>
-        // Location Modal
-        function openLocation() {
-            document.getElementById('locationModal').classList.add('active');
-        }
-        function closeLocation() {
-            document.getElementById('locationModal').classList.remove('active');
-        }
-        document.getElementById('locationModal').addEventListener('click', function(e) {
-            if (e.target === this) closeLocation();
-        });
-        
-        // Secret Admin Modal
+        // Admin Secret
         function openSecret() {
             document.getElementById('secretModal').classList.add('active');
             setTimeout(() => document.getElementById('secretPass').focus(), 100);
@@ -507,75 +557,36 @@
             document.getElementById('secretPass').value = '';
             document.getElementById('secretError').style.display = 'none';
         }
-        document.getElementById('secretModal').addEventListener('click', function(e) {
-            if (e.target === this) closeSecret();
-        });
-        
-        // Check password
         function checkSecret() {
             const pass = document.getElementById('secretPass').value;
             if (pass === '78323') {
-                window.location.href = '/admin/dashboard';
+                fetch('/admin/verify', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'password=' + encodeURIComponent(pass)
+                }).then(() => window.location.href = '/admin/dashboard');
             } else {
                 document.getElementById('secretError').style.display = 'block';
                 document.getElementById('secretPass').value = '';
                 document.getElementById('secretPass').focus();
             }
         }
-        
-        // Enter key in password field
         document.getElementById('secretPass').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') checkSecret();
         });
+        document.getElementById('secretModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSecret();
+        });
         
-        // Long Press on Developer Name
-        const devName = document.getElementById('devName');
-        let pressTimer;
-        let isPressing = false;
-        
-        function startPress(e) {
-            if (e.type === 'touchstart') e.preventDefault();
-            isPressing = true;
-            devName.classList.add('pressing');
-            
-            pressTimer = setTimeout(() => {
-                if (isPressing) {
-                    openSecret();
-                    isPressing = false;
-                    devName.classList.remove('pressing');
-                }
-            }, 800); // 0.8 seconds long press
+        // Location Modal
+        function openLocation() {
+            document.getElementById('locationModal').classList.add('active');
         }
-        
-        function cancelPress() {
-            isPressing = false;
-            devName.classList.remove('pressing');
-            clearTimeout(pressTimer);
+        function closeLocation() {
+            document.getElementById('locationModal').classList.remove('active');
         }
-        
-        // Touch events (mobile)
-        devName.addEventListener('touchstart', startPress, {passive: false});
-        devName.addEventListener('touchend', cancelPress);
-        devName.addEventListener('touchmove', cancelPress);
-        
-        // Mouse events (desktop)
-        devName.addEventListener('mousedown', startPress);
-        devName.addEventListener('mouseup', cancelPress);
-        devName.addEventListener('mouseleave', cancelPress);
-        
-        // Triple click fallback (desktop)
-        let clickCount = 0;
-        let clickTimer;
-        devName.addEventListener('click', function() {
-            clickCount++;
-            if (clickCount === 1) {
-                clickTimer = setTimeout(() => { clickCount = 0; }, 500);
-            }
-            if (clickCount === 3) {
-                clearTimeout(clickTimer);
-                clickCount = 0;
-                openSecret();
-            }
+        document.getElementById('locationModal').addEventListener('click', function(e) {
+            if (e.target === this) closeLocation();
         });
     </script>
     

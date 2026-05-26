@@ -131,17 +131,10 @@
             color: rgba(255,255,255,0.4);
         }
         
-        .stat-card.warning::before {
-            background: #ff8800;
-        }
-        
-        .stat-card.success::before {
-            background: #00c853;
-        }
-        
-        .stat-card.danger::before {
-            background: #ff4444;
-        }
+        .stat-card.warning::before { background: #ff8800; }
+        .stat-card.success::before { background: #00c853; }
+        .stat-card.danger::before { background: #ff4444; }
+        .stat-card.info::before { background: #2196f3; }
         
         /* Quick Actions */
         .actions-section {
@@ -295,7 +288,7 @@
             margin-bottom: 10px;
         }
         
-        /* Bottom padding for mobile */
+        /* Bottom padding */
         .bottom-padding {
             height: 30px;
         }
@@ -337,6 +330,12 @@
             <div class="stat-value">{{ stats.low_stock }}</div>
             <div class="stat-label">منتجات منخفضة</div>
         </div>
+        
+        <div class="stat-card info">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-value">{{ stats.blocked_customers }}</div>
+            <div class="stat-label">عملاء محظورين</div>
+        </div>
     </div>
     
     <!-- Quick Actions -->
@@ -353,13 +352,13 @@
                 <span class="action-icon">📋</span>
                 <span class="action-text">الحجوزات</span>
             </a>
+            <a href="/admin/blocked" class="action-btn">
+                <span class="action-icon">🚫</span>
+                <span class="action-text">حظر العملاء</span>
+            </a>
             <a href="/products" class="action-btn">
                 <span class="action-icon">🏪</span>
                 <span class="action-text">عرض المتجر</span>
-            </a>
-            <a href="/admin/reservations?status=pending" class="action-btn">
-                <span class="action-icon">🔔</span>
-                <span class="action-text">حجوزات جديدة</span>
             </a>
         </div>
     </div>
