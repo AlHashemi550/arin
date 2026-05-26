@@ -2,12 +2,14 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>المنتجات - AREEN</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 80px; }
+        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 100px; }
+        
         .header { 
             background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
             padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
@@ -29,7 +31,7 @@
             border-radius: 10px; color: #fff; font-family: 'Cairo', sans-serif;
         }
         option { background: #1a1a1a; }
-        textarea { min-height: 80px; }
+        textarea { min-height: 60px; }
         .image-section {
             border: 2px dashed rgba(212,175,55,0.3);
             border-radius: 15px; padding: 20px; text-align: center; margin: 15px 0;
@@ -66,20 +68,28 @@
             padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.8em;
         }
         .p-btn-delete { background: #dc3545; color: #fff; }
+        .p-btn-view { background: #444; color: #fff; text-decoration: none; }
         
         .rare-badge {
             display: inline-block; background: linear-gradient(135deg, #d4af37, #b8941f);
             color: #000; padding: 2px 10px; border-radius: 20px; font-size: 0.75em; margin-right: 5px;
         }
         
+        .seo-section {
+            margin-top: 15px; padding: 15px;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed rgba(212,175,55,0.2);
+            border-radius: 10px;
+        }
+        .seo-title { color: #888; font-size: 0.9em; margin-bottom: 10px; }
+        
         .dev-footer {
             text-align: center; padding: 20px;
-            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
         }
         .dev-name {
             font-size: 1.1em; font-weight: 700;
-            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            color: #e91e8c;
+            text-shadow: 0 0 20px rgba(233,30,140,0.5);
         }
         
         .exit-btn {
@@ -87,6 +97,15 @@
             background: linear-gradient(135deg, #d4af37, #b8941f);
             color: #000; padding: 12px 40px; border-radius: 30px;
             font-weight: 700; cursor: pointer; border: none; z-index: 1000;
+        }
+        
+        .success-msg {
+            display: none;
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(40,167,69,0.95);
+            color: #fff; padding: 30px 50px; border-radius: 20px;
+            font-size: 1.2em; font-weight: 700; z-index: 3000;
+            text-align: center;
         }
         
         #cameraModal {
@@ -105,13 +124,13 @@
 </head>
 <body>
     <div class="header">
-        <a href="{{ url_for('admin_dashboard') }}" class="back">→</a>
+        <a href="/admin" class="back">→</a>
         <h1>📦 إدارة المنتجات</h1>
     </div>
 
     <div class="add-form">
         <div class="form-title">➕ إضافة منتج جديد</div>
-        <form method="POST" id="productForm">
+        <form id="productForm" method="POST" action="/admin/products">
             <input type="text" name="name" placeholder="اسم المنتج" required>
             <div class="form-row">
                 <select name="category" required>
@@ -140,6 +159,12 @@
             </div>
             <textarea name="description" placeholder="وصف المنتج..."></textarea>
             
+            <div class="seo-section">
+                <div class="seo-title">🔍 SEO (اختياري)</div>
+                <input type="text" name="seo_title" placeholder="عنوان لمحركات البحث">
+                <input type="text" name="seo_desc" placeholder="وصف لمحركات البحث (160 حرف)">
+            </div>
+            
             <div class="image-section">
                 <div style="color:#d4af37;margin-bottom:10px;">📸 صورة المنتج</div>
                 <button type="button" class="img-btn img-btn-camera" onclick="openCamera()">📷 كاميرا</button>
@@ -150,8 +175,13 @@
                 <input type="hidden" name="image_data" id="imageData">
             </div>
             
-            <button type="submit" class="btn-add" onclick="playSound()">✨ إضافة المنتج + إشعار العملاء</button>
+            <button type="submit" class="btn-add" onclick="return submitForm(event)">✨ إضافة المنتج + إشعار العملاء</button>
         </form>
+    </div>
+
+    <div id="successMsg" class="success-msg">
+        ✅ تم إضافة المنتج بنجاح!<br>
+        <span style="font-size:0.8em;">جارِ التحديث...</span>
     </div>
 
     {% if products %}
@@ -175,7 +205,8 @@
                     {% if p.old_price %}<<del style="color:#666;margin-right:10px;">{{ p.old_price }}</del>{% endif %}
                 </div>
                 <div class="product-actions">
-                    <button class="p-btn p-btn-delete" onclick="deleteProduct({{ p.id }})">🗑️ حذف نهائي</button>
+                    <a href="/product/{{ p.id }}" class="p-btn p-btn-view" target="_blank">👁️ عرض</a>
+                    <button class="p-btn p-btn-delete" onclick="deleteProduct({{ p.id }})">🗑️ حذف</button>
                 </div>
             </div>
         </div>
@@ -188,7 +219,6 @@
 
     <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
 
-    <!-- Camera Modal -->
     <div id="cameraModal">
         <div class="camera-box">
             <video id="video" autoplay playsinline></video>
@@ -200,30 +230,32 @@
     </div>
 
     <script>
-        let stream = null;
+        var stream = null;
         
         function openCamera() {
             document.getElementById('cameraModal').style.display = 'flex';
             navigator.mediaDevices.getUserMedia({video: {facingMode: 'environment'}})
-            .then(s => {
+            .then(function(s) {
                 stream = s;
                 document.getElementById('video').srcObject = s;
             })
-            .catch(err => alert('لا يمكن فتح الكاميرا: ' + err));
+            .catch(function(err) {
+                alert('لا يمكن فتح الكاميرا: ' + err);
+            });
         }
         
         function closeCamera() {
-            if(stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            if(stream) { stream.getTracks().forEach(function(t) { t.stop(); }); stream = null; }
             document.getElementById('cameraModal').style.display = 'none';
         }
         
         function capture() {
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
+            var video = document.getElementById('video');
+            var canvas = document.getElementById('canvas');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             canvas.getContext('2d').drawImage(video, 0, 0);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            var dataUrl = canvas.toDataURL('image/jpeg', 0.8);
             document.getElementById('imageData').value = dataUrl;
             document.getElementById('preview').src = dataUrl;
             document.getElementById('preview').style.display = 'block';
@@ -231,9 +263,9 @@
         }
         
         function loadFile(event) {
-            const file = event.target.files[0];
+            var file = event.target.files[0];
             if(!file) return;
-            const reader = new FileReader();
+            var reader = new FileReader();
             reader.onload = function(e) {
                 document.getElementById('imageData').value = e.target.result;
                 document.getElementById('preview').src = e.target.result;
@@ -242,19 +274,57 @@
             reader.readAsDataURL(file);
         }
         
+        function submitForm(e) {
+            e.preventDefault();
+            var form = document.getElementById('productForm');
+            var formData = new FormData(form);
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/admin/products', true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        var data = JSON.parse(xhr.responseText);
+                        if(data.success) {
+                            document.getElementById('successMsg').style.display = 'block';
+                            setTimeout(function() {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            alert('خطأ: ' + data.message);
+                        }
+                    } else {
+                        // Fallback: submit normally
+                        form.submit();
+                    }
+                }
+            };
+            
+            xhr.send(formData);
+            return false;
+        }
+        
         function deleteProduct(id) {
             if(!confirm('حذف المنتج نهائياً؟')) return;
-            fetch('/admin/product/delete/' + id, {method: 'POST'})
-            .then(r => r.json())
-            .then(data => { if(data.success) location.reload(); });
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/admin/product/delete/' + id, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    if(data.success) location.reload();
+                }
+            };
+            xhr.send(JSON.stringify({}));
         }
         
         function playSound() {
-            // Simple beep using Web Audio API
             try {
-                const ctx = new AudioContext();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
+                var ctx = new AudioContext();
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
                 osc.connect(gain); gain.connect(ctx.destination);
                 osc.frequency.value = 800; gain.gain.value = 0.3;
                 osc.start(); osc.stop(ctx.currentTime + 0.3);
