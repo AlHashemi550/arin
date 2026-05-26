@@ -233,6 +233,13 @@ def register():
         try:
             db = get_db()
             existing = db.execute('SELECT * FROM users WHERE phone = ?', (clean_phone,)).fetchone()
+            
+            # ✅ إذا رقم أدمن وموجود - ما يسمح بالتسجيل مرة ثانية
+            if existing and clean_phone in ADMIN_PHONES:
+                flash('هذا الرقم مسجل كأدمن. استخدم تسجيل الدخول مباشرة', 'error')
+                return redirect(url_for('login'))
+            
+            # ✅ إذا رقم عادي وموجود
             if existing:
                 flash('رقم الهاتف مسجل مسبقاً', 'error')
                 return redirect(url_for('register'))
