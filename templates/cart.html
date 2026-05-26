@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عربة التسوق - AREEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 150px; }
+        
+        .header {
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header h1 { color: #d4af37; }
+        .back { position: absolute; left: 20px; top: 20px; color: #d4af37; text-decoration: none; font-size: 1.5em; }
+        
+        .cart-icon {
+            position: fixed; top: 20px; right: 20px; z-index: 200;
+            background: rgba(212,175,55,0.2); border: 1px solid #d4af37;
+            width: 45px; height: 45px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; text-decoration: none; color: #d4af37;
+        }
+        .cart-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #e91e8c; color: #fff; width: 22px; height: 22px;
+            border-radius: 50%; font-size: 0.75em; display: flex;
+            align-items: center; justify-content: center; font-weight: 700;
+        }
+        
+        .empty-cart {
+            text-align: center; padding: 60px 20px;
+        }
+        .empty-cart-icon { font-size: 5em; margin-bottom: 20px; opacity: 0.5; }
+        .empty-cart-text { color: #888; font-size: 1.2em; }
+        .shop-btn {
+            display: inline-block; margin-top: 20px; padding: 12px 30px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; text-decoration: none; border-radius: 25px;
+            font-weight: 700;
+        }
+        
+        .cart-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; margin: 15px; padding: 15px;
+            display: flex; gap: 15px; align-items: center;
+        }
+        .item-img {
+            width: 80px; height: 80px; border-radius: 10px;
+            object-fit: cover; background: rgba(255,255,255,0.05);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .item-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+        .item-info { flex: 1; }
+        .item-name { color: #d4af37; font-weight: 700; }
+        .item-price { color: #e91e8c; margin-top: 5px; }
+        .item-old { color: #666; text-decoration: line-through; font-size: 0.85em; }
+        
+        .qty-control {
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.05); border-radius: 10px; padding: 5px;
+        }
+        .qty-btn {
+            width: 35px; height: 35px; border-radius: 8px; border: none;
+            background: #d4af37; color: #000; font-size: 1.2em; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .qty-num { color: #fff; font-weight: 700; min-width: 30px; text-align: center; }
+        
+        .remove-btn {
+            background: #dc3545; color: #fff; border: none;
+            width: 35px; height: 35px; border-radius: 8px; cursor: pointer;
+            font-size: 1.2em;
+        }
+        
+        .coupon-section {
+            margin: 15px; padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed rgba(212,175,55,0.3);
+            border-radius: 15px;
+        }
+        .coupon-title { color: #d4af37; margin-bottom: 10px; }
+        .coupon-row { display: flex; gap: 10px; }
+        .coupon-row input {
+            flex: 1; padding: 12px; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(212,175,55,0.3); border-radius: 10px;
+            color: #fff; text-align: center;
+        }
+        .coupon-row button {
+            padding: 12px 20px; background: #d4af37; border: none;
+            border-radius: 10px; color: #000; font-weight: 700; cursor: pointer;
+        }
+        .coupon-applied { color: #28a745; margin-top: 10px; }
+        
+        .summary {
+            margin: 15px; padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px;
+        }
+        .summary-row { display: flex; justify-content: space-between; padding: 8px 0; color: #ccc; }
+        .summary-row.total { border-top: 2px solid #d4af37; margin-top: 10px; padding-top: 15px; }
+        .summary-row.total .val { color: #d4af37; font-size: 1.3em; font-weight: 700; }
+        
+        .checkout-btn {
+            margin: 15px; width: calc(100% - 30px); padding: 18px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 15px; color: #000;
+            font-size: 1.2em; font-weight: 700; cursor: pointer;
+            box-shadow: 0 5px 20px rgba(212,175,55,0.3);
+        }
+        
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center;
+        }
+        .modal-box {
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            border: 2px solid #d4af37; border-radius: 20px;
+            padding: 30px; width: 90%; max-width: 400px;
+        }
+        .modal-title { color: #d4af37; font-size: 1.3em; margin-bottom: 20px; text-align: center; }
+        .modal-box input, .modal-box select {
+            width: 100%; padding: 15px; margin: 10px 0;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 10px; color: #fff; font-size: 1em;
+        }
+        .modal-box input:focus, .modal-box select:focus { outline: none; border-color: #d4af37; }
+        .modal-btn {
+            width: 100%; padding: 15px; margin-top: 15px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 10px; color: #000;
+            font-weight: 700; cursor: pointer; font-size: 1.1em;
+        }
+        .modal-close { width: 100%; padding: 10px; margin-top: 10px; background: none; border: none; color: #888; cursor: pointer; }
+        
+        .payment-options { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .pay-opt {
+            flex: 1; min-width: 100px; padding: 15px; text-align: center;
+            background: rgba(255,255,255,0.05); border: 2px solid transparent;
+            border-radius: 10px; cursor: pointer; color: #ccc;
+        }
+        .pay-opt.selected { border-color: #d4af37; background: rgba(212,175,55,0.1); color: #d4af37; }
+        
+        .dev-footer {
+            text-align: center; padding: 30px 20px;
+            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
+        }
+        .dev-name {
+            font-size: 1.2em; font-weight: 700;
+            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
+        
+        .exit-btn {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 12px 40px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; border: none; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <a href="/products" class="cart-icon">
+        🛒
+        {% if cart_count > 0 %}<<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+    </a>
+
+    <div class="header">
+        <a href="/products" class="back">→</a>
+        <h1>🛒 عربة التسوق</h1>
+    </div>
+
+    {% if items %}
+        {% for item in items %}
+        <div class="cart-item" id="item-{{ item.id }}">
+            <div class="item-img">
+                {% if item.image %}
+                <img src="{{ item.image }}" alt="{{ item.name }}">
+                {% else %}
+                <span style="font-size:2em;">📦</span>
+                {% endif %}
+            </div>
+            <div class="item-info">
+                <div class="item-name">{{ item.name }}</div>
+                <div class="item-price">
+                    {{ item.price }} {{ item.currency }}
+                    {% if item.old_price %}<<span class="item-old">{{ item.old_price }}</span>{% endif %}
+                </div>
+            </div>
+            <div class="qty-control">
+                <button class="qty-btn" onclick="updateQty({{ item.id }}, {{ item.qty - 1 }})">−</button>
+                <span class="qty-num" id="qty-{{ item.id }}">{{ item.qty }}</span>
+                <button class="qty-btn" onclick="updateQty({{ item.id }}, {{ item.qty + 1 }})">+</button>
+            </div>
+            <button class="remove-btn" onclick="removeItem({{ item.id }})">🗑️</button>
+        </div>
+        {% endfor %}
+
+        <div class="coupon-section">
+            <div class="coupon-title">🎟️ كوبون الخصم</div>
+            <div class="coupon-row">
+                <input type="text" id="couponCode" placeholder="أدخل الكود (مثال: ARIN10)" value="{{ session.get('coupon_code', '') }}">
+                <button onclick="applyCoupon()">تطبيق</button>
+            </div>
+            {% if discount > 0 %}
+            <div class="coupon-applied">✅ خصم {{ discount }}% مطبق</div>
+            {% endif %}
+        </div>
+
+        <div class="summary">
+            <div class="summary-row">
+                <span>المجموع:</span>
+                <span>{{ "%.0f"|format(total) }}</span>
+            </div>
+            {% if discount > 0 %}
+            <div class="summary-row" style="color:#28a745;">
+                <span>خصم ({{ discount }}%):</span>
+                <span>-{{ "%.0f"|format(total * discount / 100) }}</span>
+            </div>
+            {% endif %}
+            <div class="summary-row total">
+                <span>الإجمالي:</span>
+                <span class="val">{{ "%.0f"|format(final_total) }} {{ items[0].currency if items else 'ر.ي' }}</span>
+            </div>
+        </div>
+
+        <button class="checkout-btn" onclick="openCheckout()">✅ إتمام الطلب</button>
+    {% else %}
+        <div class="empty-cart">
+            <div class="empty-cart-icon">🛒</div>
+            <div class="empty-cart-text">عربة التسوق فارغة</div>
+            <a href="/products" class="shop-btn">🛍️ تسوق الآن</a>
+        </div>
+    {% endif %}
+
+    <div class="dev-footer">
+        <div class="dev-name">✨ الهاشمي محمد ✨</div>
+    </div>
+
+    <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
+
+    <!-- Checkout Modal -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal-box">
+            <div class="modal-title">🛒 إتمام الطلب</div>
+            <input type="text" id="chkName" placeholder="👤 الاسم الكامل">
+            <input type="tel" id="chkPhone" placeholder="📱 رقم الهاتف">
+            
+            <div style="color:#d4af37;margin:10px 0;">💳 طريقة الدفع:</div>
+            <div class="payment-options">
+                <div class="pay-opt selected" onclick="selectPay(this, 'cod')">
+                    💵<<br>عند الاستلام
+                </div>
+                <div class="pay-opt" onclick="selectPay(this, 'bank')">
+                    🏦<<br>تحويل بنكي
+                </div>
+                <div class="pay-opt" onclick="selectPay(this, 'online')">
+                    💳<<br>إلكتروني
+                </div>
+            </div>
+            
+            <button class="modal-btn" onclick="submitOrder()">📱 إرسال لواتساب</button>
+            <button class="modal-close" onclick="closeModal()">إلغاء</button>
+        </div>
+    </div>
+
+    <script>
+        let paymentMethod = 'cod';
+        
+        function updateQty(cartId, qty) {
+            fetch('/api/cart/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({cart_id: cartId, qty: qty})
+            }).then(() => location.reload());
+        }
+        
+        function removeItem(cartId) {
+            if(!confirm('حذف من العربة؟')) return;
+            fetch('/api/cart/remove', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({cart_id: cartId})
+            }).then(() => location.reload());
+        }
+        
+        function applyCoupon() {
+            const code = document.getElementById('couponCode').value.trim();
+            fetch('/api/coupon/apply', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({code: code})
+            })
+            .then(r => r.json())
+            .then(data => {
+                alert(data.message);
+                if(data.success) location.reload();
+            });
+        }
+        
+        function openCheckout() {
+            document.getElementById('checkoutModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('checkoutModal').style.display = 'none';
+        }
+        function selectPay(el, method) {
+            document.querySelectorAll('.pay-opt').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            paymentMethod = method;
+        }
+        
+        function submitOrder() {
+            const name = document.getElementById('chkName').value.trim();
+            const phone = document.getElementById('chkPhone').value.trim();
+            
+            if(!name || !phone) {
+                alert('الرجاء إدخال الاسم والرقم');
+                return;
+            }
+            
+            fetch('/api/order/checkout', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name: name, phone: phone, payment: paymentMethod})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    alert(data.message);
+                    closeModal();
+                    setTimeout(() => {
+                        window.open(data.whatsapp_url, '_blank');
+                        location.href = '/products';
+                    }, 1000);
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+        
+        function goHome() { window.location.href = '/'; }
+    </script>
+</body>
+</html>

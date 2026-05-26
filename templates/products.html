@@ -16,6 +16,20 @@
         }
         .header h1 { color: #d4af37; font-size: 1.5em; text-shadow: 0 0 20px rgba(212,175,55,0.5); }
         
+        .cart-icon {
+            position: fixed; top: 20px; right: 20px; z-index: 200;
+            background: rgba(212,175,55,0.2); border: 1px solid #d4af37;
+            width: 45px; height: 45px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; text-decoration: none; color: #d4af37;
+        }
+        .cart-badge {
+            position: absolute; top: -5px; right: -5px;
+            background: #e91e8c; color: #fff; width: 22px; height: 22px;
+            border-radius: 50%; font-size: 0.75em; display: flex;
+            align-items: center; justify-content: center; font-weight: 700;
+        }
+        
         .search-box {
             padding: 15px; display: flex; gap: 10px; max-width: 600px; margin: 0 auto;
         }
@@ -49,6 +63,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(212,175,55,0.2);
             border-radius: 15px; overflow: hidden; transition: all 0.3s;
+            position: relative;
         }
         .product-card:hover { transform: translateY(-5px); border-color: #d4af37; }
         
@@ -79,14 +94,19 @@
         .status-pending { background: #ffc107; color: #000; }
         .status-reserved { background: #dc3545; color: #fff; }
         
-        .reserve-btn {
-            width: 100%; padding: 12px; margin-top: 10px;
-            background: linear-gradient(135deg, #d4af37, #b8941f);
-            border: none; border-radius: 10px; color: #000;
-            font-weight: 700; cursor: pointer; transition: all 0.3s;
+        .card-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-cart {
+            flex: 1; padding: 10px; background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 8px; color: #000; font-weight: 700; cursor: pointer;
+            font-size: 0.9em;
         }
-        .reserve-btn:hover { box-shadow: 0 5px 20px rgba(212,175,55,0.4); }
-        .reserve-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        .btn-view {
+            padding: 10px 12px; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(212,175,55,0.3); border-radius: 8px;
+            color: #d4af37; text-decoration: none; font-size: 0.85em;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-cart:disabled { background: #444; color: #888; cursor: not-allowed; }
         
         .notify-btn {
             width: 100%; padding: 12px; margin-top: 10px;
@@ -95,7 +115,7 @@
         }
         
         .location-icon {
-            position: fixed; top: 20px; right: 20px; z-index: 200;
+            position: fixed; top: 20px; left: 20px; z-index: 200;
             background: rgba(212,175,55,0.2); border: 1px solid #d4af37;
             width: 45px; height: 45px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -103,38 +123,11 @@
         }
         
         .admin-lock {
-            position: fixed; top: 20px; left: 20px; z-index: 200;
+            position: fixed; top: 75px; left: 20px; z-index: 200;
             background: rgba(233,30,140,0.2); border: 1px solid #e91e8c;
             width: 45px; height: 45px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.3em; cursor: pointer; text-decoration: none; color: #e91e8c;
-        }
-        
-        /* Modal */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center;
-        }
-        .modal-box {
-            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
-            border: 2px solid #d4af37; border-radius: 20px;
-            padding: 30px; width: 90%; max-width: 400px; text-align: center;
-        }
-        .modal-title { color: #d4af37; font-size: 1.3em; margin-bottom: 20px; }
-        .modal-box input {
-            width: 100%; padding: 15px; margin: 10px 0;
-            background: rgba(255,255,255,0.1); border: 1px solid rgba(212,175,55,0.3);
-            border-radius: 10px; color: #fff; text-align: center; font-size: 1.1em;
-        }
-        .modal-box input:focus { outline: none; border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.3); }
-        .modal-btn {
-            width: 100%; padding: 15px; margin-top: 15px;
-            background: linear-gradient(135deg, #d4af37, #b8941f);
-            border: none; border-radius: 10px; color: #000;
-            font-weight: 700; cursor: pointer; font-size: 1.1em;
-        }
-        .modal-close {
-            margin-top: 10px; color: #888; cursor: pointer; background: none; border: none;
         }
         
         .dev-footer {
@@ -169,6 +162,10 @@
 <body>
     <a href="/location" class="location-icon">📍</a>
     <a href="/admin" class="admin-lock">🔒</a>
+    <a href="/cart" class="cart-icon">
+        🛒
+        {% if cart_count > 0 %}<<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+    </a>
 
     <div class="header">
         <h1>🏪 AREEN - المتجر الذكي</h1>
@@ -192,15 +189,17 @@
     <div class="products-grid">
         {% if products %}
             {% for p in products %}
-            <div class="product-card" style="position:relative;">
+            <div class="product-card">
                 {% if p.rare %}<<span class="rare-badge">⭐ نادر</span>{% endif %}
-                <div class="product-img">
-                    {% if p.image %}
-                    <img src="{{ p.image }}" alt="{{ p.name }}">
-                    {% else %}
-                    <span style="font-size:3em;">📦</span>
-                    {% endif %}
-                </div>
+                <a href="/product/{{ p.id }}" style="text-decoration:none;color:inherit;">
+                    <div class="product-img">
+                        {% if p.image %}
+                        <img src="{{ p.image }}" alt="{{ p.name }}">
+                        {% else %}
+                        <span style="font-size:3em;">📦</span>
+                        {% endif %}
+                    </div>
+                </a>
                 <div class="product-body">
                     <div class="product-name">{{ p.name }}</div>
                     <div class="product-desc">{{ p.description or 'لا يوجد وصف' }}</div>
@@ -208,17 +207,19 @@
                         {{ p.price }} {{ p.currency }}
                         {% if p.old_price %}<<span class="product-old-price">{{ p.old_price }}</span>{% endif %}
                     </div>
-                    <div>الكمية: {{ p.quantity }}</div>
                     
                     {% if p.status == 'available' and p.quantity > 0 %}
                         <span class="status-badge status-available">✅ متوفر</span>
-                        <button class="reserve-btn" onclick="openReserveModal({{ p.id }}, '{{ p.name }}', {{ p.price }}, '{{ p.currency }}')">🛒 احجز الآن</button>
+                        <div class="card-actions">
+                            <button class="btn-cart" onclick="addToCart({{ p.id }}, event)">🛒 أضف للعربة</button>
+                            <a href="/product/{{ p.id }}" class="btn-view">👁️</a>
+                        </div>
                     {% elif p.status == 'pending' %}
                         <span class="status-badge status-pending">⏳ حجز معلق</span>
-                        <button class="reserve-btn" disabled>محجوز مؤقتاً</button>
+                        <button class="btn-cart" disabled>محجوز مؤقتاً</button>
                     {% elif p.status == 'reserved' %}
                         <span class="status-badge status-reserved">🔒 محجوز</span>
-                        <button class="reserve-btn" disabled>تم البيع</button>
+                        <button class="btn-cart" disabled>تم البيع</button>
                     {% else %}
                         <span class="status-badge status-reserved">❌ نفذت الكمية</span>
                         <button class="notify-btn" onclick="openNotifyModal({{ p.id }})">🔔 نبهني عند التوفر</button>
@@ -240,33 +241,9 @@
 
     <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
 
-    <!-- Reserve Modal -->
-    <div class="modal-overlay" id="reserveModal">
-        <div class="modal-box">
-            <div class="modal-title">🛒 حجز المنتج</div>
-            <div id="reserveInfo" style="color:#d4af37;margin-bottom:15px;"></div>
-            <input type="text" id="resName" placeholder="👤 اكتب اسمك الكامل">
-            <input type="tel" id="resPhone" placeholder="📱 رقم هاتفك (مثال: 773852062)">
-            <button class="modal-btn" onclick="submitReserve()">✅ تأكيد الحجز</button>
-            <button class="modal-close" onclick="closeModal('reserveModal')">إلغاء</button>
-        </div>
-    </div>
-
-    <!-- Notify Modal -->
-    <div class="modal-overlay" id="notifyModal">
-        <div class="modal-box">
-            <div class="modal-title">🔔 تنبيه عند التوفر</div>
-            <input type="tel" id="notifyPhone" placeholder="📱 رقم هاتفك">
-            <button class="modal-btn" onclick="submitNotify()">✅ إشترك في التنبيه</button>
-            <button class="modal-close" onclick="closeModal('notifyModal')">إلغاء</button>
-        </div>
-    </div>
-
     <div class="notification-toast" id="toast"></div>
 
     <script>
-        let currentProductId = null;
-        
         function filterCat(cat) {
             window.location.href = '/products?category=' + cat + '&search=' + document.getElementById('searchInput').value;
         }
@@ -275,17 +252,18 @@
             window.location.href = '/products?category=' + cat + '&search=' + document.getElementById('searchInput').value;
         }
         
-        function openReserveModal(id, name, price, currency) {
-            currentProductId = id;
-            document.getElementById('reserveInfo').textContent = name + ' - ' + price + ' ' + currency;
-            document.getElementById('reserveModal').style.display = 'flex';
-        }
-        function openNotifyModal(id) {
-            currentProductId = id;
-            document.getElementById('notifyModal').style.display = 'flex';
-        }
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
+        function addToCart(pid, e) {
+            if(e) e.stopPropagation();
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({product_id: pid, qty: 1})
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast(data.message);
+                if(data.success) setTimeout(() => location.reload(), 800);
+            });
         }
         
         function showToast(msg) {
@@ -295,50 +273,16 @@
             setTimeout(() => t.style.display = 'none', 3000);
         }
         
-        function submitReserve() {
-            const name = document.getElementById('resName').value.trim();
-            const phone = document.getElementById('resPhone').value.trim();
-            
-            if(!name || !phone) {
-                alert('الرجاء إدخال الاسم والرقم');
-                return;
-            }
-            
-            fetch('/api/reserve', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({product_id: currentProductId, name: name, phone: phone})
-            })
-            .then(r => r.json())
-            .then(data => {
-                if(data.success) {
-                    showToast(data.message);
-                    closeModal('reserveModal');
-                    // Open WhatsApp after 1 second
-                    setTimeout(() => {
-                        window.open(data.whatsapp_url, '_blank');
-                        location.reload();
-                    }, 1000);
-                } else {
-                    alert(data.message);
-                }
-            });
-        }
-        
-        function submitNotify() {
-            const phone = document.getElementById('notifyPhone').value.trim();
-            if(!phone) { alert('الرجاء إدخال الرقم'); return; }
-            
+        function openNotifyModal(pid) {
+            const phone = prompt('📱 أدخل رقم هاتفك للتنبيه:');
+            if(!phone) return;
             fetch('/api/notify-me', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({product_id: currentProductId, phone: phone})
+                body: JSON.stringify({product_id: pid, phone: phone})
             })
             .then(r => r.json())
-            .then(data => {
-                showToast(data.message);
-                closeModal('notifyModal');
-            });
+            .then(data => showToast(data.message));
         }
         
         function goHome() { window.location.href = '/'; }
