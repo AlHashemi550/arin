@@ -1,522 +1,669 @@
-{% extends "base.html" %}
-
-{% block title %}المتجر - أرين{% endblock %}
-
-{% block extra_css %}
-<style>
-    /* Hero Section */
-    .hero-section {
-        background: #0a0a0a;
-        padding: 15px 0;
-        text-align: center;
-        border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-    }
-    
-    .hero-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #d4af37;
-        margin-bottom: 5px;
-    }
-    
-    .hero-subtitle {
-        font-size: 12px;
-        color: rgba(255,255,255,0.4);
-    }
-    
-    /* Search & Filter Bar */
-    .search-filter-bar {
-        padding: 12px 15px;
-        background: #000;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-    }
-    
-    .search-box {
-        display: flex;
-        align-items: center;
-        background: #0a0a0a;
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        border-radius: 25px;
-        padding: 8px 15px;
-        margin-bottom: 10px;
-    }
-    
-    .search-box input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        color: #fff;
-        font-family: 'Cairo', sans-serif;
-        font-size: 14px;
-        outline: none;
-        text-align: right;
-    }
-    
-    .search-box input::placeholder {
-        color: rgba(255,255,255,0.3);
-    }
-    
-    .search-icon {
-        color: #d4af37;
-        font-size: 18px;
-        margin-left: 10px;
-    }
-    
-    /* Category Chips */
-    .category-chips {
-        display: flex;
-        gap: 8px;
-        overflow-x: auto;
-        padding-bottom: 5px;
-        scrollbar-width: none;
-    }
-    
-    .category-chips::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .chip {
-        flex-shrink: 0;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        background: #0a0a0a;
-        color: rgba(255,255,255,0.6);
-        white-space: nowrap;
-        text-decoration: none;
-    }
-    
-    .chip.active, .chip:hover {
-        background: #d4af37;
-        color: #000;
-        border-color: #d4af37;
-    }
-    
-    /* Products Grid */
-    .products-container {
-        padding: 15px;
-        padding-bottom: 100px;
-    }
-    
-    .products-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    @media (min-width: 768px) {
-        .products-grid {
-            grid-template-columns: repeat(3, 1fr);
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المتجر - أرين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 100px;
         }
-    }
-    
-    @media (min-width: 1024px) {
-        .products-grid {
-            grid-template-columns: repeat(4, 1fr);
+        
+        .header {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-    }
-    
-    /* Product Card */
-    .product-card {
-        background: #0a0a0a;
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 16px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        position: relative;
-    }
-    
-    .product-card:hover, .product-card:active {
-        transform: translateY(-3px);
-        border-color: rgba(212, 175, 55, 0.3);
-        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.1);
-    }
-    
-    .product-image-wrap {
-        position: relative;
-        width: 100%;
-        padding-top: 100%;
-        overflow: hidden;
-        background: #111;
-    }
-    
-    .product-image-wrap img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.4s ease;
-    }
-    
-    .product-card:hover .product-image-wrap img {
-        transform: scale(1.05);
-    }
-    
-    /* No image placeholder when no image */
-    .no-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        background: #0a0a0a;
-        color: rgba(255,255,255,0.2);
-    }
-    
-    .no-image-icon {
-        font-size: 40px;
-        margin-bottom: 8px;
-    }
-    
-    .no-image-text {
-        font-size: 12px;
-    }
-    
-    /* Badges */
-    .badge-rare {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: #d4af37;
-        color: #000;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 8px;
-        z-index: 2;
-    }
-    
-    .badge-out {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.85);
-        color: #ff4444;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 8px 16px;
-        border-radius: 8px;
-        z-index: 2;
-        border: 1px solid #ff4444;
-    }
-    
-    .discount-badge {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        background: #e91e8c;
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 8px;
-        z-index: 2;
-    }
-    
-    /* Product Info */
-    .product-info {
-        padding: 12px;
-    }
-    
-    .product-name {
-        font-size: 13px;
-        font-weight: 600;
-        color: #fff;
-        margin-bottom: 6px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .product-category {
-        font-size: 10px;
-        color: rgba(212, 175, 55, 0.7);
-        margin-bottom: 8px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    
-    .price-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
-    
-    .price-current {
-        font-size: 16px;
-        font-weight: 700;
-        color: #d4af37;
-    }
-    
-    .price-original {
-        font-size: 12px;
-        color: rgba(255,255,255,0.3);
-        text-decoration: line-through;
-    }
-    
-    /* Action Buttons */
-    .product-actions {
-        display: flex;
-        gap: 6px;
-    }
-    
-    .btn-reserve {
-        flex: 1;
-        background: #d4af37;
-        color: #000;
-        border: none;
-        padding: 8px;
-        border-radius: 10px;
-        font-family: 'Cairo', sans-serif;
-        font-size: 12px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-    }
-    
-    .btn-reserve:hover {
-        background: #e8c547;
-        transform: scale(1.02);
-    }
-    
-    .btn-reserve.disabled {
-        background: #333;
-        color: rgba(255,255,255,0.3);
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-    
-    .btn-view {
-        width: 36px;
-        height: 36px;
-        background: rgba(212, 175, 55, 0.1);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        color: #d4af37;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        font-size: 16px;
-    }
-    
-    .btn-view:hover {
-        background: rgba(212, 175, 55, 0.2);
-    }
-    
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: rgba(255,255,255,0.3);
-    }
-    
-    .empty-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
-        opacity: 0.5;
-    }
-    
-    .empty-text {
-        font-size: 16px;
-        margin-bottom: 5px;
-    }
-    
-    /* Admin Quick Access */
-    .admin-bar {
-        background: rgba(212, 175, 55, 0.1);
-        border: 1px solid rgba(212, 175, 55, 0.2);
-        border-radius: 12px;
-        padding: 10px 15px;
-        margin: 10px 15px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    
-    .admin-bar span {
-        color: #d4af37;
-        font-size: 12px;
-        font-weight: 600;
-    }
-    
-    .admin-bar a {
-        color: #d4af37;
-        font-size: 12px;
-        text-decoration: none;
-        padding: 4px 12px;
-        border: 1px solid #d4af37;
-        border-radius: 8px;
-    }
-    
-    /* Stock indicator */
-    .stock-indicator {
-        font-size: 10px;
-        color: rgba(255,255,255,0.4);
-        margin-top: 4px;
-    }
-    
-    .stock-low { color: #ff8800; }
-    .stock-out { color: #ff4444; }
-    
-    /* Delete button for admin ONLY */
-    .btn-delete {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        background: rgba(255, 68, 68, 0.9);
-        color: #fff;
-        border: none;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        font-size: 14px;
-        cursor: pointer;
-        z-index: 3;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-    }
-</style>
-{% endblock %}
+        .header h1 {
+            color: #d4af37;
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+        
+        .search-bar {
+            padding: 15px 20px;
+            background: #0a0a0a;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: #111;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .search-bar input:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+        .search-bar input::placeholder { color: #666; }
+        
+        .categories {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background: #0a0a0a;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: transparent;
+            color: #d4af37;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .cat-btn.active, .cat-btn:hover {
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000;
+            font-weight: 700;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .product-card {
+            background: linear-gradient(145deg, #0a0a0a, #111);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            position: relative;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(212, 175, 55, 0.3);
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.1);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .product-image.placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            color: #333;
+            font-size: 3rem;
+        }
+        
+        .product-info { padding: 15px; }
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .product-desc {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .price-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .price {
+            color: #d4af37;
+            font-size: 1.3rem;
+            font-weight: 900;
+        }
+        .original-price {
+            color: #666;
+            text-decoration: line-through;
+            font-size: 0.95rem;
+        }
+        .currency-badge {
+            background: rgba(212, 175, 55, 0.15);
+            color: #d4af37;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .rare-badge {
+            background: linear-gradient(135deg, #d4af37, #f0d878);
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 900;
+        }
+        .stock-badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .stock-badge.in { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+        .stock-badge.out { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+        .stock-badge.low { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+        
+        .product-actions {
+            display: flex;
+            gap: 10px;
+            padding: 0 15px 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 25px rgba(212, 175, 55, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #d4af37;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+        .btn-secondary:hover {
+            background: rgba(212, 175, 55, 0.1);
+        }
+        .btn-danger {
+            background: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+        }
+        .btn-danger:hover {
+            background: rgba(231, 76, 60, 0.25);
+        }
+        .btn-notify {
+            background: linear-gradient(135deg, #e91e8c, #c2185b);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(233, 30, 140, 0.3);
+        }
+        .btn-notify:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 25px rgba(233, 30, 140, 0.4);
+        }
+        
+        /* زر الأدمن */
+        .admin-lock {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #d4af37;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+        .admin-lock:hover {
+            background: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            transform: scale(1.1);
+        }
+        
+        /* Modal الحجز */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: linear-gradient(145deg, #0a0a0a, #111);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        .modal-title {
+            color: #d4af37;
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        .modal-text {
+            color: #aaa;
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .modal-input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: #111;
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .modal-input:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .modal-buttons .btn { flex: 1; }
+        
+        /* رسالة النجاح */
+        .success-modal .modal-icon { color: #2ecc71; }
+        .success-modal .modal-title { color: #2ecc71; }
+        
+        /* رسالة الخطأ */
+        .error-modal .modal-icon { color: #e74c3c; }
+        .error-modal .modal-title { color: #e74c3c; }
+        
+        .no-products {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .no-products-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #e91e8c;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(233, 30, 140, 0.3);
+        }
+        
+        @media (max-width: 480px) {
+            .products-grid { grid-template-columns: 1fr; padding: 10px; }
+            .header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
 
-{% block content %}
-<!-- Hero -->
-<div class="hero-section">
-    <div class="hero-title">🏪 المتجر</div>
-    <div class="hero-subtitle">{{ shop_name }}</div>
-</div>
+    <!-- زر قفل الأدمن -->
+    <div class="admin-lock" onclick="openAdminModal()" title="لوحة التحكم">
+        🔒
+    </div>
 
-<!-- Admin Quick Access (only for admin) -->
-{% if is_admin %}
-<div class="admin-bar">
-    <span>👑 لوحة التحكم</span>
-    <a href="/admin/dashboard">الدخول</a>
-</div>
-{% endif %}
+    <div class="header">
+        <h1>👑 لوحة التحكم</h1>
+        <p style="color: #888; font-size: 0.85rem; margin-top: 5px;">{{ shop_name }}</p>
+    </div>
 
-<!-- Search & Filter -->
-<div class="search-filter-bar">
-    <form action="/products" method="get" style="margin:0;">
-        <div class="search-box">
-            <input type="text" name="search" placeholder="ابحث عن منتج..." value="{{ search }}">
-            <span class="search-icon">🔍</span>
-        </div>
-    </form>
-    
-    <div class="category-chips">
-        <a href="/products" class="chip {% if current_category == 'all' %}active{% endif %}">الكل</a>
+    <div class="search-bar">
+        <form method="GET" action="{{ url_for('products') }}">
+            <input type="text" name="search" placeholder="🔍 ابحث عن منتج..." value="{{ search or '' }}">
+        </form>
+    </div>
+
+    <div class="categories">
+        <button class="cat-btn {% if current_category == 'all' %}active{% endif %}" onclick="window.location.href='{{ url_for('products', category='all') }}'">الكل</button>
         {% for cat in categories %}
-        <a href="/products?category={{ cat }}&search={{ search }}" class="chip {% if current_category == cat %}active{% endif %}">{{ cat }}</a>
+        <button class="cat-btn {% if current_category == cat %}active{% endif %}" onclick="window.location.href='{{ url_for('products', category=cat) }}'">{{ cat }}</button>
         {% endfor %}
     </div>
-</div>
 
-<!-- Products Grid -->
-<div class="products-container">
-    {% if products %}
     <div class="products-grid">
         {% for product in products %}
-        <div class="product-card">
-            {% if product.is_rare %}
-            <span class="badge-rare">🏆 نادر</span>
+        <div class="product-card" id="product-{{ product.id }}">
+            {% if product.image %}
+            <img src="{{ product.image }}" alt="{{ product.name }}" class="product-image" loading="lazy">
+            {% else %}
+            <div class="product-image placeholder">📱</div>
             {% endif %}
-            
-            {% if product.original_price and product.original_price > product.price %}
-            <span class="discount-badge">
-                -{{ ((product.original_price - product.price) / product.original_price * 100)|int }}%
-            </span>
-            {% endif %}
-            
-            <!-- زر الحذف يظهر فقط للأدمن -->
-            {% if is_admin %}
-            <a href="/admin/product/delete/{{ product.id }}" class="btn-delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">🗑️</a>
-            {% endif %}
-            
-            <div class="product-image-wrap">
-                {% set img_url = get_image_url(product.image) %}
-                <img src="{{ img_url }}" 
-                     alt="{{ product.name }}" 
-                     loading="lazy"
-                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                
-                <div class="no-image" style="display: none;">
-                    <div class="no-image-icon">📷</div>
-                    <div class="no-image-text">لا توجد صورة</div>
-                </div>
-                
-                {% if product.stock <= 0 %}
-                <div class="badge-out">❌ نفذت الكمية</div>
-                {% endif %}
-            </div>
             
             <div class="product-info">
-                <div class="product-category">{{ product.category }}</div>
-                <div class="product-name">{{ product.name }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <span class="currency-badge">{{ product.currency }}</span>
+                    {% if product.is_rare %}
+                    <span class="rare-badge">🏆 نادرة</span>
+                    {% endif %}
+                </div>
+                
+                <h3 class="product-name">{{ product.name }}</h3>
+                <p class="product-desc">{{ product.description or '' }}</p>
                 
                 <div class="price-row">
-                    <span class="price-current">{{ product.price }} {{ product.currency }}</span>
+                    <span class="price">{{ product.price }}</span>
                     {% if product.original_price and product.original_price > product.price %}
-                    <span class="price-original">{{ product.original_price }} {{ product.currency }}</span>
+                    <span class="original-price">{{ product.original_price }}</span>
                     {% endif %}
                 </div>
                 
-                <div class="stock-indicator {% if product.stock <= 2 and product.stock > 0 %}stock-low{% elif product.stock <= 0 %}stock-out{% endif %}">
-                    {% if product.stock > 5 %}✅ متوفر ({{ product.stock }})
-                    {% elif product.stock > 0 %}⚠️ باقي {{ product.stock }}
-                    {% else %}❌ غير متوفر
-                    {% endif %}
-                </div>
-                
-                <div class="product-actions" style="margin-top:10px;">
-                    <a href="/product/{{ product.id }}" class="btn-view">👁️</a>
-                    
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px;">
                     {% if product.stock > 0 %}
-                    <a href="/product/{{ product.id }}#reserve" class="btn-reserve">
-                        🛒 احجز الآن
-                    </a>
+                        {% if product.stock <= 3 %}
+                        <span class="stock-badge low">⚠️ باقي {{ product.stock }}</span>
+                        {% else %}
+                        <span class="stock-badge in">✅ متوفر</span>
+                        {% endif %}
                     {% else %}
-                    <button class="btn-reserve disabled" disabled>
-                        ❌ غير متوفر
-                    </button>
+                    <span class="stock-badge out">❌ نفذت الكمية</span>
                     {% endif %}
                 </div>
             </div>
+            
+            <div class="product-actions">
+                {% if product.stock > 0 %}
+                <button class="btn btn-primary" onclick="openReserveModal({{ product.id }}, '{{ product.name }}', {{ product.price }}, '{{ product.currency }}')">
+                    🛒 احجز الآن
+                </button>
+                {% else %}
+                <button class="btn btn-notify" onclick="notifyMe('{{ product.name }}')">
+                    🔔 نبهني
+                </button>
+                {% endif %}
+                
+                {% if is_admin %}
+                <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}" style="display: inline;" onsubmit="return confirm('هل أنت متأكد من حذف هذا المنتج؟');">
+                    <button type="submit" class="btn btn-danger">🗑️</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="no-products" style="grid-column: 1 / -1;">
+            <div class="no-products-icon">📦</div>
+            <h3 style="color: #d4af37; margin-bottom: 10px;">لا توجد منتجات</h3>
+            <p>سيتم إضافة منتجات جديدة قريباً</p>
         </div>
         {% endfor %}
     </div>
-    {% else %}
-    <div class="empty-state">
-        <div class="empty-icon">📦</div>
-        <div class="empty-text">لا توجد منتجات حالياً</div>
-        <p style="font-size:12px;">سيتم إضافة منتجات جديدة قريباً</p>
+
+    <!-- Modal الحجز -->
+    <div class="modal-overlay" id="reserveModal">
+        <div class="modal-content">
+            <div class="modal-icon">🛒</div>
+            <h3 class="modal-title">تأكيد الحجز</h3>
+            <p class="modal-text" id="reserveProductInfo">منتج</p>
+            <input type="text" class="modal-input" id="reserveName" placeholder="👤 اسمك الكامل" value="{{ session.get('user_name', '') }}">
+            <input type="tel" class="modal-input" id="reservePhone" placeholder="📱 رقم الهاتف" value="{{ session.get('user_phone', '') }}">
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="submitReservation()">✅ تأكيد</button>
+                <button class="btn btn-secondary" onclick="closeModal('reserveModal')">❌ إلغاء</button>
+            </div>
+        </div>
     </div>
-    {% endif %}
-</div>
-{% endblock %}
+
+    <!-- Modal نجاح الحجز -->
+    <div class="modal-overlay success-modal" id="successModal">
+        <div class="modal-content">
+            <div class="modal-icon">✅</div>
+            <h3 class="modal-title">تم إنشاء الحجز!</h3>
+            <p class="modal-text" id="successText">
+                تم إنشاء حجزك بنجاح.<br>
+                سيتم التواصل معك قريباً للتأكيد.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="goToWhatsApp()">📱 واتساب</button>
+                <button class="btn btn-secondary" onclick="closeModal('successModal')">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal خطأ -->
+    <div class="modal-overlay error-modal" id="errorModal">
+        <div class="modal-content">
+            <div class="modal-icon">❌</div>
+            <h3 class="modal-title">خطأ!</h3>
+            <p class="modal-text" id="errorText">حدث خطأ أثناء إنشاء الحجز</p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeModal('errorModal')">حاول مجدداً</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal تسجيل الدخول -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-icon">🔐</div>
+            <h3 class="modal-title">تسجيل الدخول مطلوب</h3>
+            <p class="modal-text">
+                يجب تسجيل الدخول أولاً لإتمام عملية الحجز
+            </p>
+            <div class="modal-buttons">
+                <a href="{{ url_for('login') }}" class="btn btn-primary">🔑 دخول</a>
+                <button class="btn btn-secondary" onclick="closeModal('loginModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal قفل الأدمن -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-content">
+            <div class="modal-icon">🔐</div>
+            <h3 class="modal-title">لوحة التحكم</h3>
+            <p class="modal-text">أدخل كلمة السر لفتح لوحة التحكم</p>
+            <input type="password" class="modal-input" id="adminPassword" placeholder="كلمة السر">
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="checkAdmin()">🔓 فتح</button>
+                <button class="btn btn-secondary" onclick="closeModal('adminModal')">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        ✨ الهاشمي محمد ✨
+    </div>
+
+    <script>
+        let currentReserveId = null;
+        let currentProductId = null;
+        let whatsappUrl = '';
+
+        function openReserveModal(productId, productName, price, currency) {
+            {% if not session.get('user_id') %}
+            openModal('loginModal');
+            return;
+            {% endif %}
+            
+            currentProductId = productId;
+            document.getElementById('reserveProductInfo').innerHTML = 
+                `🏷️ ${productName}<br>💰 ${price} ${currency}`;
+            openModal('reserveModal');
+        }
+
+        async function submitReservation() {
+            const name = document.getElementById('reserveName').value.trim();
+            const phone = document.getElementById('reservePhone').value.trim();
+            
+            if (!name || !phone) {
+                showError('يرجى إدخال الاسم ورقم الهاتف');
+                return;
+            }
+
+            const btn = document.querySelector('#reserveModal .btn-primary');
+            btn.disabled = true;
+            btn.innerHTML = '⏳ جاري الحجز...';
+
+            try {
+                const response = await fetch('/api/reserve', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: currentProductId,
+                        customer_name: name,
+                        phone: phone
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    closeModal('reserveModal');
+                    currentReserveId = data.reservation_id;
+                    document.getElementById('successText').innerHTML = 
+                        `تم إنشاء حجزك بنجاح!<br>🆔 رقم الحجز: #${data.reservation_id}<br>الحالة: ⏳ معلق`;
+                    openModal('successModal');
+                } else {
+                    showError(data.error || 'فشل في إنشاء الحجز');
+                }
+            } catch (err) {
+                showError('خطأ في الاتصال بالخادم');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '✅ تأكيد';
+            }
+        }
+
+        function goToWhatsApp() {
+            if (currentReserveId) {
+                window.location.href = `/api/reservation_whatsapp/${currentReserveId}`;
+            }
+        }
+
+        function notifyMe(productName) {
+            {% if not session.get('user_id') %}
+            openModal('loginModal');
+            return;
+            {% endif %}
+            
+            fetch('/notify_me', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `product_name=${encodeURIComponent(productName)}`
+            })
+            .then(() => {
+                alert('🔔 سنتصل بك عند توفر المنتج!');
+            })
+            .catch(() => {
+                alert('❌ حدث خطأ، حاول مجدداً');
+            });
+        }
+
+        function openAdminModal() {
+            {% if session.get('admin_unlocked') %}
+            window.location.href = '{{ url_for('admin_dashboard') }}';
+            {% else %}
+            openModal('adminModal');
+            {% endif %}
+        }
+
+        async function checkAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            try {
+                const response = await fetch('/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `password=${encodeURIComponent(password)}`
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '{{ url_for('admin_dashboard') }}';
+                } else {
+                    alert('❌ كلمة السر غير صحيحة');
+                }
+            } catch (err) {
+                alert('❌ خطأ في الاتصال');
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function showError(msg) {
+            document.getElementById('errorText').textContent = msg;
+            closeModal('reserveModal');
+            openModal('errorModal');
+        }
+
+        // إغلاق المودال عند الضغط خارج المحتوى
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal.id);
+            });
+        });
+    </script>
+</body>
+</html>
