@@ -2,361 +2,205 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الصيانة - أرين</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصيانة - AREEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 100px; }
         
-        :root {
-            --gold: #d4af37;
-            --pink: #e91e8c;
-        }
-
-        body {
-            font-family:'Cairo',sans-serif;
-            background:#000;
-            color:#fff;
-            min-height:100vh;
-            padding-bottom:100px;
-        }
-
         .header {
-            background:linear-gradient(135deg, rgba(212,175,55,0.1), transparent);
-            border-bottom:1px solid rgba(212,175,55,0.2);
-            padding:25px 20px;
-            text-align:center;
-            position:sticky;
-            top:0;
-            z-index:100;
-            backdrop-filter:blur(20px);
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
+            position: sticky; top: 0; z-index: 100;
         }
-        .header h1 {
-            color:var(--gold);
-            font-size:1.5rem;
-            font-weight:900;
-            text-shadow:0 0 20px rgba(212,175,55,0.3);
+        .header h1 { color: #d4af37; }
+        .back { position: absolute; left: 20px; top: 20px; color: #d4af37; text-decoration: none; font-size: 1.5em; }
+        
+        .engineer-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; margin: 15px; padding: 20px; text-align: center;
         }
-        .header-sub { color:#666; font-size:0.8rem; margin-top:5px; }
-
-        .back-btn {
-            position:fixed;
-            top:15px;
-            left:15px;
-            z-index:200;
-            padding:10px 18px;
-            border-radius:12px;
-            border:1px solid rgba(212,175,55,0.3);
-            background:rgba(10,10,10,0.8);
-            color:var(--gold);
-            font-family:'Cairo',sans-serif;
-            font-size:0.85rem;
-            font-weight:700;
-            cursor:pointer;
-            text-decoration:none;
-            backdrop-filter:blur(10px);
-            transition:all 0.3s;
+        .engineer-avatar { font-size: 4em; margin-bottom: 10px; }
+        .engineer-name { color: #d4af37; font-size: 1.3em; font-weight: 700; }
+        .engineer-title { color: #888; margin-bottom: 10px; }
+        .engineer-phone { color: #e91e8c; direction: ltr; }
+        
+        .services-title {
+            color: #d4af37; padding: 20px 15px 10px; font-size: 1.2em;
+            border-bottom: 1px solid rgba(212,175,55,0.2); margin: 0 15px;
         }
-        .back-btn:hover {
-            background:rgba(212,175,55,0.15);
-            transform:translateX(-3px);
-        }
-
-        .services-grid {
-            display:grid;
-            gap:20px;
-            padding:20px;
-        }
-
+        
         .service-card {
-            background:linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-            border:1px solid rgba(255,255,255,0.06);
-            border-radius:24px;
-            padding:25px;
-            transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-            cursor:pointer;
-            position:relative;
-            overflow:hidden;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; margin: 10px 15px; padding: 20px;
+            cursor: pointer; transition: all 0.3s;
         }
-        .service-card::before {
-            content:''; position:absolute; top:0; left:0; right:0; height:2px;
-            background:linear-gradient(90deg, transparent, var(--gold), transparent);
-            opacity:0;
-            transition:opacity 0.3s;
-        }
-        .service-card:hover::before { opacity:1; }
         .service-card:hover {
-            transform:translateY(-5px) scale(1.02);
-            border-color:rgba(212,175,55,0.2);
-            box-shadow:0 15px 40px rgba(0,0,0,0.4), 0 0 30px rgba(212,175,55,0.08);
+            background: rgba(212,175,55,0.1); border-color: #d4af37;
+            transform: scale(1.02);
         }
-
-        .service-icon {
-            font-size:3rem;
-            margin-bottom:15px;
-            display:block;
+        .service-icon { font-size: 2.5em; margin-bottom: 10px; }
+        .service-name { color: #d4af37; font-weight: 700; font-size: 1.1em; }
+        .service-desc { color: #888; font-size: 0.9em; margin-top: 5px; }
+        
+        .location-icon {
+            position: fixed; top: 20px; right: 20px; z-index: 200;
+            background: rgba(212,175,55,0.2); border: 1px solid #d4af37;
+            width: 45px; height: 45px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; cursor: pointer; text-decoration: none;
         }
-        .service-title {
-            color:#fff;
-            font-size:1.2rem;
-            font-weight:900;
-            margin-bottom:8px;
-        }
-        .service-desc {
-            color:#777;
-            font-size:0.85rem;
-            line-height:1.6;
-            margin-bottom:15px;
-        }
-
-        .whatsapp-btn {
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            gap:8px;
-            width:100%;
-            padding:14px;
-            border-radius:14px;
-            border:none;
-            background:linear-gradient(135deg, #25d366, #128c7e);
-            color:#fff;
-            font-family:'Cairo',sans-serif;
-            font-size:1rem;
-            font-weight:900;
-            cursor:pointer;
-            transition:all 0.3s;
-            text-decoration:none;
-        }
-        .whatsapp-btn:hover {
-            transform:translateY(-2px);
-            box-shadow:0 8px 25px rgba(37,211,102,0.3);
-        }
-
-        /* مودال الطلب */
+        
+        /* Modal */
         .modal-overlay {
-            display:none;
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.9);
-            backdrop-filter:blur(10px);
-            z-index:5000;
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-            opacity:0;
-            transition:opacity 0.3s;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center;
         }
-        .modal-overlay.active { display:flex; opacity:1; }
         .modal-box {
-            background:linear-gradient(145deg, #0a0a0a, #111);
-            border:1px solid rgba(212,175,55,0.2);
-            border-radius:24px;
-            padding:30px 25px;
-            max-width:380px;
-            width:100%;
-            text-align:center;
-            transform:scale(0.9) translateY(20px);
-            transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            border: 2px solid #d4af37; border-radius: 20px;
+            padding: 30px; width: 90%; max-width: 400px; text-align: center;
         }
-        .modal-overlay.active .modal-box { transform:scale(1) translateY(0); }
-        .modal-icon { font-size:3rem; margin-bottom:15px; }
-        .modal-title {
-            color:var(--gold);
-            font-size:1.3rem;
-            font-weight:900;
-            margin-bottom:10px;
+        .modal-title { color: #d4af37; font-size: 1.3em; margin-bottom: 20px; }
+        .modal-box input {
+            width: 100%; padding: 15px; margin: 10px 0;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 10px; color: #fff; text-align: center; font-size: 1.1em;
         }
-        .modal-input {
-            width:100%;
-            padding:14px 16px;
-            margin-bottom:12px;
-            border-radius:14px;
-            border:1px solid rgba(255,255,255,0.1);
-            background:rgba(255,255,255,0.03);
-            color:#fff;
-            font-family:'Cairo',sans-serif;
-            font-size:0.95rem;
-            outline:none;
-            transition:all 0.3s;
+        .modal-box input:focus { outline: none; border-color: #d4af37; }
+        .modal-btn {
+            width: 100%; padding: 15px; margin-top: 15px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 10px; color: #000;
+            font-weight: 700; cursor: pointer; font-size: 1.1em;
         }
-        .modal-input:focus {
-            border-color:var(--gold);
-            box-shadow:0 0 15px rgba(212,175,55,0.1);
+        .modal-close {
+            margin-top: 10px; color: #888; cursor: pointer; background: none; border: none;
         }
-        .modal-btns { display:flex; gap:10px; margin-top:5px; }
-        .btn-gold {
-            flex:1;
-            padding:12px;
-            border-radius:14px;
-            border:none;
-            background:linear-gradient(135deg, var(--gold), #b8941f);
-            color:#000;
-            font-family:'Cairo',sans-serif;
-            font-size:0.9rem;
-            font-weight:900;
-            cursor:pointer;
-            transition:all 0.3s;
+        
+        .dev-footer {
+            text-align: center; padding: 30px 20px;
+            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
         }
-        .btn-gold:hover { transform:translateY(-2px); }
-        .btn-glass {
-            flex:1;
-            padding:12px;
-            border-radius:14px;
-            border:1px solid rgba(255,255,255,0.1);
-            background:rgba(255,255,255,0.03);
-            color:#888;
-            font-family:'Cairo',sans-serif;
-            font-size:0.9rem;
-            font-weight:700;
-            cursor:pointer;
-            transition:all 0.3s;
+        .dev-name {
+            font-size: 1.2em; font-weight: 700;
+            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(233,30,140,0.5);
+            animation: glow 2s ease-in-out infinite alternate;
         }
-
-        .footer {
-            text-align:center;
-            padding:30px;
-            color:var(--pink);
-            font-size:0.9rem;
-            font-weight:700;
-            text-shadow:0 0 15px rgba(233,30,140,0.2);
+        @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
+        
+        .exit-btn {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 12px 40px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; border: none; z-index: 1000;
         }
-
-        /* القائمة السفلية */
-        .bottom-nav {
-            position:fixed;
-            bottom:0; left:0; right:0;
-            background:rgba(0,0,0,0.9);
-            backdrop-filter:blur(30px);
-            border-top:1px solid rgba(255,255,255,0.05);
-            display:flex;
-            justify-content:space-around;
-            padding:8px 0 calc(8px + env(safe-area-inset-bottom));
-            z-index:1000;
-        }
-        .nav-item {
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            gap:3px;
-            padding:6px 12px;
-            color:#555;
-            text-decoration:none;
-            font-size:0.65rem;
-            font-weight:600;
-            transition:all 0.3s;
-            border-radius:12px;
-        }
-        .nav-item.active {
-            color:var(--gold);
-            background:rgba(212,175,55,0.1);
-        }
-        .nav-icon { font-size:1.4rem; }
     </style>
 </head>
 <body>
-
-    <a href="/products" class="back-btn">🔙 رجوع</a>
+    <a href="/location" class="location-icon">📍</a>
 
     <div class="header">
-        <h1>🔧 خدمات الصيانة</h1>
-        <div class="header-sub">المهندس راشد اليافعي - 779505979</div>
+        <a href="/products" class="back">→</a>
+        <h1>🔧 الصيانة</h1>
     </div>
 
-    <div class="services-grid">
-        <div class="service-card" onclick="openServiceModal('تغيير شاشة', '📱')">
-            <span class="service-icon">📱</span>
-            <div class="service-title">تغيير شاشة</div>
-            <div class="service-desc">استبدال الشاشة المكسورة بأصلية بجودة عالية مع ضمان</div>
-            <button class="whatsapp-btn">📱 طلب الخدمة</button>
-        </div>
-
-        <div class="service-card" onclick="openServiceModal('تغيير بطارية', '🔋')">
-            <span class="service-icon">🔋</span>
-            <div class="service-title">تغيير بطارية</div>
-            <div class="service-desc">بطارية أصلية بسعة كاملة لإعادة الحياة لجهازك</div>
-            <button class="whatsapp-btn">📱 طلب الخدمة</button>
-        </div>
-
-        <div class="service-card" onclick="openServiceModal('خدمات أخرى', '🛠️')">
-            <span class="service-icon">🛠️</span>
-            <div class="service-title">خدمات أخرى</div>
-            <div class="service-desc">صيانة عامة، تنظيف، تبديل قطع، وكل ما يحتاجه جهازك</div>
-            <button class="whatsapp-btn">📱 طلب الخدمة</button>
-        </div>
+    <div class="engineer-card">
+        <div class="engineer-avatar">👨‍🔧</div>
+        <div class="engineer-name">المهندس راشد اليافعي</div>
+        <div class="engineer-title">فني صيانة متخصص</div>
+        <div class="engineer-phone">+967 779 505 979</div>
     </div>
 
-    <!-- مودال الخدمة -->
+    <div class="services-title">⚡ الخدمات المتاحة</div>
+
+    {% if services %}
+        {% for s in services %}
+        <div class="service-card" onclick="openServiceModal({{ s.id }}, '{{ s.title }}')">
+            <div class="service-icon">🔧</div>
+            <div class="service-name">{{ s.title }}</div>
+            {% if s.description %}<<div class="service-desc">{{ s.description }}</div>{% endif %}
+            {% if s.price %}<<div style="color:#e91e8c;font-weight:700;margin-top:5px;">{{ s.price }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center;padding:40px;color:#666;">
+            <div style="font-size:3em;margin-bottom:15px;">🔧</div>
+            <p>لا توجد خدمات متاحة حالياً</p>
+        </div>
+    {% endif %}
+
+    <div class="dev-footer">
+        <div class="dev-name">✨ الهاشمي محمد ✨</div>
+    </div>
+
+    <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
+
+    <!-- Service Modal -->
     <div class="modal-overlay" id="serviceModal">
         <div class="modal-box">
-            <div class="modal-icon" id="modalIcon">🔧</div>
-            <h3 class="modal-title" id="modalTitle">طلب صيانة</h3>
-            <input type="text" class="modal-input" id="serviceName" placeholder="👤 اسمك الكامل">
-            <input type="tel" class="modal-input" id="servicePhone" placeholder="📱 رقم الهاتف">
-            <input type="text" class="modal-input" id="serviceDevice" placeholder="📲 نوع الجهاز (مثال: iPhone 14)">
-            <div class="modal-btns">
-                <button class="btn-gold" onclick="sendToWhatsApp()">📱 إرسال</button>
-                <button class="btn-glass" onclick="closeModal()">إلغاء</button>
-            </div>
+            <div class="modal-title" id="modalTitle">🔧 طلب صيانة</div>
+            <input type="text" id="svcName" placeholder="👤 اسمك">
+            <input type="tel" id="svcPhone" placeholder="📱 رقم هاتفك">
+            <input type="text" id="svcDevice" placeholder="📱 نوع الجهاز (مثال: iPhone 13)">
+            <button class="modal-btn" onclick="submitService()">📱 إرسال لواتساب</button>
+            <button class="modal-close" onclick="closeModal()">إلغاء</button>
         </div>
-    </div>
-
-    <div class="footer">
-        ✨ الهاشمي محمد ✨
-    </div>
-
-    <div class="bottom-nav">
-        <a href="/" class="nav-item">
-            <span class="nav-icon">🏠</span>
-            <span>الرئيسية</span>
-        </a>
-        <a href="/products" class="nav-item">
-            <span class="nav-icon">🛍️</span>
-            <span>المتجر</span>
-        </a>
-        <a href="/maintenance" class="nav-item active">
-            <span class="nav-icon">🔧</span>
-            <span>الصيانة</span>
-        </a>
-        <a href="/programming" class="nav-item">
-            <span class="nav-icon">💻</span>
-            <span>البرمجة</span>
-        </a>
     </div>
 
     <script>
-        let currentService = '';
-
-        function openServiceModal(service, icon) {
-            currentService = service;
-            document.getElementById('modalIcon').textContent = icon;
-            document.getElementById('modalTitle').textContent = 'طلب: ' + service;
-            document.getElementById('serviceModal').classList.add('active');
+        let currentServiceId = null;
+        
+        function openServiceModal(id, title) {
+            currentServiceId = id;
+            document.getElementById('modalTitle').textContent = '🔧 ' + title;
+            document.getElementById('serviceModal').style.display = 'flex';
         }
-
         function closeModal() {
-            document.getElementById('serviceModal').classList.remove('active');
+            document.getElementById('serviceModal').style.display = 'none';
         }
-
-        function sendToWhatsApp() {
-            const name = document.getElementById('serviceName').value.trim();
-            const phone = document.getElementById('servicePhone').value.trim();
-            const device = document.getElementById('serviceDevice').value.trim();
-
+        
+        function submitService() {
+            const name = document.getElementById('svcName').value.trim();
+            const phone = document.getElementById('svcPhone').value.trim();
+            const device = document.getElementById('svcDevice').value.trim();
+            
             if(!name || !phone || !device) {
-                alert('يرجى ملء جميع الحقول');
+                alert('الرجاء ملء جميع الحقول');
                 return;
             }
-
-            const message = `مرحباً المهندس راشد اليافعي،\nأرغب في خدمة الصيانة التالية:\n🔧 الخدمة: ${currentService}\n📱 الجهاز: ${device}\n👤 الاسم: ${name}\n📞 الرقم: ${phone}`;
             
-            const encodedMsg = encodeURIComponent(message);
-            window.location.href = `https://wa.me/967{{ phone }}?text=${encodedMsg}`;
+            fetch('/api/service-request', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    type: 'maintenance',
+                    service_id: currentServiceId,
+                    name: name,
+                    phone: phone,
+                    device: device
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    alert(data.message);
+                    closeModal();
+                    setTimeout(() => {
+                        window.open(data.whatsapp_url, '_blank');
+                    }, 500);
+                } else {
+                    alert(data.message);
+                }
+            });
         }
-
-        // إغلاق عند الضغط خارج المودال
-        document.getElementById('serviceModal').addEventListener('click', (e) => {
-            if(e.target === document.getElementById('serviceModal')) closeModal();
-        });
+        
+        function goHome() { window.location.href = '/'; }
     </script>
 </body>
 </html>

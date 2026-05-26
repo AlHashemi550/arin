@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المستخدمين - AREEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 80px; }
+        .header { 
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header h1 { color: #d4af37; }
+        .back { position: absolute; left: 20px; top: 20px; color: #d4af37; text-decoration: none; font-size: 1.5em; }
+        
+        .user-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; margin: 10px 15px; padding: 15px;
+        }
+        .user-card.banned { border-color: #dc3545; opacity: 0.6; }
+        
+        .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .user-name { color: #d4af37; font-weight: 700; font-size: 1.1em; }
+        .user-status {
+            padding: 4px 12px; border-radius: 20px; font-size: 0.8em;
+        }
+        .status-active { background: #28a745; color: #fff; }
+        .status-banned { background: #dc3545; color: #fff; }
+        
+        .user-info { color: #888; font-size: 0.9em; line-height: 2; }
+        .user-info span { color: #fff; }
+        
+        .coins-section {
+            display: flex; align-items: center; gap: 10px; margin-top: 10px;
+            background: rgba(212,175,55,0.1); padding: 10px; border-radius: 10px;
+        }
+        .coins-display { color: #d4af37; font-weight: 700; font-size: 1.2em; }
+        .coins-input {
+            width: 80px; padding: 8px; background: rgba(255,255,255,0.1);
+            border: 1px solid #d4af37; border-radius: 8px; color: #fff; text-align: center;
+        }
+        
+        .actions { display: flex; gap: 10px; margin-top: 10px; }
+        .u-btn {
+            padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; flex: 1;
+        }
+        .u-btn-ban { background: #dc3545; color: #fff; }
+        .u-btn-unban { background: #28a745; color: #fff; }
+        .u-btn-coins { background: #d4af37; color: #000; }
+        .u-btn-whatsapp { background: #25d366; color: #fff; text-decoration: none; text-align: center; }
+        
+        .empty { text-align: center; padding: 50px; color: #666; }
+        
+        .dev-footer {
+            text-align: center; padding: 20px;
+            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
+        }
+        .dev-name {
+            font-size: 1.1em; font-weight: 700;
+            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .exit-btn {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 12px 40px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; border: none; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{{ url_for('admin_dashboard') }}" class="back">→</a>
+        <h1>👥 إدارة المستخدمين</h1>
+    </div>
+
+    {% if users %}
+        {% for u in users %}
+        <div class="user-card {{ 'banned' if u.banned else '' }}">
+            <div class="user-header">
+                <span class="user-name">{{ u.name or 'مستخدم جديد' }}</span>
+                <span class="user-status {{ 'status-banned' if u.banned else 'status-active' }}">
+                    {{ 'محظور' if u.banned else 'نشط' }}
+                </span>
+            </div>
+            <div class="user-info">
+                <div>📱 الرقم: <span>{{ u.phone }}</span></div>
+                <div>📅 التسجيل: <span>{{ u.created_at }}</span></div>
+            </div>
+            <div class="coins-section">
+                <span>🪙 العملات:</span>
+                <span class="coins-display" id="coins-{{ u.id }}">{{ u.coins }}</span>
+                <input type="number" class="coins-input" id="input-{{ u.id }}" value="{{ u.coins }}" min="0">
+                <button class="u-btn u-btn-coins" onclick="setCoins({{ u.id }})">💾 حفظ</button>
+            </div>
+            <div class="actions">
+                {% if u.banned %}
+                <button class="u-btn u-btn-unban" onclick="unbanUser({{ u.id }})">✅ إلغاء الحظر</button>
+                {% else %}
+                <button class="u-btn u-btn-ban" onclick="banUser({{ u.id }})">🚷 حظر</button>
+                {% endif %}
+                <a href="https://wa.me/{{ u.phone }}" class="u-btn u-btn-whatsapp">📱 واتساب</a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            <div style="font-size: 4em; margin-bottom: 20px;">👤</div>
+            <p>لا يوجد مستخدمين بعد</p>
+        </div>
+    {% endif %}
+
+    <div class="dev-footer">
+        <div class="dev-name">✨ الهاشمي محمد ✨</div>
+    </div>
+
+    <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
+
+    <script>
+        function banUser(id) {
+            if(!confirm('حظر هذا المستخدم؟')) return;
+            fetch('/admin/user/ban/' + id, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => { if(data.success) location.reload(); });
+        }
+        function unbanUser(id) {
+            if(!confirm('إلغاء حظر هذا المستخدم؟')) return;
+            fetch('/admin/user/unban/' + id, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => { if(data.success) location.reload(); });
+        }
+        function setCoins(id) {
+            const coins = document.getElementById('input-' + id).value;
+            fetch('/admin/user/coins', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({id: id, coins: parseInt(coins)})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    document.getElementById('coins-' + id).textContent = coins;
+                    alert('تم تحديث العملات!');
+                }
+            });
+        }
+        function goHome() { window.location.href = '/'; }
+    </script>
+</body>
+</html>

@@ -2,397 +2,168 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لوحة التحكم - أرين</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - AREEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #000; color: #fff; min-height: 100vh; }
+        .header { 
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
+            position: sticky; top: 0; z-index: 100;
         }
+        .header h1 { color: #d4af37; font-size: 1.8em; text-shadow: 0 0 20px rgba(212,175,55,0.5); }
+        .header .lock { position: absolute; left: 20px; top: 20px; font-size: 1.5em; cursor: pointer; }
+        .logout { position: absolute; right: 20px; top: 20px; color: #e91e8c; cursor: pointer; font-size: 0.9em; }
         
-        body {
-            background: #000;
-            color: #fff;
-            min-height: 100vh;
-        }
-        
-        /* Header */
-        .admin-header {
-            background: #0a0a0a;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .header-title .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: #d4af37;
-        }
-        
-        .header-title .text {
-            font-size: 16px;
-            font-weight: 700;
-        }
-        
-        .header-title .badge {
-            font-size: 10px;
-            background: #d4af37;
-            color: #000;
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-        }
-        
-        .logout-btn {
-            background: rgba(255, 68, 68, 0.15);
-            border: 1px solid rgba(255, 68, 68, 0.3);
-            color: #ff4444;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255, 68, 68, 0.3);
-        }
-        
-        /* Stats Grid */
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            padding: 20px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px; padding: 20px; max-width: 800px; margin: 0 auto;
         }
-        
-        @media (min-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
         .stat-card {
-            background: #0a0a0a;
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 20px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 15px; padding: 20px; text-align: center;
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); border-color: #d4af37; box-shadow: 0 10px 30px rgba(212,175,55,0.2); }
+        .stat-number { font-size: 2.5em; font-weight: 700; color: #d4af37; }
+        .stat-label { color: #aaa; font-size: 0.9em; margin-top: 5px; }
+        
+        .menu-grid {
+            display: grid; grid-template-columns: 1fr; gap: 15px;
+            padding: 20px; max-width: 800px; margin: 0 auto;
+        }
+        .menu-item {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; padding: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: all 0.3s; text-decoration: none; color: #fff;
+        }
+        .menu-item:hover { background: rgba(212,175,55,0.1); border-color: #d4af37; transform: scale(1.02); }
+        .menu-icon { font-size: 2em; margin-left: 15px; }
+        .menu-title { font-size: 1.2em; font-weight: 700; }
+        .menu-desc { color: #888; font-size: 0.85em; }
+        .menu-arrow { color: #d4af37; font-size: 1.5em; }
+        
+        .badge {
+            background: #e91e8c; color: #fff; padding: 2px 10px;
+            border-radius: 20px; font-size: 0.8em; margin-right: 10px;
         }
         
-        .stat-card:hover {
-            border-color: rgba(212, 175, 55, 0.2);
-            transform: translateY(-2px);
+        .dev-footer {
+            text-align: center; padding: 30px;
+            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
         }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 3px;
-            height: 100%;
-            background: #d4af37;
-            opacity: 0.5;
+        .dev-name {
+            font-size: 1.2em; font-weight: 700;
+            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(233,30,140,0.5);
+            animation: glow 2s ease-in-out infinite alternate;
         }
+        @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
         
-        .stat-icon {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        
-        .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: #d4af37;
-            margin-bottom: 4px;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: rgba(255,255,255,0.4);
-        }
-        
-        .stat-card.warning::before { background: #ff8800; }
-        .stat-card.success::before { background: #00c853; }
-        .stat-card.danger::before { background: #ff4444; }
-        .stat-card.info::before { background: #2196f3; }
-        
-        /* Quick Actions */
-        .actions-section {
-            padding: 0 20px 20px;
-        }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #d4af37;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-        }
-        
-        .action-btn {
-            background: #0a0a0a;
-            border: 1px solid rgba(212, 175, 55, 0.15);
-            border-radius: 14px;
-            padding: 18px;
-            text-decoration: none;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .action-btn:hover {
-            background: rgba(212, 175, 55, 0.1);
-            border-color: rgba(212, 175, 55, 0.3);
-            transform: translateY(-2px);
-        }
-        
-        .action-icon {
-            font-size: 30px;
-        }
-        
-        .action-text {
-            font-size: 13px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.7);
-        }
-        
-        /* Recent Reservations Table */
-        .reservations-section {
-            padding: 0 20px 20px;
-        }
-        
-        .table-container {
-            background: #0a0a0a;
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-        
-        .table-row {
-            display: flex;
-            align-items: center;
-            padding: 14px 16px;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-            transition: all 0.2s ease;
-        }
-        
-        .table-row:hover {
-            background: rgba(212, 175, 55, 0.03);
-        }
-        
-        .table-row:last-child {
-            border-bottom: none;
-        }
-        
-        .res-status {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-left: 12px;
-            flex-shrink: 0;
-        }
-        
-        .res-status.pending { background: #ff8800; box-shadow: 0 0 6px #ff8800; }
-        .res-status.confirmed { background: #00c853; box-shadow: 0 0 6px #00c853; }
-        .res-status.cancelled { background: #ff4444; box-shadow: 0 0 6px #ff4444; }
-        
-        .res-info {
-            flex: 1;
-            min-width: 0;
-        }
-        
-        .res-product {
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .res-meta {
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-        }
-        
-        .res-price {
-            font-size: 13px;
-            font-weight: 700;
-            color: #d4af37;
-            margin-left: 10px;
-        }
-        
-        .view-all {
-            display: block;
-            text-align: center;
-            padding: 12px;
-            color: #d4af37;
-            font-size: 13px;
-            font-weight: 600;
-            text-decoration: none;
-            border-top: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .view-all:hover {
-            background: rgba(212, 175, 55, 0.05);
-        }
-        
-        /* Empty state */
-        .empty-table {
-            text-align: center;
-            padding: 40px 20px;
-            color: rgba(255,255,255,0.3);
-        }
-        
-        .empty-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
-        }
-        
-        /* Bottom padding */
-        .bottom-padding {
-            height: 30px;
+        .exit-btn {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 12px 40px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; border: none;
+            box-shadow: 0 5px 20px rgba(212,175,55,0.4);
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="admin-header">
-        <div class="header-title">
-            <span class="logo">A</span>
-            <span class="text">أرين</span>
-            <span class="badge">ADMIN</span>
-        </div>
-        <a href="/admin/logout" class="logout-btn">🚪 خروج</a>
+    <div class="header">
+        <span class="lock" onclick="toggleLock()">🔒</span>
+        <h1>⚡ AREEN Admin</h1>
+        <a href="{{ url_for('admin_logout') }}" class="logout">خروج ←</a>
     </div>
-    
-    <!-- Stats -->
+
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon">📦</div>
-            <div class="stat-value">{{ stats.total_products }}</div>
-            <div class="stat-label">إجمالي المنتجات</div>
+            <div class="stat-number">{{ stats.products }}</div>
+            <div class="stat-label">المنتجات</div>
         </div>
-        
-        <div class="stat-card warning">
-            <div class="stat-icon">⏳</div>
-            <div class="stat-value">{{ stats.pending_reservations }}</div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.reservations }}</div>
             <div class="stat-label">حجوزات معلقة</div>
         </div>
-        
-        <div class="stat-card success">
-            <div class="stat-icon">✅</div>
-            <div class="stat-value">{{ stats.confirmed_reservations }}</div>
-            <div class="stat-label">حجوزات مؤكدة</div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.confirmed }}</div>
+            <div class="stat-label">مؤكدة</div>
         </div>
-        
-        <div class="stat-card danger">
-            <div class="stat-icon">⚠️</div>
-            <div class="stat-value">{{ stats.low_stock }}</div>
-            <div class="stat-label">منتجات منخفضة</div>
-        </div>
-        
-        <div class="stat-card info">
-            <div class="stat-icon">🚫</div>
-            <div class="stat-value">{{ stats.blocked_customers }}</div>
-            <div class="stat-label">عملاء محظورين</div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.users }}</div>
+            <div class="stat-label">العملاء</div>
         </div>
     </div>
-    
-    <!-- Quick Actions -->
-    <div class="actions-section">
-        <div class="section-header">
-            <div class="section-title">⚡ إجراءات سريعة</div>
-        </div>
-        <div class="actions-grid">
-            <a href="/admin/products" class="action-btn">
-                <span class="action-icon">➕</span>
-                <span class="action-text">إضافة منتج</span>
-            </a>
-            <a href="/admin/reservations" class="action-btn">
-                <span class="action-icon">📋</span>
-                <span class="action-text">الحجوزات</span>
-            </a>
-            <a href="/admin/blocked" class="action-btn">
-                <span class="action-icon">🚫</span>
-                <span class="action-text">حظر العملاء</span>
-            </a>
-            <a href="/products" class="action-btn">
-                <span class="action-icon">🏪</span>
-                <span class="action-text">عرض المتجر</span>
-            </a>
-        </div>
-    </div>
-    
-    <!-- Recent Reservations -->
-    <div class="reservations-section">
-        <div class="section-header">
-            <div class="section-title">📋 آخر الحجوزات</div>
-        </div>
-        
-        <div class="table-container">
-            {% if reservations %}
-                {% for res in reservations %}
-                <div class="table-row">
-                    <span class="res-status {{ res.status }}"></span>
-                    <div class="res-info">
-                        <div class="res-product">{{ res.product_name }}</div>
-                        <div class="res-meta">
-                            {{ res.customer_name }} • {{ res.phone }} • {{ res.created_at[:10] if res.created_at else '' }}
-                        </div>
-                    </div>
-                    <div class="res-price">{{ res.price }} {{ res.currency }}</div>
+
+    <div class="menu-grid">
+        <a href="{{ url_for('admin_products') }}" class="menu-item">
+            <div style="display:flex;align-items:center;">
+                <span class="menu-icon">📦</span>
+                <div>
+                    <div class="menu-title">إدارة المنتجات</div>
+                    <div class="menu-desc">إضافة، تعديل، حذف المنتجات</div>
                 </div>
-                {% endfor %}
-                <a href="/admin/reservations" class="view-all">عرض كل الحجوزات ←</a>
-            {% else %}
-                <div class="empty-table">
-                    <div class="empty-icon">📭</div>
-                    <div>لا توجد حجوزات حالياً</div>
+            </div>
+            <span class="menu-arrow">←</span>
+        </a>
+        
+        <a href="{{ url_for('admin_reservations') }}" class="menu-item">
+            <div style="display:flex;align-items:center;">
+                <span class="menu-icon">📋</span>
+                <div>
+                    <div class="menu-title">إدارة الحجوزات</div>
+                    <div class="menu-desc">تأكيد، إلغاء، حذف الحجوزات</div>
                 </div>
-            {% endif %}
-        </div>
+            </div>
+            <span class="menu-arrow">←</span>
+        </a>
+        
+        <a href="{{ url_for('admin_services') }}" class="menu-item">
+            <div style="display:flex;align-items:center;">
+                <span class="menu-icon">🔧</span>
+                <div>
+                    <div class="menu-title">إدارة الخدمات</div>
+                    <div class="menu-desc">صيانة، برمجة، إضافة خدمات</div>
+                </div>
+            </div>
+            <span class="menu-arrow">←</span>
+        </a>
+        
+        <a href="{{ url_for('admin_users') }}" class="menu-item">
+            <div style="display:flex;align-items:center;">
+                <span class="menu-icon">👥</span>
+                <div>
+                    <div class="menu-title">إدارة المستخدمين</div>
+                    <div class="menu-desc">حظر، إلغاء حظر، إعطاء عملات</div>
+                </div>
+            </div>
+            <span class="menu-arrow">←</span>
+        </a>
     </div>
-    
-    <div class="bottom-padding"></div>
+
+    <div class="dev-footer">
+        <div class="dev-name">✨ الهاشمي محمد ✨</div>
+    </div>
+
+    <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
+
+    <script>
+        function toggleLock() {
+            if(confirm('هل تريد تغيير كلمة السر؟')) {
+                alert('اتصل بالمطور لتغيير كلمة السر');
+            }
+        }
+        function goHome() {
+            window.location.href = '/';
+        }
+    </script>
 </body>
 </html>

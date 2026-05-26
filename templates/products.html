@@ -2,868 +2,346 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>المتجر - أرين</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AREEN - المتجر</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 100px; }
         
-        :root {
-            --gold: #d4af37;
-            --gold-light: #f0d878;
-            --pink: #e91e8c;
-            --dark: #000;
-            --card: #0a0a0a;
-        }
-
-        body {
-            font-family:'Cairo',sans-serif;
-            background:var(--dark);
-            color:#fff;
-            min-height:100vh;
-            padding-bottom:100px;
-            overflow-x:hidden;
-        }
-
-        /* خلفية متحركة */
-        .bg-mesh {
-            position:fixed;
-            top:0; left:0; width:100%; height:100%;
-            background:
-                radial-gradient(circle at 20% 80%, rgba(212,175,55,0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(233,30,140,0.05) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(212,175,55,0.03) 0%, transparent 70%);
-            pointer-events:none;
-            z-index:0;
-            animation:bgShift 20s ease-in-out infinite;
-        }
-        @keyframes bgShift {
-            0%,100% { transform:scale(1) rotate(0deg); }
-            50% { transform:scale(1.1) rotate(2deg); }
-        }
-
-        /* الهيدر */
         .header {
-            position:sticky;
-            top:0;
-            z-index:100;
-            background:rgba(0,0,0,0.85);
-            backdrop-filter:blur(20px);
-            border-bottom:1px solid rgba(212,175,55,0.15);
-            padding:18px 20px;
-            text-align:center;
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
+            position: sticky; top: 0; z-index: 100;
         }
-        .header h1 {
-            color:var(--gold);
-            font-size:1.6rem;
-            font-weight:900;
-            text-shadow:0 0 30px rgba(212,175,55,0.3);
-            letter-spacing:1px;
-        }
-        .header-sub {
-            color:#666;
-            font-size:0.75rem;
-            margin-top:3px;
-            font-weight:400;
-        }
-
-        /* أزرار الأعلى */
-        .top-actions {
-            position:fixed;
-            top:15px;
-            z-index:200;
-            display:flex;
-            gap:10px;
-        }
-        .top-left { left:15px; }
-        .top-right { right:15px; }
-
-        .icon-btn {
-            width:42px; height:42px;
-            border-radius:50%;
-            border:1px solid rgba(212,175,55,0.3);
-            background:rgba(10,10,10,0.8);
-            backdrop-filter:blur(10px);
-            color:var(--gold);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            font-size:1.2rem;
-            cursor:pointer;
-            transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-            text-decoration:none;
-            box-shadow:0 4px 15px rgba(0,0,0,0.3);
-        }
-        .icon-btn:hover {
-            transform:scale(1.15) rotate(5deg);
-            background:rgba(212,175,55,0.15);
-            box-shadow:0 0 25px rgba(212,175,55,0.3);
-            border-color:var(--gold);
-        }
-
-        /* البحث */
-        .search-wrap {
-            padding:20px;
-            position:relative;
-            z-index:10;
-        }
+        .header h1 { color: #d4af37; font-size: 1.5em; text-shadow: 0 0 20px rgba(212,175,55,0.5); }
+        
         .search-box {
-            position:relative;
+            padding: 15px; display: flex; gap: 10px; max-width: 600px; margin: 0 auto;
         }
         .search-box input {
-            width:100%;
-            padding:14px 45px 14px 20px;
-            border-radius:16px;
-            border:1px solid rgba(212,175,55,0.2);
-            background:rgba(255,255,255,0.03);
-            color:#fff;
-            font-family:'Cairo',sans-serif;
-            font-size:0.95rem;
-            outline:none;
-            transition:all 0.3s;
-            backdrop-filter:blur(10px);
+            flex: 1; padding: 12px; background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; color: #fff;
         }
-        .search-box input:focus {
-            border-color:var(--gold);
-            box-shadow:0 0 20px rgba(212,175,55,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
-            background:rgba(255,255,255,0.05);
+        .search-box button {
+            padding: 12px 20px; background: #d4af37; border: none; border-radius: 10px;
+            color: #000; font-weight: 700; cursor: pointer;
         }
-        .search-box::before {
-            content:'🔍';
-            position:absolute;
-            right:15px;
-            top:50%;
-            transform:translateY(-50%);
-            opacity:0.5;
-            font-size:1rem;
-        }
-
-        /* الفئات */
+        
         .categories {
-            display:flex;
-            gap:10px;
-            padding:0 20px 20px;
-            overflow-x:auto;
-            scrollbar-width:none;
-            position:relative;
-            z-index:10;
+            display: flex; gap: 10px; padding: 10px 15px; overflow-x: auto;
+            max-width: 600px; margin: 0 auto;
         }
-        .categories::-webkit-scrollbar { display:none; }
-        .cat-chip {
-            padding:8px 18px;
-            border-radius:25px;
-            border:1px solid rgba(255,255,255,0.08);
-            background:rgba(255,255,255,0.02);
-            color:#888;
-            font-family:'Cairo',sans-serif;
-            font-size:0.8rem;
-            font-weight:600;
-            cursor:pointer;
-            white-space:nowrap;
-            transition:all 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-            backdrop-filter:blur(10px);
+        .cat-btn {
+            padding: 8px 20px; border-radius: 20px; border: 1px solid #d4af37;
+            background: transparent; color: #d4af37; cursor: pointer; white-space: nowrap;
+            transition: all 0.3s;
         }
-        .cat-chip.active {
-            background:linear-gradient(135deg, var(--gold), #b8941f);
-            color:#000;
-            border-color:transparent;
-            font-weight:900;
-            box-shadow:0 5px 20px rgba(212,175,55,0.3);
-            transform:scale(1.05);
-        }
-        .cat-chip:not(.active):hover {
-            border-color:rgba(212,175,55,0.4);
-            color:var(--gold);
-            transform:translateY(-2px);
-        }
-
-        /* شبكة المنتجات */
+        .cat-btn.active, .cat-btn:hover { background: #d4af37; color: #000; }
+        
         .products-grid {
-            display:grid;
-            grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
-            gap:25px;
-            padding:0 20px 30px;
-            position:relative;
-            z-index:10;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px; padding: 15px; max-width: 800px; margin: 0 auto;
         }
-        @media(max-width:480px) {
-            .products-grid { grid-template-columns:1fr; gap:20px; padding:0 15px 30px; }
-        }
-
-        /* بطاقة المنتج */
+        
         .product-card {
-            background:linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-            border:1px solid rgba(255,255,255,0.06);
-            border-radius:24px;
-            overflow:hidden;
-            transition:all 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
-            position:relative;
-            animation:cardEnter 0.6s ease-out backwards;
-            backdrop-filter:blur(10px);
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; overflow: hidden; transition: all 0.3s;
         }
-        @keyframes cardEnter {
-            from { opacity:0; transform:translateY(40px) scale(0.95); }
-            to { opacity:1; transform:translateY(0) scale(1); }
+        .product-card:hover { transform: translateY(-5px); border-color: #d4af37; }
+        
+        .product-img {
+            width: 100%; height: 150px; object-fit: cover;
+            background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;
         }
-        .product-card:nth-child(1) { animation-delay:0.05s; }
-        .product-card:nth-child(2) { animation-delay:0.1s; }
-        .product-card:nth-child(3) { animation-delay:0.15s; }
-        .product-card:nth-child(4) { animation-delay:0.2s; }
-        .product-card:nth-child(5) { animation-delay:0.25s; }
-        .product-card:nth-child(6) { animation-delay:0.3s; }
-
-        .product-card::before {
-            content:''; position:absolute; top:0; left:0; right:0; height:1px;
-            background:linear-gradient(90deg, transparent, rgba(212,175,55,0.3), transparent);
-            opacity:0;
-            transition:opacity 0.3s;
+        .product-img img { width: 100%; height: 100%; object-fit: cover; }
+        
+        .product-body { padding: 15px; }
+        .product-name { color: #d4af37; font-weight: 700; font-size: 0.95em; margin-bottom: 5px; }
+        .product-desc { color: #888; font-size: 0.8em; margin-bottom: 10px; height: 40px; overflow: hidden; }
+        .product-price { color: #e91e8c; font-weight: 700; font-size: 1.1em; }
+        .product-old-price { color: #666; text-decoration: line-through; font-size: 0.85em; }
+        
+        .rare-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.75em; font-weight: 700;
         }
-        .product-card:hover::before { opacity:1; }
-
-        .product-card:hover {
-            transform:translateY(-8px) scale(1.02);
-            border-color:rgba(212,175,55,0.2);
-            box-shadow:0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(212,175,55,0.08);
+        
+        .status-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 0.8em; margin-top: 10px;
         }
-
-        .card-img-wrap {
-            position:relative;
-            height:220px;
-            overflow:hidden;
+        .status-available { background: #28a745; color: #fff; }
+        .status-pending { background: #ffc107; color: #000; }
+        .status-reserved { background: #dc3545; color: #fff; }
+        
+        .reserve-btn {
+            width: 100%; padding: 12px; margin-top: 10px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 10px; color: #000;
+            font-weight: 700; cursor: pointer; transition: all 0.3s;
         }
-        .card-img {
-            width:100%; height:100%;
-            object-fit:cover;
-            transition:transform 0.6s cubic-bezier(0.175,0.885,0.32,1.275);
+        .reserve-btn:hover { box-shadow: 0 5px 20px rgba(212,175,55,0.4); }
+        .reserve-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+        
+        .notify-btn {
+            width: 100%; padding: 12px; margin-top: 10px;
+            background: transparent; border: 1px solid #e91e8c;
+            color: #e91e8c; border-radius: 10px; cursor: pointer;
         }
-        .product-card:hover .card-img { transform:scale(1.1); }
-
-        .card-img-overlay {
-            position:absolute;
-            bottom:0; left:0; right:0;
-            height:60%;
-            background:linear-gradient(to top, var(--card), transparent);
+        
+        .location-icon {
+            position: fixed; top: 20px; right: 20px; z-index: 200;
+            background: rgba(212,175,55,0.2); border: 1px solid #d4af37;
+            width: 45px; height: 45px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5em; cursor: pointer; text-decoration: none;
         }
-
-        .card-badges {
-            position:absolute;
-            top:12px; right:12px;
-            display:flex;
-            gap:6px;
-            flex-direction:column;
-            align-items:flex-end;
+        
+        .admin-lock {
+            position: fixed; top: 20px; left: 20px; z-index: 200;
+            background: rgba(233,30,140,0.2); border: 1px solid #e91e8c;
+            width: 45px; height: 45px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3em; cursor: pointer; text-decoration: none; color: #e91e8c;
         }
-        .badge {
-            padding:4px 10px;
-            border-radius:20px;
-            font-size:0.7rem;
-            font-weight:900;
-            backdrop-filter:blur(10px);
-        }
-        .badge-rare {
-            background:linear-gradient(135deg, var(--gold), var(--gold-light));
-            color:#000;
-            box-shadow:0 4px 15px rgba(212,175,55,0.3);
-        }
-        .badge-curr {
-            background:rgba(0,0,0,0.6);
-            color:var(--gold);
-            border:1px solid rgba(212,175,55,0.3);
-        }
-        .badge-stock {
-            background:rgba(46,204,113,0.15);
-            color:#2ecc71;
-            border:1px solid rgba(46,204,113,0.2);
-        }
-        .badge-out {
-            background:rgba(231,76,60,0.15);
-            color:#e74c3c;
-            border:1px solid rgba(231,76,60,0.2);
-        }
-        .badge-low {
-            background:rgba(241,196,15,0.15);
-            color:#f1c40f;
-            border:1px solid rgba(241,196,15,0.2);
-        }
-
-        .card-body { padding:18px; }
-        .card-title {
-            font-size:1.15rem;
-            font-weight:900;
-            color:#fff;
-            margin-bottom:6px;
-            line-height:1.4;
-        }
-        .card-desc {
-            font-size:0.82rem;
-            color:#777;
-            margin-bottom:14px;
-            line-height:1.5;
-            display:-webkit-box;
-            -webkit-line-clamp:2;
-            -webkit-box-orient:vertical;
-            overflow:hidden;
-        }
-
-        .price-row {
-            display:flex;
-            align-items:center;
-            gap:10px;
-            margin-bottom:16px;
-        }
-        .price-main {
-            font-size:1.5rem;
-            font-weight:900;
-            color:var(--gold);
-            text-shadow:0 0 15px rgba(212,175,55,0.2);
-        }
-        .price-old {
-            font-size:0.9rem;
-            color:#555;
-            text-decoration:line-through;
-        }
-
-        .card-actions {
-            display:flex;
-            gap:10px;
-        }
-        .btn-gold {
-            flex:1;
-            padding:12px;
-            border-radius:14px;
-            border:none;
-            background:linear-gradient(135deg, var(--gold), #b8941f);
-            color:#000;
-            font-family:'Cairo',sans-serif;
-            font-size:0.9rem;
-            font-weight:900;
-            cursor:pointer;
-            transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-            box-shadow:0 4px 20px rgba(212,175,55,0.25);
-            position:relative;
-            overflow:hidden;
-        }
-        .btn-gold::after {
-            content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
-            background:linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
-            transform:rotate(45deg) translateY(-100%);
-            transition:transform 0.6s;
-        }
-        .btn-gold:hover::after { transform:rotate(45deg) translateY(100%); }
-        .btn-gold:hover {
-            transform:translateY(-2px);
-            box-shadow:0 8px 30px rgba(212,175,55,0.4);
-        }
-        .btn-gold:active { transform:scale(0.95); }
-
-        .btn-glass {
-            width:44px; height:44px;
-            border-radius:14px;
-            border:1px solid rgba(255,255,255,0.1);
-            background:rgba(255,255,255,0.03);
-            color:#888;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            cursor:pointer;
-            transition:all 0.3s;
-            font-size:1.1rem;
-        }
-        .btn-glass:hover {
-            border-color:rgba(233,30,140,0.4);
-            color:var(--pink);
-            background:rgba(233,30,140,0.05);
-            transform:scale(1.1);
-        }
-
-        .btn-notify {
-            flex:1;
-            padding:12px;
-            border-radius:14px;
-            border:none;
-            background:linear-gradient(135deg, var(--pink), #c2185b);
-            color:#fff;
-            font-family:'Cairo',sans-serif;
-            font-size:0.9rem;
-            font-weight:900;
-            cursor:pointer;
-            transition:all 0.3s;
-            box-shadow:0 4px 20px rgba(233,30,140,0.25);
-        }
-        .btn-notify:hover {
-            transform:translateY(-2px);
-            box-shadow:0 8px 30px rgba(233,30,140,0.35);
-        }
-
-        /* لا يوجد منتجات */
-        .empty-state {
-            grid-column:1 / -1;
-            text-align:center;
-            padding:80px 20px;
-            color:#444;
-        }
-        .empty-icon {
-            font-size:5rem;
-            margin-bottom:20px;
-            opacity:0.3;
-            filter:grayscale(100%);
-        }
-        .empty-title {
-            color:var(--gold);
-            font-size:1.3rem;
-            font-weight:900;
-            margin-bottom:10px;
-        }
-
-        /* الفوتر */
-        .footer {
-            text-align:center;
-            padding:40px 20px;
-            color:var(--pink);
-            font-size:0.95rem;
-            font-weight:700;
-            text-shadow:0 0 15px rgba(233,30,140,0.2);
-            position:relative;
-            z-index:10;
-            letter-spacing:1px;
-        }
-        .footer::before {
-            content:''; display:block;
-            width:60px; height:2px;
-            background:linear-gradient(90deg, transparent, var(--pink), transparent);
-            margin:0 auto 15px;
-            opacity:0.5;
-        }
-
-        /* القائمة السفلية */
-        .bottom-nav {
-            position:fixed;
-            bottom:0; left:0; right:0;
-            background:rgba(0,0,0,0.9);
-            backdrop-filter:blur(30px);
-            border-top:1px solid rgba(255,255,255,0.05);
-            display:flex;
-            justify-content:space-around;
-            padding:8px 0 calc(8px + env(safe-area-inset-bottom));
-            z-index:1000;
-        }
-        .nav-item {
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            gap:3px;
-            padding:6px 12px;
-            color:#555;
-            text-decoration:none;
-            font-size:0.65rem;
-            font-weight:600;
-            transition:all 0.3s;
-            border-radius:12px;
-        }
-        .nav-item.active {
-            color:var(--gold);
-            background:rgba(212,175,55,0.1);
-        }
-        .nav-item:hover:not(.active) { color:#888; }
-        .nav-icon { font-size:1.4rem; }
-
-        /* المودالات */
+        
+        /* Modal */
         .modal-overlay {
-            display:none;
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.9);
-            backdrop-filter:blur(10px);
-            z-index:5000;
-            align-items:center;
-            justify-content:center;
-            padding:20px;
-            opacity:0;
-            transition:opacity 0.3s;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center;
         }
-        .modal-overlay.active { display:flex; opacity:1; }
         .modal-box {
-            background:linear-gradient(145deg, #0a0a0a, #111);
-            border:1px solid rgba(212,175,55,0.2);
-            border-radius:28px;
-            padding:35px 25px;
-            max-width:380px;
-            width:100%;
-            text-align:center;
-            transform:scale(0.9) translateY(20px);
-            transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-            box-shadow:0 30px 80px rgba(0,0,0,0.6);
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            border: 2px solid #d4af37; border-radius: 20px;
+            padding: 30px; width: 90%; max-width: 400px; text-align: center;
         }
-        .modal-overlay.active .modal-box { transform:scale(1) translateY(0); }
-        .modal-icon { font-size:3.5rem; margin-bottom:15px; }
-        .modal-title {
-            color:var(--gold);
-            font-size:1.3rem;
-            font-weight:900;
-            margin-bottom:10px;
+        .modal-title { color: #d4af37; font-size: 1.3em; margin-bottom: 20px; }
+        .modal-box input {
+            width: 100%; padding: 15px; margin: 10px 0;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 10px; color: #fff; text-align: center; font-size: 1.1em;
         }
-        .modal-text {
-            color:#888;
-            font-size:0.9rem;
-            margin-bottom:20px;
-            line-height:1.6;
+        .modal-box input:focus { outline: none; border-color: #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.3); }
+        .modal-btn {
+            width: 100%; padding: 15px; margin-top: 15px;
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 10px; color: #000;
+            font-weight: 700; cursor: pointer; font-size: 1.1em;
         }
-        .modal-input {
-            width:100%;
-            padding:14px 16px;
-            margin-bottom:12px;
-            border-radius:14px;
-            border:1px solid rgba(255,255,255,0.1);
-            background:rgba(255,255,255,0.03);
-            color:#fff;
-            font-family:'Cairo',sans-serif;
-            font-size:0.95rem;
-            outline:none;
-            transition:all 0.3s;
+        .modal-close {
+            margin-top: 10px; color: #888; cursor: pointer; background: none; border: none;
         }
-        .modal-input:focus {
-            border-color:var(--gold);
-            box-shadow:0 0 15px rgba(212,175,55,0.1);
+        
+        .dev-footer {
+            text-align: center; padding: 30px 20px;
+            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
         }
-        .modal-btns { display:flex; gap:10px; margin-top:5px; }
-        .modal-btns .btn-gold, .modal-btns .btn-glass { flex:1; }
-
-        .success-modal .modal-icon { color:#2ecc71; }
-        .success-modal .modal-title { color:#2ecc71; }
-        .error-modal .modal-icon { color:#e74c3c; }
-        .error-modal .modal-title { color:#e74c3c; }
-
-        /* تأثير particles عند الضغط */
-        .ripple {
-            position:absolute;
-            border-radius:50%;
-            background:rgba(212,175,55,0.3);
-            transform:scale(0);
-            animation:rippleEffect 0.6s ease-out;
-            pointer-events:none;
+        .dev-name {
+            font-size: 1.2em; font-weight: 700;
+            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(233,30,140,0.5);
+            animation: glow 2s ease-in-out infinite alternate;
         }
-        @keyframes rippleEffect {
-            to { transform:scale(4); opacity:0; }
+        @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
+        
+        .exit-btn {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 12px 40px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; border: none; z-index: 1000;
         }
+        
+        .notification-toast {
+            position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(40,167,69,0.9); color: #fff; padding: 15px 30px;
+            border-radius: 10px; z-index: 3000; display: none;
+            animation: slideDown 0.5s;
+        }
+        @keyframes slideDown { from { transform: translate(-50%, -100%); } to { transform: translate(-50%, 0); } }
     </style>
 </head>
 <body>
+    <a href="/location" class="location-icon">📍</a>
+    <a href="/admin" class="admin-lock">🔒</a>
 
-    <div class="bg-mesh"></div>
-
-    <!-- أزرار الأعلى -->
-    <div class="top-actions top-left">
-        <a href="/location" class="icon-btn" title="موقع المحل">📍</a>
-    </div>
-    <div class="top-actions top-right">
-        <div class="icon-btn" onclick="openAdminModal()" title="لوحة التحكم">🔒</div>
-    </div>
-
-    <!-- الهيدر -->
     <div class="header">
-        <h1>👑 أرين</h1>
-        <div class="header-sub">{{ shop_name }}</div>
+        <h1>🏪 AREEN - المتجر الذكي</h1>
     </div>
 
-    <!-- البحث -->
-    <div class="search-wrap">
-        <form method="GET" action="{{ url_for('products') }}">
-            <div class="search-box">
-                <input type="text" name="search" placeholder="ابحث عن منتج..." value="{{ search or '' }}" onkeypress="if(event.key==='Enter')this.form.submit()">
-            </div>
-        </form>
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="🔍 ابحث عن منتج..." value="{{ search }}">
+        <button onclick="doSearch()">بحث</button>
     </div>
 
-    <!-- الفئات -->
     <div class="categories">
-        <div class="cat-chip {% if current_category == 'all' %}active{% endif %}" onclick="window.location.href='{{ url_for('products', category='all') }}'">الكل</div>
-        {% for cat in categories %}
-        <div class="cat-chip {% if current_category == cat %}active{% endif %}" onclick="window.location.href='{{ url_for('products', category=cat) }}'">{{ cat }}</div>
-        {% endfor %}
+        <button class="cat-btn {{ 'active' if category == 'all' else '' }}" onclick="filterCat('all')">الكل</button>
+        <button class="cat-btn {{ 'active' if category == 'شاشات' else '' }}" onclick="filterCat('شاشات')">شاشات</button>
+        <button class="cat-btn {{ 'active' if category == 'بطاريات' else '' }}" onclick="filterCat('بطاريات')">بطاريات</button>
+        <button class="cat-btn {{ 'active' if category == 'سماعات' else '' }}" onclick="filterCat('سماعات')">سماعات</button>
+        <button class="cat-btn {{ 'active' if category == 'كفرات' else '' }}" onclick="filterCat('كفرات')">كفرات</button>
+        <button class="cat-btn {{ 'active' if category == 'شواحن' else '' }}" onclick="filterCat('شواحن')">شواحن</button>
+        <button class="cat-btn {{ 'active' if category == 'هواتف' else '' }}" onclick="filterCat('هواتف')">هواتف</button>
     </div>
 
-    <!-- المنتجات -->
     <div class="products-grid">
-        {% for product in products %}
-        <div class="product-card">
-            <div class="card-img-wrap">
-                {% if product.image %}
-                <img src="{{ product.image }}" class="card-img" alt="{{ product.name }}" loading="lazy">
-                {% else %}
-                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#111;color:#333;font-size:4rem;">📱</div>
-                {% endif %}
-                <div class="card-img-overlay"></div>
-                <div class="card-badges">
-                    <span class="badge badge-curr">{{ product.currency }}</span>
-                    {% if product.is_rare %}
-                    <span class="badge badge-rare">🏆 نادرة</span>
-                    {% endif %}
-                    {% if product.stock > 0 %}
-                        {% if product.stock <= 3 %}
-                        <span class="badge badge-low">⚠️ باقي {{ product.stock }}</span>
-                        {% else %}
-                        <span class="badge badge-stock">✅ متوفر</span>
-                        {% endif %}
+        {% if products %}
+            {% for p in products %}
+            <div class="product-card" style="position:relative;">
+                {% if p.rare %}<<span class="rare-badge">⭐ نادر</span>{% endif %}
+                <div class="product-img">
+                    {% if p.image %}
+                    <img src="{{ p.image }}" alt="{{ p.name }}">
                     {% else %}
-                    <span class="badge badge-out">❌ نفذت</span>
+                    <span style="font-size:3em;">📦</span>
                     {% endif %}
                 </div>
-            </div>
-            <div class="card-body">
-                <h3 class="card-title">{{ product.name }}</h3>
-                <p class="card-desc">{{ product.description or 'منتج عالي الجودة من متجر أرين' }}</p>
-                <div class="price-row">
-                    <span class="price-main">{{ product.price }}</span>
-                    {% if product.original_price and product.original_price > product.price %}
-                    <span class="price-old">{{ product.original_price }}</span>
-                    {% endif %}
-                </div>
-                <div class="card-actions">
-                    {% if product.stock > 0 %}
-                    <button class="btn-gold" onclick="openReserveModal({{ product.id }}, '{{ product.name }}', {{ product.price }}, '{{ product.currency }}')">
-                        🛒 احجز الآن
-                    </button>
-                    {% else %}
-                    <button class="btn-notify" onclick="openNotifyModal('{{ product.name }}')">
-                        🔔 نبهني
-                    </button>
-                    {% endif %}
+                <div class="product-body">
+                    <div class="product-name">{{ p.name }}</div>
+                    <div class="product-desc">{{ p.description or 'لا يوجد وصف' }}</div>
+                    <div class="product-price">
+                        {{ p.price }} {{ p.currency }}
+                        {% if p.old_price %}<<span class="product-old-price">{{ p.old_price }}</span>{% endif %}
+                    </div>
+                    <div>الكمية: {{ p.quantity }}</div>
                     
-                    {% if is_admin %}
-                    <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}" style="display:inline;" onsubmit="return confirm('حذف المنتج نهائياً؟');">
-                        <button type="submit" class="btn-glass" title="حذف">🗑️</button>
-                    </form>
+                    {% if p.status == 'available' and p.quantity > 0 %}
+                        <span class="status-badge status-available">✅ متوفر</span>
+                        <button class="reserve-btn" onclick="openReserveModal({{ p.id }}, '{{ p.name }}', {{ p.price }}, '{{ p.currency }}')">🛒 احجز الآن</button>
+                    {% elif p.status == 'pending' %}
+                        <span class="status-badge status-pending">⏳ حجز معلق</span>
+                        <button class="reserve-btn" disabled>محجوز مؤقتاً</button>
+                    {% elif p.status == 'reserved' %}
+                        <span class="status-badge status-reserved">🔒 محجوز</span>
+                        <button class="reserve-btn" disabled>تم البيع</button>
+                    {% else %}
+                        <span class="status-badge status-reserved">❌ نفذت الكمية</span>
+                        <button class="notify-btn" onclick="openNotifyModal({{ p.id }})">🔔 نبهني عند التوفر</button>
                     {% endif %}
                 </div>
             </div>
-        </div>
+            {% endfor %}
         {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">📦</div>
-            <div class="empty-title">لا توجد منتجات</div>
-            <p>سيتم إضافة منتجات جديدة قريباً</p>
-        </div>
-        {% endfor %}
+            <div style="text-align:center;padding:50px;color:#666;grid-column:1/-1;">
+                <div style="font-size:4em;margin-bottom:20px;">📭</div>
+                <p>لا توجد منتجات في هذا القسم</p>
+            </div>
+        {% endif %}
     </div>
 
-    <!-- الفوتر -->
-    <div class="footer">
-        ✨ الهاشمي محمد ✨
+    <div class="dev-footer">
+        <div class="dev-name">✨ الهاشمي محمد ✨</div>
     </div>
 
-    <!-- القائمة السفلية -->
-    <div class="bottom-nav">
-        <a href="/" class="nav-item">
-            <span class="nav-icon">🏠</span>
-            <span>الرئيسية</span>
-        </a>
-        <a href="/products" class="nav-item active">
-            <span class="nav-icon">🛍️</span>
-            <span>المتجر</span>
-        </a>
-        <a href="/maintenance" class="nav-item">
-            <span class="nav-icon">🔧</span>
-            <span>الصيانة</span>
-        </a>
-        <a href="/programming" class="nav-item">
-            <span class="nav-icon">💻</span>
-            <span>البرمجة</span>
-        </a>
-    </div>
+    <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
 
-    <!-- مودال الحجز -->
+    <!-- Reserve Modal -->
     <div class="modal-overlay" id="reserveModal">
         <div class="modal-box">
-            <div class="modal-icon">🛒</div>
-            <h3 class="modal-title">تأكيد الحجز</h3>
-            <p class="modal-text" id="reserveInfo">تفاصيل المنتج</p>
-            <input type="text" class="modal-input" id="rName" placeholder="👤 اسمك الكامل">
-            <input type="tel" class="modal-input" id="rPhone" placeholder="📱 رقم الهاتف">
-            <div class="modal-btns">
-                <button class="btn-gold" onclick="submitReserve()">✅ تأكيد</button>
-                <button class="btn-glass" onclick="closeModal('reserveModal')" style="flex:1;">❌</button>
-            </div>
+            <div class="modal-title">🛒 حجز المنتج</div>
+            <div id="reserveInfo" style="color:#d4af37;margin-bottom:15px;"></div>
+            <input type="text" id="resName" placeholder="👤 اكتب اسمك الكامل">
+            <input type="tel" id="resPhone" placeholder="📱 رقم هاتفك (مثال: 773852062)">
+            <button class="modal-btn" onclick="submitReserve()">✅ تأكيد الحجز</button>
+            <button class="modal-close" onclick="closeModal('reserveModal')">إلغاء</button>
         </div>
     </div>
 
-    <!-- مودال نجاح -->
-    <div class="modal-overlay success-modal" id="successModal">
-        <div class="modal-box">
-            <div class="modal-icon">✅</div>
-            <h3 class="modal-title">تم إنشاء الحجز!</h3>
-            <p class="modal-text" id="successText">تم إنشاء حجزك بنجاح</p>
-            <div class="modal-btns">
-                <button class="btn-gold" onclick="goWhatsApp()">📱 واتساب</button>
-                <button class="btn-glass" onclick="closeModal('successModal')">إغلاق</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- مودال نبهني -->
+    <!-- Notify Modal -->
     <div class="modal-overlay" id="notifyModal">
         <div class="modal-box">
-            <div class="modal-icon">🔔</div>
-            <h3 class="modal-title">نبهني عند التوفر</h3>
-            <p class="modal-text" id="notifyText">سنتواصل معك فور توفر المنتج</p>
-            <input type="tel" class="modal-input" id="nPhone" placeholder="📱 رقم الهاتف">
-            <div class="modal-btns">
-                <button class="btn-gold" onclick="submitNotify()">🔔 تأكيد</button>
-                <button class="btn-glass" onclick="closeModal('notifyModal')">إلغاء</button>
-            </div>
+            <div class="modal-title">🔔 تنبيه عند التوفر</div>
+            <input type="tel" id="notifyPhone" placeholder="📱 رقم هاتفك">
+            <button class="modal-btn" onclick="submitNotify()">✅ إشترك في التنبيه</button>
+            <button class="modal-close" onclick="closeModal('notifyModal')">إلغاء</button>
         </div>
     </div>
 
-    <!-- مودال الأدمن -->
-    <div class="modal-overlay" id="adminModal">
-        <div class="modal-box">
-            <div class="modal-icon">🔐</div>
-            <h3 class="modal-title">لوحة التحكم</h3>
-            <p class="modal-text">أدخل كلمة السر للوصول للوحة التحكم</p>
-            <input type="password" class="modal-input" id="adminPass" placeholder="كلمة السر">
-            <div class="modal-btns">
-                <button class="btn-gold" onclick="checkAdmin()">🔓 فتح</button>
-                <button class="btn-glass" onclick="closeModal('adminModal')">إلغاء</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- مودال خطأ -->
-    <div class="modal-overlay error-modal" id="errorModal">
-        <div class="modal-box">
-            <div class="modal-icon">❌</div>
-            <h3 class="modal-title">خطأ!</h3>
-            <p class="modal-text" id="errorText">حدث خطأ</p>
-            <div class="modal-btns">
-                <button class="btn-glass" onclick="closeModal('errorModal')">حاول مجدداً</button>
-            </div>
-        </div>
-    </div>
+    <div class="notification-toast" id="toast"></div>
 
     <script>
-        let currentReserveId = null;
         let currentProductId = null;
-        let currentProductName = '';
-
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
+        
+        function filterCat(cat) {
+            window.location.href = '/products?category=' + cat + '&search=' + document.getElementById('searchInput').value;
+        }
+        function doSearch() {
+            const cat = new URLSearchParams(window.location.search).get('category') || 'all';
+            window.location.href = '/products?category=' + cat + '&search=' + document.getElementById('searchInput').value;
+        }
+        
+        function openReserveModal(id, name, price, currency) {
+            currentProductId = id;
+            document.getElementById('reserveInfo').textContent = name + ' - ' + price + ' ' + currency;
+            document.getElementById('reserveModal').style.display = 'flex';
+        }
+        function openNotifyModal(id) {
+            currentProductId = id;
+            document.getElementById('notifyModal').style.display = 'flex';
         }
         function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
+            document.getElementById(id).style.display = 'none';
         }
-
-        // إغلاق عند الضغط خارج المودال
-        document.querySelectorAll('.modal-overlay').forEach(m => {
-            m.addEventListener('click', (e) => { if(e.target === m) closeModal(m.id); });
-        });
-
-        function openReserveModal(pid, name, price, curr) {
-            currentProductId = pid;
-            document.getElementById('reserveInfo').innerHTML = `🏷️ ${name}<br>💰 ${price} ${curr}`;
-            openModal('reserveModal');
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
         }
-
-        async function submitReserve() {
-            const name = document.getElementById('rName').value.trim();
-            const phone = document.getElementById('rPhone').value.trim();
-            if(!name || !phone) { showError('يرجى إدخال الاسم ورقم الهاتف'); return; }
-
-            const btn = document.querySelector('#reserveModal .btn-gold');
-            btn.style.opacity = '0.6'; btn.style.pointerEvents = 'none';
-            btn.innerHTML = '⏳ جاري...';
-
-            try {
-                const res = await fetch('/api/reserve', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body:JSON.stringify({product_id:currentProductId, customer_name:name, phone:phone})
-                });
-                const data = await res.json();
-                if(data.success) {
-                    closeModal('reserveModal');
-                    currentReserveId = data.reservation_id;
-                    document.getElementById('successText').innerHTML = 
-                        `تم إنشاء حجزك بنجاح!<br>🆔 رقم الحجز: #${data.reservation_id}<br>⏳ الحالة: معلق`;
-                    openModal('successModal');
-                } else {
-                    showError(data.error || 'فشل في إنشاء الحجز');
-                }
-            } catch(e) {
-                showError('خطأ في الاتصال');
-            } finally {
-                btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
-                btn.innerHTML = '✅ تأكيد';
-            }
-        }
-
-        function goWhatsApp() {
-            if(currentReserveId) window.location.href = `/api/reservation_whatsapp/${currentReserveId}`;
-        }
-
-        function openNotifyModal(name) {
-            currentProductName = name;
-            document.getElementById('notifyText').textContent = `سنخبرك عند توفر: ${name}`;
-            openModal('notifyModal');
-        }
-
-        async function submitNotify() {
-            const phone = document.getElementById('nPhone').value.trim();
-            if(!phone) { showError('يرجى إدخال رقم الهاتف'); return; }
+        
+        function submitReserve() {
+            const name = document.getElementById('resName').value.trim();
+            const phone = document.getElementById('resPhone').value.trim();
             
-            const form = new FormData();
-            form.append('product_name', currentProductName);
-            form.append('phone', phone);
-
-            try {
-                await fetch('/notify_me', {method:'POST', body:form});
-                closeModal('notifyModal');
-                alert('🔔 سنتصل بك عند توفر المنتج!');
-            } catch(e) {
-                showError('خطأ في الاتصال');
+            if(!name || !phone) {
+                alert('الرجاء إدخال الاسم والرقم');
+                return;
             }
-        }
-
-        function openAdminModal() {
-            {% if session.get('admin_unlocked') %}
-            window.location.href = '/admin/dashboard';
-            {% else %}
-            openModal('adminModal');
-            {% endif %}
-        }
-
-        async function checkAdmin() {
-            const pass = document.getElementById('adminPass').value;
-            try {
-                const res = await fetch('/admin/login', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/x-www-form-urlencoded'},
-                    body:`password=${encodeURIComponent(pass)}`
-                });
-                const data = await res.json();
-                if(data.success) window.location.href = '/admin/dashboard';
-                else showError('كلمة السر غير صحيحة');
-            } catch(e) {
-                showError('خطأ في الاتصال');
-            }
-        }
-
-        function showError(msg) {
-            document.getElementById('errorText').textContent = msg;
-            openModal('errorModal');
-        }
-
-        // تأثير ripple على الأزرار
-        document.querySelectorAll('.btn-gold, .btn-glass, .btn-notify, .cat-chip').forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                const ripple = document.createElement('span');
-                ripple.className = 'ripple';
-                const rect = this.getBoundingClientRect();
-                ripple.style.left = (e.clientX - rect.left) + 'px';
-                ripple.style.top = (e.clientY - rect.top) + 'px';
-                ripple.style.width = ripple.style.height = '20px';
-                this.appendChild(ripple);
-                setTimeout(() => ripple.remove(), 600);
+            
+            fetch('/api/reserve', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({product_id: currentProductId, name: name, phone: phone})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    showToast(data.message);
+                    closeModal('reserveModal');
+                    // Open WhatsApp after 1 second
+                    setTimeout(() => {
+                        window.open(data.whatsapp_url, '_blank');
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert(data.message);
+                }
             });
-        });
+        }
+        
+        function submitNotify() {
+            const phone = document.getElementById('notifyPhone').value.trim();
+            if(!phone) { alert('الرجاء إدخال الرقم'); return; }
+            
+            fetch('/api/notify-me', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({product_id: currentProductId, phone: phone})
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast(data.message);
+                closeModal('notifyModal');
+            });
+        }
+        
+        function goHome() { window.location.href = '/'; }
     </script>
 </body>
 </html>

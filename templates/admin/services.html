@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الخدمات - AREEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: #000; color: #fff; min-height: 100vh; padding-bottom: 80px; }
+        .header { 
+            background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+            padding: 20px; text-align: center; border-bottom: 2px solid #d4af37;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header h1 { color: #d4af37; }
+        .back { position: absolute; left: 20px; top: 20px; color: #d4af37; text-decoration: none; font-size: 1.5em; }
+        
+        .add-form {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; margin: 15px; padding: 20px;
+        }
+        .form-title { color: #d4af37; margin-bottom: 15px; font-size: 1.2em; }
+        select, input, textarea {
+            width: 100%; padding: 12px; margin: 8px 0;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 10px; color: #fff; font-family: 'Cairo', sans-serif;
+        }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: #d4af37; }
+        option { background: #1a1a1a; color: #fff; }
+        .btn-add {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #d4af37, #b8941f);
+            border: none; border-radius: 10px; color: #000; font-weight: 700; cursor: pointer; margin-top: 10px;
+        }
+        
+        .section-title {
+            color: #d4af37; padding: 20px 15px 10px; font-size: 1.3em;
+            border-bottom: 1px solid rgba(212,175,55,0.2); margin: 20px 15px 0;
+        }
+        
+        .service-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px; margin: 10px 15px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .service-card.inactive { opacity: 0.5; }
+        .service-info h3 { color: #d4af37; margin-bottom: 5px; }
+        .service-info p { color: #888; font-size: 0.9em; }
+        .service-price { color: #e91e8c; font-weight: 700; }
+        
+        .service-actions { display: flex; gap: 8px; }
+        .s-btn {
+            padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85em;
+        }
+        .s-btn-toggle { background: #ffc107; color: #000; }
+        .s-btn-delete { background: #dc3545; color: #fff; }
+        
+        .empty { text-align: center; padding: 30px; color: #666; }
+        
+        .dev-footer {
+            text-align: center; padding: 20px;
+            background: linear-gradient(90deg, transparent, rgba(233,30,140,0.1), transparent);
+        }
+        .dev-name {
+            font-size: 1.1em; font-weight: 700;
+            background: linear-gradient(90deg, #e91e8c, #ff6b9d, #e91e8c);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        
+        .exit-btn {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(135deg, #d4af37, #b8941f);
+            color: #000; padding: 12px 40px; border-radius: 30px;
+            font-weight: 700; cursor: pointer; border: none; z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="{{ url_for('admin_dashboard') }}" class="back">→</a>
+        <h1>🔧 إدارة الخدمات</h1>
+    </div>
+
+    <div class="add-form">
+        <div class="form-title">➕ إضافة خدمة جديدة</div>
+        <form method="POST">
+            <select name="type" required>
+                <option value="maintenance">🔧 صيانة</option>
+                <option value="programming">💻 برمجة</option>
+            </select>
+            <input type="text" name="title" placeholder="اسم الخدمة (مثال: تغيير شاشة)" required>
+            <input type="text" name="price" placeholder="السعر (اختياري)">
+            <textarea name="description" rows="3" placeholder="وصف الخدمة..."></textarea>
+            <button type="submit" class="btn-add">إضافة الخدمة</button>
+        </form>
+    </div>
+
+    <div class="section-title">🔧 خدمات الصيانة</div>
+    {% if maintenance %}
+        {% for s in maintenance %}
+        <div class="service-card {{ 'inactive' if not s.active else '' }}">
+            <div class="service-info">
+                <h3>{{ s.title }}</h3>
+                <p>{{ s.description or 'لا يوجد وصف' }}</p>
+                {% if s.price %}<<div class="service-price">{{ s.price }}</div>{% endif %}
+            </div>
+            <div class="service-actions">
+                <button class="s-btn s-btn-toggle" onclick="toggleSvc({{ s.id }})">
+                    {{ 'إخفاء' if s.active else 'إظهار' }}
+                </button>
+                <button class="s-btn s-btn-delete" onclick="deleteSvc({{ s.id }})">حذف</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">لا توجد خدمات صيانة</div>
+    {% endif %}
+
+    <div class="section-title">💻 خدمات البرمجة</div>
+    {% if programming %}
+        {% for s in programming %}
+        <div class="service-card {{ 'inactive' if not s.active else '' }}">
+            <div class="service-info">
+                <h3>{{ s.title }}</h3>
+                <p>{{ s.description or 'لا يوجد وصف' }}</p>
+                {% if s.price %}<<div class="service-price">{{ s.price }}</div>{% endif %}
+            </div>
+            <div class="service-actions">
+                <button class="s-btn s-btn-toggle" onclick="toggleSvc({{ s.id }})">
+                    {{ 'إخفاء' if s.active else 'إظهار' }}
+                </button>
+                <button class="s-btn s-btn-delete" onclick="deleteSvc({{ s.id }})">حذف</button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">لا توجد خدمات برمجة</div>
+    {% endif %}
+
+    <div class="dev-footer">
+        <div class="dev-name">✨ الهاشمي محمد ✨</div>
+    </div>
+
+    <button class="exit-btn" onclick="goHome()">🏠 الخروج للرئيسية</button>
+
+    <script>
+        function toggleSvc(id) {
+            fetch('/admin/service/toggle/' + id, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => { if(data.success) location.reload(); });
+        }
+        function deleteSvc(id) {
+            if(!confirm('حذف هذه الخدمة؟')) return;
+            fetch('/admin/service/delete/' + id, {method: 'POST'})
+            .then(r => r.json())
+            .then(data => { if(data.success) location.reload(); });
+        }
+        function goHome() { window.location.href = '/'; }
+    </script>
+</body>
+</html>
