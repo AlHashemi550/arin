@@ -2,59 +2,268 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول - {{ app_name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تسجيل الدخول - أرين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: radial-gradient(ellipse at center, #1a1500 0%, #000000 70%);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 360px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo svg {
+            width: 80px;
+            height: 95px;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #d4af37;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            color: #888;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #aaa;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0a0a0a;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+        }
+        
+        .form-group input::placeholder {
+            color: #555;
+        }
+        
+        .admin-section {
+            background: rgba(212, 175, 55, 0.05);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .admin-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50px;
+            color: #d4af37;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #d4af37, #aa8c2c);
+            border: none;
+            border-radius: 50px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+            margin-top: 10px;
+        }
+        
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+        
+        .register-link {
+            display: block;
+            text-align: center;
+            color: #666;
+            text-decoration: none;
+            margin-top: 25px;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+        
+        .register-link span {
+            color: #d4af37;
+            font-weight: 700;
+        }
+        
+        .register-link:active {
+            color: #d4af37;
+        }
+        
+        .hint {
+            color: #444;
+            font-size: 11px;
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.6;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
-            <h1><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</h1>
+        <div class="logo">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f4d03f"/>
+                        <stop offset="50%" style="stop-color:#d4af37"/>
+                        <stop offset="100%" style="stop-color:#aa8c2c"/>
+                    </linearGradient>
+                </defs>
+                <path d="M50 5 L90 110 L75 110 L65 85 L35 85 L25 110 L10 110 Z" fill="url(#goldGrad)"/>
+                <path d="M50 25 L62 70 L38 70 Z" fill="#000"/>
+            </svg>
         </div>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
-
-        <div class="form-container">
-            <form method="POST">
-                <div class="form-group">
-                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
-                    <input type="tel" name="phone" value="{{ phone }}" placeholder="مثال: 783234925" required pattern="[0-9]{9}">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
-                    <input type="password" name="password" placeholder="كلمة المرور" required>
-                </div>
-                {% if is_admin_phone %}
-                <div class="form-group">
-                    <label><i class="fas fa-user-shield"></i> باسورد الأدمن</label>
-                    <input type="password" name="admin_password" placeholder="باسورد الأدمن">
-                </div>
-                {% endif %}
-                <button type="submit" class="btn btn-gold"><i class="fas fa-sign-in-alt"></i> دخول</button>
-            </form>
-            <div style="text-align: center; margin-top: 20px;">
-                <p style="color: var(--text-muted); margin-bottom: 10px;">ليس لديك حساب؟</p>
-                <a href="{{ url_for('register') }}" class="btn btn-dark"><i class="fas fa-user-plus"></i> إنشاء حساب</a>
+        
+        <div class="title">تسجيل الدخول</div>
+        <div class="subtitle">أهلاً بك في أرين</div>
+        
+        <form action="{{ url_for('login') }}" method="post" id="loginForm">
+            <div class="form-group">
+                <label>رقم الجوال</label>
+                <input type="tel" name="phone" id="phoneInput" required placeholder="مثال: 783234925" maxlength="15">
             </div>
-        </div>
-
-        <div class="footer">
-            <p class="dev-name">الهاشمي محمد</p>
-            <div class="social-links">
-                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" name="password" placeholder="••••••" id="passwordInput">
             </div>
+            
+            <!-- حقل باسورد الأدمن (يظهر تلقائياً لأرقام الأدمن) -->
+            <div class="admin-section" id="adminSection">
+                <div class="admin-badge">⚡ دخول أدمن</div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label style="color: #d4af37;">باسورد الأدمن</label>
+                    <input type="password" name="admin_password" id="adminPassword" placeholder="باسورد خاص بالأدمن">
+                </div>
+            </div>
+            
+            <button type="submit" class="btn-submit">تسجيل الدخول</button>
+        </form>
+        
+        <a href="{{ url_for('register') }}" class="register-link">
+            ليس لديك حساب؟ <span>سجل الآن</span>
+        </a>
+        
+        <div class="hint">
+            الأرقام المسجلة كأدمن تتطلب باسورد إضافي
         </div>
     </div>
+    
+    <script>
+        const phoneInput = document.getElementById('phoneInput');
+        const adminSection = document.getElementById('adminSection');
+        const adminPassword = document.getElementById('adminPassword');
+        const passwordInput = document.getElementById('passwordInput');
+        
+        // أرقام الأدمن
+        const adminPhones = ['783234925', '779505979', '773852062'];
+        
+        phoneInput.addEventListener('input', function() {
+            let val = this.value.replace(/[^0-9]/g, '').replace(/^967/, '').replace(/^\+967/, '').replace(/^0/, '');
+            
+            if (adminPhones.includes(val)) {
+                adminSection.classList.add('active');
+                passwordInput.removeAttribute('required');
+                adminPassword.setAttribute('required', 'required');
+            } else {
+                adminSection.classList.remove('active');
+                passwordInput.setAttribute('required', 'required');
+                adminPassword.removeAttribute('required');
+            }
+        });
+        
+        // تحقق قبل الإرسال
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            let val = phoneInput.value.replace(/[^0-9]/g, '').replace(/^967/, '').replace(/^\+967/, '').replace(/^0/, '');
+            
+            if (adminPhones.includes(val)) {
+                if (!adminPassword.value) {
+                    e.preventDefault();
+                    alert('أدخل باسورد الأدمن');
+                    adminPassword.focus();
+                    return;
+                }
+            } else {
+                if (!passwordInput.value) {
+                    e.preventDefault();
+                    alert('أدخل كلمة المرور');
+                    passwordInput.focus();
+                    return;
+                }
+            }
+        });
+    </script>
 </body>
 </html>
