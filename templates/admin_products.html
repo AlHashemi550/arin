@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المنتجات - {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('admin_dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-box"></i> المنتجات</h1>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="form-container">
+            <h3 style="color: var(--gold); margin-bottom: 15px;"><i class="fas fa-plus"></i> إضافة منتج جديد</h3>
+            <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="add">
+                <div class="form-group">
+                    <label>الاسم</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>السعر</label>
+                        <input type="number" name="price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>السعر الأصلي</label>
+                        <input type="number" name="original_price" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>الصورة الرئيسية</label>
+                    <input type="file" name="image" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>صور إضافية (اختياري)</label>
+                    <input type="file" name="image_1" accept="image/*">
+                    <input type="file" name="image_2" accept="image/*" style="margin-top: 5px;">
+                    <input type="file" name="image_3" accept="image/*" style="margin-top: 5px;">
+                </div>
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <textarea name="description" rows="2"></textarea>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>التصنيف</label>
+                        <input type="text" name="category" value="general">
+                    </div>
+                    <div class="form-group">
+                        <label>المخزون</label>
+                        <input type="number" name="stock" value="1">
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="form-group">
+                        <label>العملة</label>
+                        <input type="text" name="currency" value="ر.ي">
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center; gap: 10px; padding-top: 25px;">
+                        <input type="checkbox" name="is_rare" id="is_rare" style="width: auto;">
+                        <label for="is_rare" style="margin: 0;">قطعة نادرة</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-gold"><i class="fas fa-plus"></i> إضافة</button>
+            </form>
+        </div>
+
+        <h3 style="color: var(--gold); margin: 20px 0 15px;"><i class="fas fa-list"></i> قائمة المنتجات</h3>
+        <div class="table-container">
+            <table>
+                <tr><th>الصورة</th><th>الاسم</th><th>السعر</th><th>المخزون</th><th>الحالة</th><th>إجراء</th></tr>
+                {% for p in products %}
+                <tr>
+                    <td><img src="{{ url_for('static', filename=p.image) }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"></td>
+                    <td>{{ p.name }}</td>
+                    <td>{{ p.price }} {{ p.currency }}</td>
+                    <td>{{ p.stock }}</td>
+                    <td>{% if p.confirmed %}<span class="status-badge status-reserved">محجوز</span>{% else %}<span class="status-badge status-confirmed">متاح</span>{% endif %}</td>
+                    <td>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="action" value="delete">
+                            <input type="hidden" name="product_id" value="{{ p.id }}">
+                            <button type="submit" class="btn btn-danger btn-small"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+        </div>
+    </div>
+</body>
+</html>

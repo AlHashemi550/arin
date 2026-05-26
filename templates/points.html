@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نقاطي - {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-gift"></i> نقاط الولاء</h1>
+        </div>
+
+        <div class="points-display glow">
+            <div><i class="fas fa-star"></i> <span style="color: var(--text-muted);">رصيدك الحالي</span></div>
+            <div class="points-value">{{ points }} <span style="font-size: 0.9rem;">نقطة</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fas fa-info-circle"></i> كيف تربح النقاط؟</div>
+            <p style="color: var(--text-muted); line-height: 1.8; font-size: 0.9rem;">
+                <i class="fas fa-check" style="color: var(--success);"></i> إحالة صديق = 50 نقطة<br>
+                <i class="fas fa-check" style="color: var(--success);"></i> تأكيد حجز = حسب الأدمن<br>
+                <i class="fas fa-check" style="color: var(--success);"></i> شراء منتج = نقاط إضافية
+            </p>
+        </div>
+
+        <h3 style="color: var(--gold); margin: 20px 0 15px;"><i class="fas fa-history"></i> سجل النقاط</h3>
+        {% for h in history %}
+        <div class="notification-item {% if not h.is_read %}unread{% endif %} {{ h.type }}">
+            <div class="notification-icon"><i class="fas fa-star"></i></div>
+            <div class="notification-content">
+                <div class="notification-title">{{ h.title }}</div>
+                <div class="notification-msg">{{ h.message }}</div>
+                <div style="color: var(--text-muted); font-size: 0.75rem; margin-top: 5px;">{{ h.created_at }}</div>
+            </div>
+        </div>
+        {% else %}
+        <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <p>لا يوجد سجل بعد</p>
+        </div>
+        {% endfor %}
+
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+            <div class="social-links">
+                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

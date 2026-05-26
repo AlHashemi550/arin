@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from functools import wraps
 import sqlite3, random, string, os, urllib.parse, json
 from datetime import datetime, timedelta
@@ -92,12 +92,6 @@ def init_db():
                 user_id INTEGER, device_name TEXT, part_name TEXT,
                 purchase_date TEXT, warranty_months INTEGER DEFAULT 6,
                 last_notified TEXT
-            )''',
-            '''CREATE TABLE IF NOT EXISTS alerts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER, product_name TEXT, phone TEXT,
-                notified INTEGER DEFAULT 0,
-                created_at TEXT DEFAULT CURRENT_TIMESTAMP
             )''',
             '''CREATE TABLE IF NOT EXISTS notifications (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -213,8 +207,6 @@ def notify(uid, title, msg, ntype='info'):
 def wa_link(phone, msg):
     return 'https://wa.me/967' + phone + '?text=' + urllib.parse.quote(msg)
 
-# ===================== ROUTES =====================
-
 @app.route('/')
 def index():
     with get_db() as conn:
@@ -308,8 +300,6 @@ def logout():
     flash('تم تسجيل الخروج', 'info')
     return redirect(url_for('index'))
 
-# ===================== PRODUCTS =====================
-
 @app.route('/products')
 def products():
     cat = request.args.get('cat','')
@@ -360,7 +350,6 @@ def buy_product(pid):
     flash('تم إرسال طلبك! سنتواصل معك', 'success')
     return redirect(wa_link(RESERVATION_PHONE, msg))
 
-# ===================== RESERVATION (حجز قطع) =====================
 @app.route('/reserve', methods=['GET','POST'])
 @login_required
 @customer_only
@@ -381,7 +370,6 @@ def reserve():
         return redirect(wa_link(RESERVATION_PHONE, msg))
     return render_template('reserve.html', app_name=APP_NAME)
 
-# ===================== MAINTENANCE =====================
 @app.route('/maintenance')
 def maintenance():
     return render_template('maintenance.html', app_name=APP_NAME, phone=MAINTENANCE_PHONE)
@@ -401,7 +389,6 @@ def maintenance_book():
     flash('تم إرسال طلب الصيانة! انتظر تأكيد الأدمن', 'success')
     return redirect(wa_link(MAINTENANCE_PHONE, msg))
 
-# ===================== PROGRAMMING =====================
 @app.route('/programming')
 def programming():
     return render_template('programming.html', app_name=APP_NAME, phone=PROGRAMMING_PHONE)
@@ -421,7 +408,6 @@ def programming_book():
     flash('تم إرسال طلب البرمجة! انتظر تأكيد الأدمن', 'success')
     return redirect(wa_link(PROGRAMMING_PHONE, msg))
 
-# ===================== DEVICES & WARRANTY =====================
 @app.route('/my-devices')
 @login_required
 def my_devices():
@@ -442,7 +428,6 @@ def add_device():
     flash('تم إضافة الجهاز', 'success')
     return redirect(url_for('my_devices'))
 
-# ===================== LOYALTY POINTS =====================
 @app.route('/points')
 @login_required
 def points_page():
@@ -451,7 +436,6 @@ def points_page():
         hist = conn.execute('SELECT * FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 20', (session['user_id'],)).fetchall()
     return render_template('points.html', points=pts, history=hist, app_name=APP_NAME)
 
-# ===================== NOTIFICATIONS =====================
 @app.route('/notifications')
 @login_required
 def notifications():
@@ -470,7 +454,6 @@ def delete_notification(nid):
     flash('تم حذف الإشعار', 'success')
     return redirect(url_for('notifications'))
 
-# ===================== ADMIN CONFIRMATIONS =====================
 @app.route('/admin/confirm/reservation/<int:rid>', methods=['POST'])
 @login_required
 @admin_required
@@ -537,7 +520,6 @@ def confirm_product_order(pid):
     flash('تم تأكيد الطلب', 'success')
     return redirect(url_for('admin_orders'))
 
-# ===================== ADMIN DASHBOARD =====================
 @app.route('/admin')
 @login_required
 @admin_required
@@ -671,7 +653,6 @@ def admin_users():
         users = conn.execute('SELECT * FROM users ORDER BY id DESC').fetchall()
     return render_template('admin_users.html', users=users, app_name=APP_NAME)
 
-# ===================== API =====================
 @app.route('/api/points')
 def api_points():
     if 'user_id' not in session:

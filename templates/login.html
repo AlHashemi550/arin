@@ -2,78 +2,59 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>تسجيل الدخول | أرين</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - {{ app_name }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="auth-page">
-    <div class="auth-container">
-        <a href="{{ url_for('index') }}" class="back-arrow">❮</a>
-        
-        <div class="auth-logo">
-            <svg viewBox="0 0 200 240" width="80" height="96">
-                <defs>
-                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#f9e076"/>
-                        <stop offset="50%" style="stop-color:#d4af37"/>
-                        <stop offset="100%" style="stop-color:#aa8c2c"/>
-                    </linearGradient>
-                </defs>
-                <path d="M100 20 L180 180 L20 180 Z" fill="url(#goldGrad)"/>
-                <text x="100" y="155" text-anchor="middle" fill="#000" font-size="70" font-weight="900" font-family="Cairo">A</text>
-                <text x="100" y="225" text-anchor="middle" fill="#d4af37" font-size="14" font-weight="700" font-family="Cairo" letter-spacing="6">AREEN</text>
-            </svg>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</h1>
         </div>
 
-        <h2 class="auth-title">تسجيل الدخول</h2>
-        <p class="auth-subtitle">أهلاً بك مجدداً في أرين</p>
-
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="flash-messages">
+        {% if messages %}
+        <div class="flash-messages">
             {% for category, message in messages %}
-              <div class="flash flash-{{ category }}">{{ message }}</div>
+            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
             {% endfor %}
-            </div>
-          {% endif %}
+        </div>
+        {% endif %}
         {% endwith %}
 
-        <form method="POST" action="{{ url_for('login') }}" class="auth-form">
-            <div class="input-group">
-                <label>رقم الهاتف</label>
-                <input type="tel" name="phone" value="{{ phone }}" placeholder="مثال: 783234925" required pattern="[0-9]{9,}" inputmode="numeric">
+        <div class="form-container">
+            <form method="POST">
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
+                    <input type="tel" name="phone" value="{{ phone }}" placeholder="مثال: 783234925" required pattern="[0-9]{9}">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <input type="password" name="password" placeholder="كلمة المرور" required>
+                </div>
+                {% if is_admin_phone %}
+                <div class="form-group">
+                    <label><i class="fas fa-user-shield"></i> باسورد الأدمن</label>
+                    <input type="password" name="admin_password" placeholder="باسورد الأدمن">
+                </div>
+                {% endif %}
+                <button type="submit" class="btn btn-gold"><i class="fas fa-sign-in-alt"></i> دخول</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="color: var(--text-muted); margin-bottom: 10px;">ليس لديك حساب؟</p>
+                <a href="{{ url_for('register') }}" class="btn btn-dark"><i class="fas fa-user-plus"></i> إنشاء حساب</a>
             </div>
+        </div>
 
-            <div class="input-group">
-                <label>كلمة المرور</label>
-                <input type="password" name="password" placeholder="اتركه فارغاً إن لم يكن لديك">
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+            <div class="social-links">
+                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
             </div>
-
-            {% if is_admin_phone %}
-            <div class="input-group admin-field">
-                <label>باسورد الأدمن 🔐</label>
-                <input type="password" name="admin_password" placeholder="باسورد الأدمن" required>
-            </div>
-            {% endif %}
-
-            <button type="submit" class="auth-btn glass-btn gold-shine">
-                <span>دخول</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                    <polyline points="10 17 15 12 10 7"/>
-                    <line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
-            </button>
-        </form>
-
-        <p class="auth-link">مستخدم جديد؟ <a href="{{ url_for('register') }}">سجل الآن</a></p>
-    </div>
-
-    <div class="dev-credit fixed-bottom">
-        <span class="dev-stars">✨</span>
-        <span class="dev-name">الهاشمي محمد</span>
-        <span class="dev-stars">✨</span>
+        </div>
     </div>
 </body>
 </html>

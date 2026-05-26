@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-user-shield"></i> لوحة التحكم</h1>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-users"></i>
+                <div class="stat-value">{{ stats.users }}</div>
+                <div class="stat-label">المستخدمين</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-box"></i>
+                <div class="stat-value">{{ stats.products }}</div>
+                <div class="stat-label">المنتجات</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-shopping-cart"></i>
+                <div class="stat-value">{{ stats.orders }}</div>
+                <div class="stat-label">الطلبات</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-cogs"></i>
+                <div class="stat-value">{{ stats.reservations }}</div>
+                <div class="stat-label">حجوزات القطع</div>
+                {% if stats.pending_res > 0 %}<div class="pending-badge">{{ stats.pending_res }}</div>{% endif %}
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-tools"></i>
+                <div class="stat-value">{{ stats.maintenance }}</div>
+                <div class="stat-label">صيانة</div>
+                {% if stats.pending_maint > 0 %}<div class="pending-badge">{{ stats.pending_maint }}</div>{% endif %}
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-code"></i>
+                <div class="stat-value">{{ stats.programming }}</div>
+                <div class="stat-label">برمجة</div>
+                {% if stats.pending_prog > 0 %}<div class="pending-badge">{{ stats.pending_prog }}</div>{% endif %}
+            </div>
+        </div>
+
+        <h3 style="color: var(--gold); margin: 20px 0 15px;"><i class="fas fa-cog"></i> الإدارة</h3>
+        <div class="menu-grid">
+            <a href="{{ url_for('admin_products') }}" class="menu-item">
+                <i class="fas fa-box"></i><span>المنتجات</span>
+            </a>
+            <a href="{{ url_for('admin_orders') }}" class="menu-item">
+                <i class="fas fa-shopping-cart"></i><span>الطلبات</span>
+            </a>
+            <a href="{{ url_for('admin_reservations') }}" class="menu-item">
+                <i class="fas fa-cogs"></i><span>حجوزات القطع</span>
+            </a>
+            <a href="{{ url_for('admin_maintenance') }}" class="menu-item">
+                <i class="fas fa-tools"></i><span>صيانة</span>
+            </a>
+            <a href="{{ url_for('admin_programming') }}" class="menu-item">
+                <i class="fas fa-code"></i><span>برمجة</span>
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="menu-item">
+                <i class="fas fa-users"></i><span>المستخدمين</span>
+            </a>
+        </div>
+
+        <a href="{{ url_for('logout') }}" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+        </div>
+    </div>
+</body>
+</html>

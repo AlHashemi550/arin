@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حجوزات القطع - {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('admin_dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-cogs"></i> حجوزات القطع</h1>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="table-container">
+            <table>
+                <tr><th>العميل</th><th>الرقم</th><th>القطعة</th><th>الجهاز</th><th>الحالة</th><th>نقاط</th><th>تأكيد</th></tr>
+                {% for r in reservations %}
+                <tr>
+                    <td>{{ r.customer_name }}</td>
+                    <td>{{ r.phone }}</td>
+                    <td>{{ r.part_name }}</td>
+                    <td>{{ r.device_name or '-' }}</td>
+                    <td>{% if r.confirmed %}<span class="status-badge status-confirmed">مؤكد</span>{% else %}<span class="status-badge status-pending">معلق</span>{% endif %}</td>
+                    <td>{% if r.confirmed %}{{ r.points_awarded }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if not r.confirmed %}
+                        <form method="POST" action="{{ url_for('confirm_reservation', rid=r.id) }}" style="display: inline;">
+                            <input type="number" name="points" value="10" style="width: 50px; padding: 5px; border-radius: 5px; border: 1px solid var(--gold); background: var(--dark-light); color: var(--text);">
+                            <button type="submit" class="btn btn-success btn-small"><i class="fas fa-check"></i></button>
+                        </form>
+                        {% else %}<i class="fas fa-check-double" style="color: var(--success);"></i>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+        </div>
+    </div>
+</body>
+</html>

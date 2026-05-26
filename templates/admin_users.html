@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المستخدمين - {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('admin_dashboard') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-users"></i> المستخدمين</h1>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <tr><th>الاسم</th><th>الرقم</th><th>النقاط</th><th>أدمن</th><th>التاريخ</th></tr>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.name }}</td>
+                    <td>{{ u.phone }}</td>
+                    <td style="color: var(--gold); font-weight: 700;">{{ u.points }}</td>
+                    <td>{% if u.is_admin %}<i class="fas fa-check" style="color: var(--success);"></i>{% else %}<i class="fas fa-times" style="color: var(--text-muted);"></i>{% endif %}</td>
+                    <td style="font-size: 0.75rem; color: var(--text-muted);">{{ u.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+        </div>
+    </div>
+</body>
+</html>

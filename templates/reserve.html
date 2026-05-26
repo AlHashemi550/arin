@@ -13,43 +13,44 @@
             <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
             <h1><i class="fas fa-cogs"></i> حجز قطع الغيار</h1>
         </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
 
-        <div class="section-info">
-            <div class="contact-card gold">
-                <i class="fas fa-user-tie"></i>
-                <div>
-                    <h3>بدر الحضرمي</h3>
-                    <p>مختص قطع الغيار</p>
-                    <a href="tel:+967773852062" class="phone-link"><i class="fas fa-phone"></i> 773852062</a>
-                </div>
+        <div class="contact-card">
+            <i class="fas fa-user-tie"></i>
+            <div>
+                <h3>بدر الحضرمي</h3>
+                <p>مختص قطع الغيار</p>
+                <a href="tel:+967773852062" class="phone-link"><i class="fas fa-phone"></i> 773852062</a>
             </div>
         </div>
 
         <div class="form-container">
-            <form method="POST" action="{{ url_for('reserve') }}" class="reserve-form">
+            <form method="POST" action="{{ url_for('reserve') }}">
                 <div class="form-group">
                     <label><i class="fas fa-user"></i> الاسم الكامل</label>
                     <input type="text" name="name" placeholder="أدخل اسمك" required>
                 </div>
-
                 <div class="form-group">
                     <label><i class="fas fa-phone"></i> رقم الجوال</label>
                     <input type="tel" name="phone" placeholder="مثال: 773852062" required pattern="[0-9]{9}">
                 </div>
-
                 <div class="form-group">
                     <label><i class="fas fa-mobile-alt"></i> نوع الجهاز</label>
                     <input type="text" name="device_name" placeholder="مثال: iPhone 14 Pro Max">
                 </div>
-
                 <div class="form-group">
                     <label><i class="fas fa-puzzle-piece"></i> اسم القطعة المطلوبة</label>
                     <input type="text" name="part_name" placeholder="مثال: شاشة أصلية - بطارية" required>
                 </div>
-
-                <button type="submit" class="btn-gold btn-large">
-                    <i class="fab fa-whatsapp"></i> إرسال الطلب عبر واتساب
-                </button>
+                <button type="submit" class="btn btn-gold"><i class="fab fa-whatsapp"></i> إرسال الطلب عبر واتساب</button>
             </form>
         </div>
 

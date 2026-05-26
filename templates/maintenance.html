@@ -1,152 +1,66 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صيانة الجوالات - {{ app_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
+            <h1><i class="fas fa-tools"></i> صيانة الجوالات</h1>
+        </div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
 
-{% block title %}الصيانة | {{ app_name }}{% endblock %}
-{% block page_title %}الصيانة{% endblock %}
+        <div class="contact-card">
+            <i class="fas fa-wrench"></i>
+            <div>
+                <h3>المهندس راشد</h3>
+                <p>فني صيانة متخصص</p>
+                <a href="tel:+967779505979" class="phone-link"><i class="fas fa-phone"></i> 779505979</a>
+            </div>
+        </div>
 
-{% block content %}
-<div class="maintenance-page">
-    <!-- Header -->
-    <div class="maint-header">
-        <div class="maint-avatar">👨‍🔧</div>
-        <h2>المهندس راشد اليافعي</h2>
-        <p class="maint-phone">📞 779505979</p>
-        <p class="maint-hint">اضغط على أي خيار للتواصل مباشرة</p>
+        <div class="form-container">
+            <form method="POST" action="{{ url_for('maintenance_book') }}">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> الاسم</label>
+                    <input type="text" name="name" placeholder="اسمك" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
+                    <input type="tel" name="phone" placeholder="رقمك" required pattern="[0-9]{9}">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-mobile-alt"></i> نوع الجهاز</label>
+                    <input type="text" name="device" placeholder="مثال: Samsung S23 Ultra" required>
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-exclamation-circle"></i> المشكلة</label>
+                    <textarea name="issue" rows="3" placeholder="اشرح المشكلة بالتفصيل..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-gold"><i class="fab fa-whatsapp"></i> حجز صيانة عبر واتساب</button>
+            </form>
+        </div>
+
+        <div class="footer">
+            <p class="dev-name">الهاشمي محمد</p>
+            <div class="social-links">
+                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
+                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
+            </div>
+        </div>
     </div>
-
-    <!-- Options Grid -->
-    <div class="maint-options">
-        <a href="https://wa.me/967779505979?text={{ '*طلب صيانة من أرين* 🔧%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* تغيير شاشة%0A*الجهاز:* ' }}" class="maint-option">
-            <div class="option-icon">📱</div>
-            <div class="option-name">تغيير شاشة</div>
-            <div class="option-arrow">❯</div>
-        </a>
-
-        <a href="https://wa.me/967779505979?text={{ '*طلب صيانة من أرين* 🔧%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* تغيير بطارية%0A*الجهاز:* ' }}" class="maint-option">
-            <div class="option-icon">🔋</div>
-            <div class="option-name">تغيير بطارية</div>
-            <div class="option-arrow">❯</div>
-        </a>
-
-        <a href="https://wa.me/967779505979?text={{ '*طلب صيانة من أرين* 🔧%0A%0A*العميل:* ' + (session.get('user_name','')|urlencode) + '%0A*الهاتف:* ' + (session.get('user_phone','')|urlencode) + '%0A*الخدمة:* خدمات أخرى%0A*الجهاز:* ' }}" class="maint-option">
-            <div class="option-icon">🛠️</div>
-            <div class="option-name">خدمات أخرى</div>
-            <div class="option-arrow">❯</div>
-        </a>
-    </div>
-
-    <!-- Footer -->
-    <div class="maint-footer">
-        <p>⚡ المهندس راشد اليافعي ⚡</p>
-        <p class="maint-sub">فني صيانة متخصص</p>
-    </div>
-</div>
-
-<style>
-.maintenance-page { padding-bottom: 20px; }
-.maint-header {
-    text-align: center;
-    padding: 25px 20px;
-    background: linear-gradient(180deg, rgba(212,175,55,0.1) 0%, transparent 100%);
-    border-radius: 0 0 24px 24px;
-    margin-bottom: 20px;
-}
-.maint-avatar {
-    font-size: 4rem;
-    margin-bottom: 10px;
-    display: block;
-}
-.maint-header h2 {
-    color: #d4af37;
-    font-size: 1.3rem;
-    font-weight: 900;
-    margin-bottom: 6px;
-}
-.maint-phone {
-    color: rgba(255,255,255,0.6);
-    font-size: 0.9rem;
-    margin-bottom: 8px;
-    direction: ltr;
-}
-.maint-hint {
-    color: rgba(255,255,255,0.4);
-    font-size: 0.8rem;
-}
-.maint-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 0 10px;
-}
-.maint-option {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: #0a0a0a;
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 16px;
-    padding: 18px 20px;
-    text-decoration: none;
-    color: #fff;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-}
-.maint-option:hover {
-    border-color: rgba(212,175,55,0.3);
-    transform: translateX(-5px);
-    box-shadow: 0 5px 20px rgba(212,175,55,0.1);
-}
-.maint-option::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 3px; height: 100%;
-    background: linear-gradient(180deg, #d4af37, #aa8c2c);
-    opacity: 0;
-    transition: 0.3s;
-}
-.maint-option:hover::before { opacity: 1; }
-.option-icon {
-    font-size: 1.8rem;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(212,175,55,0.1);
-    border-radius: 14px;
-    flex-shrink: 0;
-}
-.option-name {
-    flex: 1;
-    font-size: 1.05rem;
-    font-weight: 700;
-}
-.option-arrow {
-    color: #d4af37;
-    font-size: 1.2rem;
-    opacity: 0.5;
-    transition: 0.3s;
-}
-.maint-option:hover .option-arrow {
-    opacity: 1;
-    transform: translateX(-5px);
-}
-.maint-footer {
-    text-align: center;
-    margin-top: 30px;
-    padding: 20px;
-}
-.maint-footer p {
-    color: #d4af37;
-    font-size: 1rem;
-    font-weight: 900;
-}
-.maint-sub {
-    color: rgba(255,255,255,0.4) !important;
-    font-size: 0.8rem !important;
-    font-weight: 400 !important;
-    margin-top: 5px;
-}
-</style>
-{% endblock %}
+</body>
+</html>
