@@ -17,9 +17,12 @@ ADMIN_PASSWORD = '78323'
 RESERVATION_PHONE = '773852062'
 MAINTENANCE_PHONE = '779505979'
 PROGRAMMING_PHONE = '783234925'
-DATABASE = 'laqta.db'
-UPLOAD_FOLDER = 'static/uploads'
+
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'laqta.db')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(os.path.dirname(DATABASE), exist_ok=True)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
@@ -38,11 +41,12 @@ def init_db():
         tables = [
             'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, phone TEXT UNIQUE, password TEXT, points INTEGER DEFAULT 0, is_admin INTEGER DEFAULT 0, referral_code TEXT, referred_by INTEGER, created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
             'CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, price INTEGER, original_price INTEGER, image TEXT, description TEXT, category TEXT DEFAULT "general", stock INTEGER DEFAULT 1, status TEXT DEFAULT "available", is_rare INTEGER DEFAULT 0, currency TEXT DEFAULT "ر.ي", created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
-            'CREATE TABLE IF NOT EXISTS reservations (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, product_id INTEGER, customer_name TEXT, phone TEXT, status TEXT DEFAULT "pending", created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
+            'CREATE TABLE IF NOT EXISTS reservations (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, product_id INTEGER, customer_name TEXT, phone TEXT, part_name TEXT, status TEXT DEFAULT "pending", created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
             'CREATE TABLE IF NOT EXISTS user_devices (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, device_name TEXT, part_name TEXT, purchase_date TEXT, warranty_months INTEGER DEFAULT 6, last_notified TEXT)',
             'CREATE TABLE IF NOT EXISTS alerts (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, product_name TEXT, phone TEXT, notified INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
             'CREATE TABLE IF NOT EXISTS notifications (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, title TEXT, message TEXT, is_read INTEGER DEFAULT 0, created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
-            'CREATE TABLE IF NOT EXISTS otp_codes (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, code TEXT, expires_at TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)'
+            'CREATE TABLE IF NOT EXISTS otp_codes (id INTEGER PRIMARY KEY AUTOINCREMENT, phone TEXT, code TEXT, expires_at TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP)',
+            'CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER, product_id INTEGER, customer_name TEXT, phone TEXT, address TEXT, status TEXT DEFAULT "pending", created_at TEXT DEFAULT CURRENT_TIMESTAMP)'
         ]
         for t in tables:
             conn.execute(t)
@@ -53,13 +57,11 @@ def migrate_db():
         cols = [c[1] for c in conn.execute('PRAGMA table_info(products)').fetchall()]
         if 'currency' not in cols:
             conn.execute('ALTER TABLE products ADD COLUMN currency TEXT DEFAULT "ر.ي"')
-            conn.commit()
         if 'original_price' not in cols:
             conn.execute('ALTER TABLE products ADD COLUMN original_price INTEGER DEFAULT 0')
-            conn.commit()
         if 'is_rare' not in cols:
             conn.execute('ALTER TABLE products ADD COLUMN is_rare INTEGER DEFAULT 0')
-            conn.commit()
+        conn.commit()
 
 init_db()
 migrate_db()
@@ -83,6 +85,7 @@ def admin_required(f):
     return decorated
 
 def generate_code():
+    return ''.join(random.choices(string_code():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 def get_points(uid):
@@ -102,6 +105,8 @@ def notify(uid, title, msg):
 
 def wa_link(phone, msg):
     return 'https://wa.me/967' + phone + '?text=' + urllib.parse.quote(msg)
+
+# ===================== ROUTES =====================
 
 @app.route('/')
 def index():
@@ -181,273 +186,259 @@ def register():
                     if ru:
                         ref_by = ru['id']
                         add_points(ref_by, 50)
-                        notify(ref_by, 'إحالة ناجحة!', 'صديقك ' + name + ' سجل بكودك. ربحت 50 نقطة!')
-                conn.execute('INSERT INTO users (name,phone,password,referral_code,referred_by) VALUES (?,?,?,?,?)', (name, phone, pwd, code, ref_by))
+                        notify(ref_by, 'إحالة ناجحة!', 'حصلت على 50 نقطة من إحالة '+name)
+                conn.execute('INSERT INTO users (name,phone,password,referral_code,referred_by,points) VALUES (?,?,?,?,?,50)', (name, phone, pwd, code, ref_by))
                 conn.commit()
             flash('تم التسجيل! سجل دخولك', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('login', phone=phone))
     return render_template('register.html', app_name=APP_NAME)
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('تم الخروج', 'info')
+    flash('تم تسجيل الخروج', 'info')
     return redirect(url_for('index'))
+
+# ===================== PRODUCTS =====================
 
 @app.route('/products')
 def products():
-    cat = request.args.get('category','all')
-    search = request.args.get('search','').strip()
+    cat = request.args.get('cat','')
+    search = request.args.get('search','')
     with get_db() as conn:
         q = 'SELECT * FROM products WHERE status="available"'
-        p = []
-        if cat != 'all':
+        params = []
+        if cat:
             q += ' AND category=?'
-            p.append(cat)
+            params.append(cat)
         if search:
             q += ' AND (name LIKE ? OR description LIKE ?)'
-            p.append('%'+search+'%')
-            p.append('%'+search+'%')
-        q += ' AND stock>0 ORDER BY id DESC'
-        prods = conn.execute(q, p).fetchall()
-        cats = conn.execute('SELECT DISTINCT category FROM products WHERE category IS NOT NULL').fetchall()
-    pts, unread, is_adm, ures = 0, 0, False, {}
-    notifs = []
-    if 'user_id' in session:
-        pts = get_points(session['user_id'])
-        with get_db() as conn:
-            unread = len(conn.execute('SELECT * FROM notifications WHERE user_id=? AND is_read=0', (session['user_id'],)).fetchall())
-            is_adm = session.get('is_admin', False)
-            notifs = conn.execute('SELECT * FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 10', (session['user_id'],)).fetchall()
-            for r in conn.execute('SELECT product_id,status FROM reservations WHERE user_id=?', (session['user_id'],)).fetchall():
-                ures[r['product_id']] = r['status']
-    resp = make_response(render_template('products.html', products=prods, categories=cats, user_points=pts, unread_count=unread, is_admin=is_adm, user_reservations=ures, notifications=notifs, app_name=APP_NAME))
-    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    return resp
+            params.extend(['%'+search+'%', '%'+search+'%'])
+        q += ' ORDER BY is_rare DESC, id DESC'
+        prods = conn.execute(q, params).fetchall()
+        cats = [r['category'] for r in conn.execute('SELECT DISTINCT category FROM products').fetchall()]
+    pts = get_points(session.get('user_id',0)) if 'user_id' in session else 0
+    return render_template('products.html', products=prods, categories=cats, current_cat=cat, search=search, points=pts, app_name=APP_NAME)
 
-@app.route('/reserve', methods=['POST'])
+@app.route('/product/<int:pid>')
+def product_detail(pid):
+    with get_db() as conn:
+        p = conn.execute('SELECT * FROM products WHERE id=?', (pid,)).fetchone()
+    if not p:
+        flash('المنتج غير موجود', 'error')
+        return redirect(url_for('products'))
+    return render_template('product_detail.html', product=p, app_name=APP_NAME)
+
+@app.route('/buy/<int:pid>', methods=['POST'])
 @login_required
+def buy_product(pid):
+    name = request.form.get('name','').strip()
+    phone = request.form.get('phone','').strip()
+    address = request.form.get('address','').strip()
+    with get_db() as conn:
+        p = conn.execute('SELECT * FROM products WHERE id=?', (pid,)).fetchone()
+        if not p or p['stock'] < 1:
+            flash('المنتج غير متوفر', 'error')
+            return redirect(url_for('products'))
+        conn.execute('INSERT INTO orders (user_id,product_id,customer_name,phone,address) VALUES (?,?,?,?,?)', (session['user_id'], pid, name, phone, address))
+        conn.execute('UPDATE products SET stock=stock-1 WHERE id=?', (pid,))
+        conn.commit()
+    msg = 'طلب شراء من أرين:\nالمنتج: '+p['name']+'\nالسعر: '+str(p['price'])+' '+p['currency']+'\nالعميل: '+name+'\nالرقم: '+phone+'\nالعنوان: '+address
+    flash('تم إرسال طلبك! سنتواصل معك', 'success')
+    return redirect(wa_link(RESERVATION_PHONE, msg))
+
+# ===================== RESERVATION (حجز قطع) =====================
+@app.route('/reserve', methods=['GET','POST'])
 def reserve():
-    pid = request.form.get('product_id')
-    with get_db() as conn:
-        prod = conn.execute('SELECT * FROM products WHERE id=?', (pid,)).fetchone()
-        if not prod:
-            flash('المنتج غير موجود', 'error')
-            return redirect(url_for('products'))
-        ex = conn.execute('SELECT id,status FROM reservations WHERE user_id=? AND product_id=?', (session['user_id'], pid)).fetchone()
-        if ex:
-            flash('لديك حجز على هذه القطعة بالفعل', 'warning')
-            return redirect(url_for('products'))
-        conn.execute('INSERT INTO reservations (user_id,product_id,customer_name,phone,status) VALUES (?,?,?,?,?)', (session['user_id'], pid, session.get('user_name',''), session.get('user_phone',''), 'pending'))
-        conn.commit()
-        msg = '*حجز جديد من أرين* 🔔\n\n*العميل:* ' + session.get('user_name','') + '\n*الهاتف:* ' + session.get('user_phone','') + '\n*القطعة:* ' + prod['name'] + '\n*السعر:* ' + '{:,}'.format(prod['price']) + ' ' + prod.get('currency','ر.ي') + '\n\nيرجى التواصل للتأكيد.'
-        notify(session['user_id'], 'حجز معلق', 'طلبك على ' + prod['name'] + ' معلق. سيتم تأكيده قريباً.')
-        flash('تم إرسال طلب الحجز', 'success')
-        return redirect(wa_link(RESERVATION_PHONE, msg))
-
-@app.route('/confirm/<int:rid>', methods=['POST'])
-@admin_required
-def confirm(rid):
-    with get_db() as conn:
-        res = conn.execute('SELECT * FROM reservations WHERE id=?', (rid,)).fetchone()
-        if res:
-            conn.execute('UPDATE reservations SET status="confirmed" WHERE id=?', (rid,))
-            conn.execute('UPDATE products SET stock=stock-1 WHERE id=?', (res['product_id'],))
-            pr = conn.execute('SELECT stock FROM products WHERE id=?', (res['product_id'],)).fetchone()
-            if pr and pr['stock'] <= 0:
-                conn.execute('UPDATE products SET status="reserved" WHERE id=?', (res['product_id'],))
+    if request.method == 'POST':
+        name = request.form.get('name','').strip()
+        phone = request.form.get('phone','').strip()
+        part_name = request.form.get('part_name','').strip()
+        device_name = request.form.get('device_name','').strip()
+        if not name or not phone or not part_name:
+            flash('جميع الحقول المطلوبة', 'error')
+            return redirect(url_for('reserve'))
+        with get_db() as conn:
+            user_id = session.get('user_id')
+            conn.execute('INSERT INTO reservations (user_id,customer_name,phone,part_name) VALUES (?,?,?,?)', (user_id, name, phone, part_name))
             conn.commit()
-            if res['user_id']:
-                add_points(res['user_id'], 20)
-                notify(res['user_id'], 'تم التأكيد!', 'تم تأكيد حجزك وربحت 20 نقطة!')
-                u = conn.execute('SELECT phone,name FROM users WHERE id=?', (res['user_id'],)).fetchone()
-                if u:
-                    return redirect(wa_link(u['phone'], 'أهلاً ' + u['name'] + '! ✅\nتم تأكيد حجزك في أرين.\nربحت 20 نقطة ولاء.'))
-            flash('تم التأكيد', 'success')
-    return redirect(url_for('admin_reservations'))
+        msg = 'حجز قطعة غيار من أرين:\nالعميل: '+name+'\nالرقم: '+phone+'\nالقطعة: '+part_name+'\nالجهاز: '+device_name
+        return redirect(wa_link(RESERVATION_PHONE, msg))
+    return render_template('reserve.html', app_name=APP_NAME)
 
-@app.route('/cancel/<int:rid>', methods=['POST'])
-@admin_required
-def cancel(rid):
-    with get_db() as conn:
-        res = conn.execute('SELECT * FROM reservations WHERE id=?', (rid,)).fetchone()
-        if res and res['user_id']:
-            u = conn.execute('SELECT phone,name FROM users WHERE id=?', (res['user_id'],)).fetchone()
-            if u:
-                wa_link(u['phone'], 'عذراً ' + u['name'] + ' ❌\nتم إلغاء حجزك.')
-            notify(res['user_id'], 'تم الإلغاء', 'تم إلغاء حجزك.')
-        conn.execute('UPDATE reservations SET status="cancelled" WHERE id=?', (rid,))
-        conn.commit()
-        flash('تم الإلغاء', 'info')
-    return redirect(url_for('admin_reservations'))
+# ===================== MAINTENANCE =====================
+@app.route('/maintenance')
+def maintenance():
+    return render_template('maintenance.html', app_name=APP_NAME, phone=MAINTENANCE_PHONE)
 
-@app.route('/delete_reservation/<int:rid>', methods=['POST'])
-@admin_required
-def delete_reservation(rid):
-    with get_db() as conn:
-        conn.execute('DELETE FROM reservations WHERE id=?', (rid,))
-        conn.commit()
-    flash('تم حذف الحجز نهائياً', 'success')
-    return redirect(url_for('admin_reservations'))
+@app.route('/maintenance/book', methods=['POST'])
+def maintenance_book():
+    name = request.form.get('name','').strip()
+    phone = request.form.get('phone','').strip()
+    device = request.form.get('device','').strip()
+    issue = request.form.get('issue','').strip()
+    msg = 'حجز صيانة من أرين:\nالعميل: '+name+'\nالرقم: '+phone+'\nالجهاز: '+device+'\nالمشكلة: '+issue
+    flash('تم إرسال طلب الصيانة!', 'success')
+    return redirect(wa_link(MAINTENANCE_PHONE, msg))
 
-@app.route('/my_devices')
+# ===================== PROGRAMMING =====================
+@app.route('/programming')
+def programming():
+    return render_template('programming.html', app_name=APP_NAME, phone=PROGRAMMING_PHONE)
+
+@app.route('/programming/book', methods=['POST'])
+def programming_book():
+    name = request.form.get('name','').strip()
+    phone = request.form.get('phone','').strip()
+    service = request.form.get('service','').strip()
+    details = request.form.get('details','').strip()
+    msg = 'طلب برمجة من أرين:\nالعميل: '+name+'\nالرقم: '+phone+'\nالخدمة: '+service+'\nالتفاصيل: '+details
+    flash('تم إرسال طلب البرمجة!', 'success')
+    return redirect(wa_link(PROGRAMMING_PHONE, msg))
+
+# ===================== DEVICES & WARRANTY =====================
+@app.route('/my-devices')
 @login_required
 def my_devices():
     with get_db() as conn:
-        devs = conn.execute('SELECT * FROM user_devices WHERE user_id=? ORDER BY purchase_date DESC', (session['user_id'],)).fetchall()
-        today = datetime.now().date()
-        for d in devs:
-            try:
-                pd = datetime.strptime(d['purchase_date'], '%Y-%m-%d').date()
-                we = pd + timedelta(days=d['warranty_months']*30)
-                dl = (we - today).days
-                if 0 < dl <= 15 and d['last_notified'] != str(today):
-                    notify(session['user_id'], 'تنبيه الضمان', 'جهاز ' + d['device_name'] + ' (' + d['part_name'] + ') باقي ' + str(dl) + ' يوم على انتهاء الضمان. احجز فحصاً مجانياً!')
-                    conn.execute('UPDATE user_devices SET last_notified=? WHERE id=?', (str(today), d['id']))
-                    conn.commit()
-            except: pass
+        devs = conn.execute('SELECT * FROM user_devices WHERE user_id=?', (session['user_id'],)).fetchall()
     return render_template('my_devices.html', devices=devs, app_name=APP_NAME)
 
-@app.route('/add_device', methods=['POST'])
+@app.route('/add-device', methods=['POST'])
 @login_required
 def add_device():
+    device_name = request.form.get('device_name','').strip()
+    part_name = request.form.get('part_name','').strip()
+    purchase_date = request.form.get('purchase_date','').strip()
+    warranty = int(request.form.get('warranty_months','6'))
     with get_db() as conn:
-        conn.execute('INSERT INTO user_devices (user_id,device_name,part_name,purchase_date,warranty_months) VALUES (?,?,?,?,?)',
-            (session['user_id'], request.form.get('device_name'), request.form.get('part_name'), request.form.get('purchase_date'), request.form.get('warranty_months',6)))
+        conn.execute('INSERT INTO user_devices (user_id,device_name,part_name,purchase_date,warranty_months) VALUES (?,?,?,?,?)', (session['user_id'], device_name, part_name, purchase_date, warranty))
         conn.commit()
-    add_points(session['user_id'], 5)
-    flash('تم إضافة الجهاز وربحت 5 نقاط!', 'success')
+    flash('تم إضافة الجهاز', 'success')
     return redirect(url_for('my_devices'))
 
-@app.route('/delete_device/<int:did>', methods=['POST'])
+# ===================== LOYALTY POINTS =====================
+@app.route('/points')
 @login_required
-def delete_device(did):
-    with get_db() as conn:
-        conn.execute('DELETE FROM user_devices WHERE id=? AND user_id=?', (did, session['user_id']))
-        conn.commit()
-    flash('تم حذف الجهاز', 'success')
-    return redirect(url_for('my_devices'))
-
-@app.route('/maintenance')
-def maintenance():
-    return render_template('maintenance.html', app_name=APP_NAME)
-
-@app.route('/book_maintenance', methods=['POST'])
-def book_maintenance():
-    service = request.form.get('service','')
-    name = request.form.get('name','') or session.get('user_name','')
-    phone = request.form.get('phone','') or session.get('user_phone','')
-    device = request.form.get('device','')
-    msg = '*طلب صيانة من أرين* 🔧\n\n*العميل:* ' + name + '\n*الهاتف:* ' + phone + '\n*الخدمة:* ' + service + '\n*الجهاز:* ' + device + '\n\nيرجى التواصل للتنسيق.'
-    flash('تم إرسال طلب الصيانة للمهندس راشد', 'success')
-    return redirect(wa_link(MAINTENANCE_PHONE, msg))
-
-@app.route('/programming')
-def programming():
-    return render_template('programming.html', app_name=APP_NAME)
-
-@app.route('/book_programming', methods=['POST'])
-def book_programming():
-    service = request.form.get('service','')
-    name = request.form.get('name','') or session.get('user_name','')
-    phone = request.form.get('phone','') or session.get('user_phone','')
-    device = request.form.get('device','')
-    msg = '*طلب برمجة من أرين* 💻\n\n*العميل:* ' + name + '\n*الهاتف:* ' + phone + '\n*الخدمة:* ' + service + '\n*الجهاز:* ' + device + '\n\nيرجى التواصل للتنسيق.'
-    flash('تم إرسال طلب البرمجة للمبرمج محمد', 'success')
-    return redirect(wa_link(PROGRAMMING_PHONE, msg))
-
-@app.route('/loyalty')
-@login_required
-def loyalty():
+def points_page():
     pts = get_points(session['user_id'])
-    rwds = [
-        {'points':100,'reward':'صيانة مجانية','icon':'🔧'},
-        {'points':200,'reward':'خصم 20%','icon':'🎁'},
-        {'points':300,'reward':'كفر حماية','icon':'🛡️'},
-        {'points':500,'reward':'سماعة بلوتوث','icon':'🎧'},
-        {'points':800,'reward':'شاحن سريع','icon':'🔌'},
-        {'points':1000,'reward':'شاشة مجانية','icon':'📱'}
-    ]
-    return render_template('loyalty.html', points=pts, rewards=rwds, app_name=APP_NAME)
-
-@app.route('/notify_me', methods=['POST'])
-def notify_me():
     with get_db() as conn:
-        conn.execute('INSERT INTO alerts (user_id,product_name,phone) VALUES (?,?,?)',
-            (session.get('user_id'), request.form.get('product_name'), request.form.get('phone')))
-        conn.commit()
-    flash('سنُعلمك فور التوفر! 🔔', 'success')
-    return redirect(url_for('products'))
+        hist = conn.execute('SELECT * FROM notifications WHERE user_id=? ORDER BY id DESC LIMIT 20', (session['user_id'],)).fetchall()
+    return render_template('points.html', points=pts, history=hist, app_name=APP_NAME)
 
+# ===================== NOTIFICATIONS =====================
+@app.route('/notifications')
+@login_required
+def notifications():
+    with get_db() as conn:
+        nots = conn.execute('SELECT * FROM notifications WHERE user_id=? ORDER BY id DESC', (session['user_id'],)).fetchall()
+        conn.execute('UPDATE notifications SET is_read=1 WHERE user_id=?', (session['user_id'],))
+        conn.commit()
+    return render_template('notifications.html', notifications=nots, app_name=APP_NAME)
+
+# ===================== ADMIN =====================
 @app.route('/admin')
+@login_required
 @admin_required
 def admin_dashboard():
-    return render_template('admin/dashboard.html', app_name=APP_NAME)
+    with get_db() as conn:
+        users_count = conn.execute('SELECT COUNT(*) as c FROM users').fetchone()['c']
+        products_count = conn.execute('SELECT COUNT(*) as c FROM products').fetchone()['c']
+        orders_count = conn.execute('SELECT COUNT(*) as c FROM orders').fetchone()['c']
+        reservations_count = conn.execute('SELECT COUNT(*) as c FROM reservations').fetchone()['c']
+        recent_orders = conn.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 10').fetchall()
+        recent_reservations = conn.execute('SELECT * FROM reservations ORDER BY id DESC LIMIT 10').fetchall()
+    return render_template('admin_dashboard.html', users=users_count, products=products_count, orders=orders_count, reservations=reservations_count, recent_orders=recent_orders, recent_reservations=recent_reservations, app_name=APP_NAME)
 
 @app.route('/admin/products', methods=['GET','POST'])
+@login_required
 @admin_required
 def admin_products():
     if request.method == 'POST':
-        image_url = ''
-        file = request.files.get('product_image') or request.files.get('product_image_upload')
-        if file and allowed_file(file.filename):
-            filename = 'prod_' + str(int(datetime.now().timestamp())) + '_' + file.filename
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            image_url = '/static/uploads/' + filename
-        elif request.form.get('image_url'):
-            image_url = request.form.get('image_url')
-        
-        with get_db() as conn:
-            conn.execute('INSERT INTO products (name,price,original_price,image,description,category,stock,currency,is_rare) VALUES (?,?,?,?,?,?,?,?,?)',
-                (request.form.get('name'), request.form.get('price'), request.form.get('original_price'), image_url,
-                 request.form.get('description',''), request.form.get('category','general'), request.form.get('stock',1),
-                 request.form.get('currency','ر.ي'), 1 if request.form.get('is_rare') else 0))
-            conn.commit()
-            nm = request.form.get('name')
-            for u in conn.execute('SELECT id FROM users').fetchall():
-                notify(u['id'], 'وصل جديد!', 'قطعة جديدة: ' + nm + ' متوفرة الآن!')
-        flash('تمت الإضافة وإشعار العملاء', 'success')
+        action = request.form.get('action')
+        if action == 'add':
+            name = request.form.get('name','').strip()
+            price = int(request.form.get('price','0'))
+            original = int(request.form.get('original_price','0'))
+            desc = request.form.get('description','').strip()
+            cat = request.form.get('category','general').strip()
+            stock = int(request.form.get('stock','1'))
+            rare = 1 if request.form.get('is_rare') else 0
+            currency = request.form.get('currency','ر.ي').strip()
+            img = 'default.png'
+            if 'image' in request.files:
+                f = request.files['image']
+                if f and allowed_file(f.filename):
+                    fn = datetime.now().strftime('%Y%m%d%H%M%S') + '_' + f.filename
+                    f.save(os.path.join(app.config['UPLOAD_FOLDER'], fn))
+                    img = 'uploads/' + fn
+            with get_db() as conn:
+                conn.execute('INSERT INTO products (name,price,original_price,image,description,category,stock,is_rare,currency) VALUES (?,?,?,?,?,?,?,?,?)', (name, price, original, img, desc, cat, stock, rare, currency))
+                conn.commit()
+            flash('تم إضافة المنتج', 'success')
+        elif action == 'delete':
+            pid = request.form.get('product_id')
+            with get_db() as conn:
+                conn.execute('DELETE FROM products WHERE id=?', (pid,))
+                conn.commit()
+            flash('تم الحذف', 'success')
+        elif action == 'edit':
+            pid = request.form.get('product_id')
+            name = request.form.get('name','').strip()
+            price = int(request.form.get('price','0'))
+            original = int(request.form.get('original_price','0'))
+            desc = request.form.get('description','').strip()
+            cat = request.form.get('category','general').strip()
+            stock = int(request.form.get('stock','1'))
+            rare = 1 if request.form.get('is_rare') else 0
+            currency = request.form.get('currency','ر.ي').strip()
+            with get_db() as conn:
+                conn.execute('UPDATE products SET name=?,price=?,original_price=?,description=?,category=?,stock=?,is_rare=?,currency=? WHERE id=?', (name, price, original, desc, cat, stock, rare, currency, pid))
+                conn.commit()
+            flash('تم التعديل', 'success')
+        return redirect(url_for('admin_products'))
     with get_db() as conn:
         prods = conn.execute('SELECT * FROM products ORDER BY id DESC').fetchall()
-    return render_template('admin/products.html', products=prods, app_name=APP_NAME)
+    return render_template('admin_products.html', products=prods, app_name=APP_NAME)
 
-@app.route('/delete_product/<int:pid>', methods=['POST'])
+@app.route('/admin/orders')
+@login_required
 @admin_required
-def delete_product(pid):
+def admin_orders():
     with get_db() as conn:
-        conn.execute('DELETE FROM products WHERE id=?', (pid,))
-        conn.commit()
-    flash('تم حذف المنتج نهائياً', 'success')
-    return redirect(url_for('admin_products'))
+        orders = conn.execute('SELECT orders.*, products.name as product_name FROM orders LEFT JOIN products ON orders.product_id=products.id ORDER BY orders.id DESC').fetchall()
+    return render_template('admin_orders.html', orders=orders, app_name=APP_NAME)
 
 @app.route('/admin/reservations')
+@login_required
 @admin_required
 def admin_reservations():
     with get_db() as conn:
-        res = conn.execute('''SELECT r.*, p.name as product_name, p.price, p.currency, u.name as user_name, u.phone as user_phone
-            FROM reservations r JOIN products p ON r.product_id=p.id LEFT JOIN users u ON r.user_id=u.id ORDER BY r.id DESC''').fetchall()
-    return render_template('admin/reservations.html', reservations=res, app_name=APP_NAME)
+        res = conn.execute('SELECT * FROM reservations ORDER BY id DESC').fetchall()
+    return render_template('admin_reservations.html', reservations=res, app_name=APP_NAME)
 
-@app.route('/claim_reward', methods=['POST'])
+@app.route('/admin/users')
 @login_required
-def claim_reward():
-    rp = int(request.form.get('points',0))
-    rn = request.form.get('reward_name','')
-    if get_points(session['user_id']) < rp:
-        flash('نقاطك غير كافية', 'error')
-        return redirect(url_for('loyalty'))
+@admin_required
+def admin_users():
     with get_db() as conn:
-        conn.execute('UPDATE users SET points=points-? WHERE id=?', (rp, session['user_id']))
-        conn.commit()
-    flash('تم استبدال النقاط!', 'success')
-    return redirect(wa_link(session['user_phone'], 'مبروك! تم استبدال ' + str(rp) + ' نقطة بـ: ' + rn))
+        users = conn.execute('SELECT * FROM users ORDER BY id DESC').fetchall()
+    return render_template('admin_users.html', users=users, app_name=APP_NAME)
 
-@app.route('/share/<int:pid>')
-def share(pid):
+# ===================== API =====================
+@app.route('/api/points')
+def api_points():
+    if 'user_id' not in session:
+        return jsonify({'points': 0})
+    return jsonify({'points': get_points(session['user_id'])})
+
+@app.route('/api/notifications/unread')
+def api_unread():
+    if 'user_id' not in session:
+        return jsonify({'count': 0})
     with get_db() as conn:
-        p = conn.execute('SELECT * FROM products WHERE id=?', (pid,)).fetchone()
-    msg = '🔥 عرض من أرين!\n\n📱 ' + p['name'] + '\n💰 ' + '{:,}'.format(p['price']) + ' ' + p.get('currency','ر.ي') + '\n\nحمّل التطبيق!'
-    return redirect(wa_link(RESERVATION_PHONE, msg))
+        c = conn.execute('SELECT COUNT(*) as c FROM notifications WHERE user_id=? AND is_read=0', (session['user_id'],)).fetchone()['c']
+    return jsonify({'count': c})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
