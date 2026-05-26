@@ -166,14 +166,34 @@ def login():
             db = get_db()
             user = db.execute('SELECT * FROM users WHERE phone = ?', (clean_phone,)).fetchone()
             
-            if not user:
-                flash('رقم الهاتف غير مسجل', 'error')
-                return redirect(url_for('login'))
-            
+            # ✅ إذا رقم أدمن - تحقق من باسورد الأدمن فقط
             if clean_phone in ADMIN_PHONES:
                 if admin_pass != ADMIN_PASSWORD:
                     flash('باسورد الأدمن غير صحيح', 'error')
                     return redirect(url_for('login'))
+                
+                # الأدمن موجود في قاعدة البيانات؟
+                if not user:
+                    # إنشاء حساب أدمن تلقائياً إذا مو موجود
+                    referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+                    db.execute('''INSERT INTO users (name, phone, password, points, is_admin, referral_code)
+                                 VALUES (?, ?, ?, ?, ?, ?)''',
+                              ('أدمن', clean_phone, ADMIN_PASSWORD, 0, 1, referral_code))
+                    db.commit()
+                    user = db.execute('SELECT * FROM users WHERE phone = ?', (clean_phone,)).fetchone()
+                
+                session.permanent = True
+                session['user_id'] = user['id']
+                session['user_phone'] = clean_phone
+                session['user_name'] = user['name']
+                session['is_admin'] = True
+                flash('تم تسجيل الدخول كأدمن', 'success')
+                return redirect(url_for('admin_dashboard'))
+            
+            # ✅ إذا مو أدمن - تحقق من الباسورد العادي
+            if not user:
+                flash('رقم الهاتف غير مسجل', 'error')
+                return redirect(url_for('login'))
             
             if user['password'] and user['password'] != password:
                 flash('كلمة المرور غير صحيحة', 'error')
@@ -183,13 +203,13 @@ def login():
             session['user_id'] = user['id']
             session['user_phone'] = clean_phone
             session['user_name'] = user['name']
-            session['is_admin'] = user['is_admin'] or (clean_phone in ADMIN_PHONES)
+            session['is_admin'] = False
             
-            if session['is_admin']:
-                return redirect(url_for('admin_dashboard'))
             return redirect(url_for('products'))
+            
         except Exception as e:
             print(f"Login Error: {e}")
+            traceback.print_exc()
             flash('حدث خطأ، حاول مرة أخرى', 'error')
             return redirect(url_for('login'))
     
@@ -244,7 +264,7 @@ def otp_sent():
         
         otp = otp_record['code']
         phone = session['reg_phone']
-        message = f"كود التحقق من أرين: {otp}\nلا تشاركه مع أحد."
+        message = f"كود التحقق من أرين: {otp}\\nلا تشاركه مع أحد."
         whatsapp_url = f"https://wa.me/967{phone}?text={message.replace(' ', '%20').replace(chr(10), '%0A')}"
         
         return render_template('otp_sent.html', otp=otp, phone=phone, 
@@ -274,9 +294,17 @@ def verify_otp():
                 flash('رمز التحقق غير صحيح', 'error')
                 return redirect(url_for('verify_otp'))
             
+            # ✅ إصلاح مقارنة التاريخ
             expires_at = otp_record['expires_at']
             if isinstance(expires_at, str):
-                expires_at = datetime.fromisoformat(expires_at)
+                try:
+                    expires_at = datetime.strptime(expires_at, '%Y-%m-%d %H:%M:%S.%f')
+                except ValueError:
+                    try:
+                        expires_at = datetime.strptime(expires_at, '%Y-%m-%d %H:%M:%S')
+                    except ValueError:
+                        expires_at = datetime.fromisoformat(expires_at.replace('Z', '+00:00'))
+            
             if datetime.now() > expires_at:
                 flash('رمز التحقق منتهي الصلاحية', 'error')
                 return redirect(url_for('register'))
