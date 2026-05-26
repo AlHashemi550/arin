@@ -4,633 +4,421 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>إدارة المنتجات - أرين</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
-        }
+        * { margin:0; padding:0; box-sizing:border-box; }
         
+        :root {
+            --gold: #d4af37;
+            --gold-light: #f0d878;
+            --pink: #e91e8c;
+            --dark: #000;
+            --card: #0a0a0a;
+        }
+
         body {
-            background: #000;
-            color: #fff;
-            min-height: 100vh;
+            font-family:'Cairo',sans-serif;
+            background:var(--dark);
+            color:#fff;
+            min-height:100vh;
+            padding-bottom:100px;
         }
-        
-        /* Header */
-        .admin-header {
-            background: #0a0a0a;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+
+        .header {
+            background:linear-gradient(135deg, rgba(212,175,55,0.1), transparent);
+            border-bottom:1px solid rgba(212,175,55,0.2);
+            padding:25px 20px;
+            text-align:center;
+            position:sticky;
+            top:0;
+            z-index:100;
+            backdrop-filter:blur(20px);
         }
-        
-        .header-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .header h1 {
+            color:var(--gold);
+            font-size:1.5rem;
+            font-weight:900;
+            text-shadow:0 0 20px rgba(212,175,55,0.3);
         }
-        
-        .header-title .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: #d4af37;
-        }
-        
-        .header-title .text {
-            font-size: 16px;
-            font-weight: 700;
-        }
-        
+        .header-sub { color:#666; font-size:0.8rem; margin-top:5px; }
+
         .back-btn {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: rgba(255,255,255,0.6);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            position:fixed;
+            top:15px;
+            left:15px;
+            z-index:200;
+            padding:10px 18px;
+            border-radius:12px;
+            border:1px solid rgba(212,175,55,0.3);
+            background:rgba(10,10,10,0.8);
+            color:var(--gold);
+            font-family:'Cairo',sans-serif;
+            font-size:0.85rem;
+            font-weight:700;
+            cursor:pointer;
+            text-decoration:none;
+            backdrop-filter:blur(10px);
+            transition:all 0.3s;
         }
-        
         .back-btn:hover {
-            background: rgba(212, 175, 55, 0.1);
-            color: #d4af37;
-            border-color: rgba(212, 175, 55, 0.2);
+            background:rgba(212,175,55,0.15);
+            transform:translateX(-3px);
         }
-        
-        /* Add Product Form */
-        .form-section {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+
+        /* فورم الإضافة */
+        .add-section {
+            background:linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border:1px solid rgba(212,175,55,0.15);
+            border-radius:24px;
+            margin:20px;
+            padding:25px;
+            backdrop-filter:blur(10px);
         }
-        
         .section-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #d4af37;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color:var(--gold);
+            font-size:1.2rem;
+            font-weight:900;
+            margin-bottom:20px;
+            display:flex;
+            align-items:center;
+            gap:10px;
         }
-        
+
         .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
         }
-        
-        @media (min-width: 768px) {
-            .form-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        @media(max-width:480px) {
+            .form-grid { grid-template-columns:1fr; }
         }
-        
+
         .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+            display:flex;
+            flex-direction:column;
+            gap:6px;
         }
-        
-        .form-group.full-width {
-            grid-column: 1 / -1;
+        .form-group.full {
+            grid-column:1 / -1;
         }
-        
         .form-label {
-            font-size: 12px;
-            color: rgba(255,255,255,0.5);
-            font-weight: 600;
+            color:#888;
+            font-size:0.8rem;
+            font-weight:600;
         }
-        
-        .form-input, .form-select, .form-textarea {
-            background: #111;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 12px 15px;
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
+        .form-input {
+            padding:12px 15px;
+            border-radius:14px;
+            border:1px solid rgba(255,255,255,0.1);
+            background:rgba(255,255,255,0.03);
+            color:#fff;
+            font-family:'Cairo',sans-serif;
+            font-size:0.9rem;
+            outline:none;
+            transition:all 0.3s;
         }
-        
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        .form-input:focus {
+            border-color:var(--gold);
+            box-shadow:0 0 15px rgba(212,175,55,0.1);
+            background:rgba(255,255,255,0.05);
         }
-        
-        .form-input::placeholder, .form-textarea::placeholder {
-            color: rgba(255,255,255,0.2);
+        .form-input::placeholder { color:#444; }
+
+        select.form-input {
+            cursor:pointer;
+            appearance:none;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23d4af37' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;
+            background-position:left 15px center;
+            padding-left:35px;
         }
-        
-        .form-textarea {
-            min-height: 80px;
-            resize: vertical;
+
+        .checkbox-wrap {
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:10px 0;
         }
-        
-        .form-select {
-            cursor: pointer;
+        .checkbox-wrap input[type="checkbox"] {
+            width:20px; height:20px;
+            accent-color:var(--gold);
+            cursor:pointer;
         }
-        
-        .form-select option {
-            background: #111;
-            color: #fff;
+        .checkbox-wrap label {
+            color:#aaa;
+            font-size:0.9rem;
+            cursor:pointer;
         }
-        
-        /* Image Upload Area */
-        .image-upload-area {
-            border: 2px dashed rgba(212, 175, 55, 0.3);
-            border-radius: 16px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+
+        .submit-btn {
+            grid-column:1 / -1;
+            padding:14px;
+            border-radius:14px;
+            border:none;
+            background:linear-gradient(135deg, var(--gold), #b8941f);
+            color:#000;
+            font-family:'Cairo',sans-serif;
+            font-size:1rem;
+            font-weight:900;
+            cursor:pointer;
+            transition:all 0.3s;
+            box-shadow:0 5px 25px rgba(212,175,55,0.3);
+            margin-top:10px;
         }
-        
-        .image-upload-area:hover {
-            border-color: #d4af37;
-            background: rgba(212, 175, 55, 0.05);
+        .submit-btn:hover {
+            transform:translateY(-2px);
+            box-shadow:0 10px 35px rgba(212,175,55,0.4);
         }
-        
-        .image-upload-area.has-image {
-            border-style: solid;
-            border-color: #d4af37;
-            padding: 0;
+        .submit-btn:active { transform:scale(0.98); }
+
+        /* رسالة النجاح */
+        .success-msg {
+            background:linear-gradient(135deg, rgba(46,204,113,0.15), rgba(46,204,113,0.05));
+            border:1px solid rgba(46,204,113,0.3);
+            border-radius:16px;
+            padding:20px;
+            margin:20px;
+            text-align:center;
+            color:#2ecc71;
+            font-weight:700;
+            font-size:1.1rem;
+            animation:slideDown 0.5s ease;
+            display:none;
         }
-        
-        .upload-icon {
-            font-size: 40px;
-            margin-bottom: 10px;
+        .success-msg.show { display:block; }
+        @keyframes slideDown {
+            from { opacity:0; transform:translateY(-20px); }
+            to { opacity:1; transform:translateY(0); }
         }
-        
-        .upload-text {
-            font-size: 14px;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 5px;
-        }
-        
-        .upload-hint {
-            font-size: 11px;
-            color: rgba(255,255,255,0.3);
-        }
-        
-        .upload-preview {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 14px;
-        }
-        
-        .upload-actions {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-        }
-        
-        .upload-action-btn {
-            background: rgba(0,0,0,0.8);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 11px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-        }
-        
-        /* Camera & Studio Buttons */
-        .media-buttons {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .media-btn {
-            flex: 1;
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            color: #d4af37;
-            padding: 10px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            text-align: center;
-        }
-        
-        .media-btn:hover {
-            background: rgba(212, 175, 55, 0.2);
-        }
-        
-        /* Checkbox */
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-        }
-        
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            accent-color: #d4af37;
-        }
-        
-        .checkbox-group label {
-            font-size: 13px;
-            color: rgba(255,255,255,0.7);
-        }
-        
-        /* Submit Button */
-        .btn-submit {
-            background: #d4af37;
-            color: #000;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .btn-submit:hover {
-            background: #e8c547;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
-        }
-        
-        /* Products List */
+
+        /* قائمة المنتجات */
         .products-list {
-            padding: 20px;
-            padding-bottom: 100px;
+            margin:20px;
         }
-        
-        .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+        .list-title {
+            color:var(--gold);
+            font-size:1.1rem;
+            font-weight:900;
+            margin-bottom:15px;
         }
-        
-        .list-count {
-            font-size: 13px;
-            color: rgba(255,255,255,0.4);
-        }
-        
+
         .product-item {
-            background: #0a0a0a;
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 12px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            transition: all 0.3s ease;
+            background:linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border:1px solid rgba(255,255,255,0.06);
+            border-radius:18px;
+            padding:18px;
+            margin-bottom:12px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            transition:all 0.3s;
         }
-        
         .product-item:hover {
-            border-color: rgba(212, 175, 55, 0.15);
+            border-color:rgba(212,175,55,0.2);
+            transform:translateX(-5px);
         }
-        
-        .product-thumb {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            object-fit: cover;
-            background: #111;
-            flex-shrink: 0;
+
+        .product-info h3 {
+            color:#fff;
+            font-size:1rem;
+            font-weight:700;
+            margin-bottom:4px;
         }
-        
-        .product-thumb.no-img {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.2);
-            font-size: 24px;
+        .product-info .meta {
+            color:#666;
+            font-size:0.8rem;
         }
-        
-        .product-details {
-            flex: 1;
-            min-width: 0;
+        .product-info .price {
+            color:var(--gold);
+            font-weight:900;
+            font-size:1.1rem;
         }
-        
-        .product-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+
+        .delete-btn {
+            width:40px; height:40px;
+            border-radius:12px;
+            border:1px solid rgba(231,76,60,0.3);
+            background:rgba(231,76,60,0.1);
+            color:#e74c3c;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            font-size:1.1rem;
+            transition:all 0.3s;
         }
-        
-        .product-meta {
-            font-size: 11px;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 6px;
+        .delete-btn:hover {
+            background:rgba(231,76,60,0.2);
+            transform:scale(1.1);
         }
-        
-        .product-price-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+
+        .empty {
+            text-align:center;
+            padding:60px 20px;
+            color:#444;
         }
-        
-        .product-price {
-            font-size: 15px;
-            font-weight: 700;
-            color: #d4af37;
-        }
-        
-        .product-original {
-            font-size: 12px;
-            color: rgba(255,255,255,0.3);
-            text-decoration: line-through;
-        }
-        
-        .product-stock {
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 6px;
-            margin-left: auto;
-        }
-        
-        .stock-ok {
-            background: rgba(0, 200, 83, 0.15);
-            color: #00c853;
-        }
-        
-        .stock-low {
-            background: rgba(255, 136, 0, 0.15);
-            color: #ff8800;
-        }
-        
-        .stock-out {
-            background: rgba(255, 68, 68, 0.15);
-            color: #ff4444;
-        }
-        
-        .product-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        
-        .action-icon-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            cursor: pointer;
-            border: none;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .action-icon-btn.edit {
-            background: rgba(212, 175, 55, 0.1);
-            color: #d4af37;
-            border: 1px solid rgba(212, 175, 55, 0.2);
-        }
-        
-        .action-icon-btn.delete {
-            background: rgba(255, 68, 68, 0.1);
-            color: #ff4444;
-            border: 1px solid rgba(255, 68, 68, 0.2);
-        }
-        
-        .action-icon-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        /* Hidden file input */
-        #fileInput, #cameraInput {
-            display: none;
-        }
-        
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: rgba(255,255,255,0.3);
-        }
-        
-        .empty-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
+        .empty-icon { font-size:4rem; margin-bottom:15px; opacity:0.3; }
+
+        /* فوتر */
+        .footer {
+            text-align:center;
+            padding:30px;
+            color:var(--pink);
+            font-size:0.9rem;
+            font-weight:700;
+            text-shadow:0 0 15px rgba(233,30,140,0.2);
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="admin-header">
-        <div class="header-title">
-            <span class="logo">A</span>
-            <span class="text">إدارة المنتجات</span>
-        </div>
-        <div style="display:flex;gap:10px;">
-            <a href="/admin/dashboard" class="back-btn">← لوحة التحكم</a>
-            <a href="/products" class="back-btn">🏪 المتجر</a>
-        </div>
+
+    <a href="/admin/dashboard" class="back-btn">🔙 رجوع</a>
+
+    <div class="header">
+        <h1>📦 إدارة المنتجات</h1>
+        <div class="header-sub">أضف، عدل، احذف منتجاتك</div>
     </div>
-    
-    <!-- Add Product Form -->
-    <div class="form-section">
-        <div class="section-title">➕ إضافة منتج جديد</div>
+
+    <!-- رسالة النجاح -->
+    <div class="success-msg" id="successMsg">
+        ✅ تم إضافة المنتج بنجاح!
+    </div>
+
+    <!-- فورم الإضافة -->
+    <div class="add-section">
+        <div class="section-title">
+            <span>➕</span>
+            <span>إضافة منتج جديد</span>
+        </div>
         
-        <form action="/admin/product/add" method="POST" enctype="multipart/form-data">
+        <form method="POST" action="/admin/products" id="addForm">
             <div class="form-grid">
-                <!-- Image Upload -->
-                <div class="form-group full-width">
-                    <label class="form-label">📷 صورة المنتج</label>
-                    <div class="image-upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                        <div class="upload-content" id="uploadContent">
-                            <div class="upload-icon">📷</div>
-                            <div class="upload-text">اضغط لاختيار صورة</div>
-                            <div class="upload-hint">أو اسحب الصورة هنا</div>
-                        </div>
-                        <img id="previewImage" class="upload-preview" style="display:none;">
-                    </div>
-                    <input type="file" id="fileInput" name="image" accept="image/*" onchange="previewFile()">
-                    
-                    <div class="media-buttons">
-                        <button type="button" class="media-btn" onclick="document.getElementById('cameraInput').click()">
-                            📷 الكاميرا
-                        </button>
-                        <button type="button" class="media-btn" onclick="document.getElementById('fileInput').click()">
-                            🖼️ الاستوديو
-                        </button>
-                    </div>
-                    <input type="file" id="cameraInput" name="image_camera" accept="image/*" capture="environment" onchange="previewCamera()">
-                </div>
-                
                 <div class="form-group">
-                    <label class="form-label">📱 اسم المنتج</label>
-                    <input type="text" name="name" class="form-input" placeholder="مثال: شاشة iPhone 14 Pro" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">🏷️ الفئة</label>
-                    <select name="category" class="form-select" required>
-                        <option value="">اختر الفئة</option>
-                        <option value="شاشات">📱 شاشات</option>
-                        <option value="بطاريات">🔋 بطاريات</option>
-                        <option value="سماعات">🎧 سماعات</option>
-                        <option value="كفرات">📱 كفرات</option>
-                        <option value="شواحن">🔌 شواحن</option>
-                        <option value="هواتف">📲 هواتف</option>
-                        <option value="أخرى">🛠️ أخرى</option>
-                    </select>
+                    <label class="form-label">🏷️ اسم المنتج</label>
+                    <input type="text" name="name" class="form-input" placeholder="مثال: شاشة iPhone 14" required>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">💰 السعر</label>
-                    <input type="number" name="price" class="form-input" placeholder="0.00" step="0.01" required>
+                    <input type="number" name="price" class="form-input" placeholder="3000" required>
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">💵 السعر قبل الخصم (اختياري)</label>
-                    <input type="number" name="original_price" class="form-input" placeholder="0.00" step="0.01">
+                    <label class="form-label">🏷️ السعر قبل الخصم (اختياري)</label>
+                    <input type="number" name="original_price" class="form-input" placeholder="3500">
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label">📊 الكمية</label>
-                    <input type="number" name="stock" class="form-input" placeholder="1" value="1" min="0" required>
+                    <label class="form-label">📦 الكمية</label>
+                    <input type="number" name="stock" class="form-input" placeholder="5" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">🏷️ الفئة</label>
+                    <select name="category" class="form-input" required>
+                        <option value="">اختر الفئة</option>
+                        <option value="شاشات">📱 شاشات</option>
+                        <option value="بطاريات">🔋 بطاريات</option>
+                        <option value="سماعات">🎧 سماعات</option>
+                        <option value="كفرات">📲 كفرات</option>
+                        <option value="شواحن">🔌 شواحن</option>
+                        <option value="هواتف">📞 هواتف</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
                     <label class="form-label">💱 العملة</label>
-                    <select name="currency" class="form-select">
+                    <select name="currency" class="form-input">
                         <option value="ر.ي">🇾🇪 ر.ي يمني</option>
                         <option value="ر.س">🇸🇦 ر.س سعودي</option>
                         <option value="$">🇺🇸 $ دولار</option>
                     </select>
                 </div>
                 
-                <div class="form-group full-width">
-                    <label class="form-label">📝 الوصف</label>
-                    <textarea name="description" class="form-textarea" placeholder="وصف المنتج والمواصفات..."></textarea>
+                <div class="form-group">
+                    <label class="form-label">📸 رابط الصورة (اختياري)</label>
+                    <input type="url" name="image" class="form-input" placeholder="https://example.com/image.jpg">
                 </div>
                 
-                <div class="form-group full-width">
-                    <div class="checkbox-group">
+                <div class="form-group">
+                    <label class="form-label">📋 الحالة</label>
+                    <select name="status" class="form-input">
+                        <option value="available">✅ متوفر</option>
+                        <option value="out_of_stock">❌ نفذت الكمية</option>
+                    </select>
+                </div>
+                
+                <div class="form-group full">
+                    <label class="form-label">📝 الوصف</label>
+                    <input type="text" name="description" class="form-input" placeholder="وصف مختصر للمنتج...">
+                </div>
+                
+                <div class="form-group full">
+                    <div class="checkbox-wrap">
                         <input type="checkbox" name="is_rare" id="isRare" value="1">
-                        <label for="isRare">🏆 قطعة نادرة (يظهر شارة نادر)</label>
+                        <label for="isRare">🏆 قطعة نادرة (يظهر شارة ذهبية)</label>
                     </div>
                 </div>
+                
+                <button type="submit" class="submit-btn">
+                    💾 حفظ المنتج
+                </button>
             </div>
-            
-            <button type="submit" class="btn-submit">✅ إضافة المنتج</button>
         </form>
     </div>
-    
-    <!-- Products List -->
+
+    <!-- قائمة المنتجات -->
     <div class="products-list">
-        <div class="list-header">
-            <div class="section-title">📦 المنتجات</div>
-            <div class="list-count">{{ products|length }} منتج</div>
+        <div class="list-title">📋 المنتجات الحالية ({{ products|length }})</div>
+        
+        {% for product in products %}
+        <div class="product-item">
+            <div class="product-info">
+                <h3>{{ product.name }}</h3>
+                <div class="meta">
+                    {{ product.category }} | 
+                    {% if product.stock > 0 %}✅ متوفر{% else %}❌ نفذت{% endif %}
+                    {% if product.is_rare %} | 🏆 نادرة{% endif %}
+                </div>
+                <div class="price">{{ product.price }} {{ product.currency }}</div>
+            </div>
+            <form method="POST" action="/admin/delete_product/{{ product.id }}" onsubmit="return confirm('حذف {{ product.name }} نهائياً؟');">
+                <button type="submit" class="delete-btn" title="حذف">🗑️</button>
+            </form>
         </div>
-        
-        {% if products %}
-            {% for p in products %}
-            <div class="product-item">
-                {% set thumb_url = get_image_url(p.image) %}
-                {% if thumb_url != url_for('static', filename='uploads/default.jpg') %}
-                <img src="{{ thumb_url }}" class="product-thumb" alt="{{ p.name }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="product-thumb no-img" style="display:none;">📷</div>
-                {% else %}
-                <div class="product-thumb no-img">📷</div>
-                {% endif %}
-                
-                <div class="product-details">
-                    <div class="product-name">{{ p.name }}</div>
-                    <div class="product-meta">{{ p.category }} • {{ p.currency }}</div>
-                    <div class="product-price-row">
-                        <span class="product-price">{{ p.price }} {{ p.currency }}</span>
-                        {% if p.original_price and p.original_price > p.price %}
-                        <span class="product-original">{{ p.original_price }}</span>
-                        {% endif %}
-                        <span class="product-stock {% if p.stock > 5 %}stock-ok{% elif p.stock > 0 %}stock-low{% else %}stock-out{% endif %}">
-                            {% if p.stock > 5 %}✅ {{ p.stock }}
-                            {% elif p.stock > 0 %}⚠️ {{ p.stock }}
-                            {% else %}❌ نفذ
-                            {% endif %}
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="product-actions">
-                    <button class="action-icon-btn edit" onclick="editProduct({{ p.id }})">✏️</button>
-                    <a href="/admin/product/delete/{{ p.id }}" class="action-icon-btn delete" onclick="return confirm('هل أنت متأكد من حذف {{ p.name }}؟')">🗑️</a>
-                </div>
-            </div>
-            {% endfor %}
         {% else %}
-            <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <div>لا توجد منتجات</div>
-                <p style="font-size:12px;margin-top:5px;">أضف منتجك الأول أعلاه</p>
-            </div>
-        {% endif %}
+        <div class="empty">
+            <div class="empty-icon">📦</div>
+            <div style="color:var(--gold); font-weight:700; margin-bottom:8px;">لا توجد منتجات</div>
+            <div style="color:#555; font-size:0.85rem;">أضف منتجك الأول أعلاه</div>
+        </div>
+        {% endfor %}
     </div>
-    
+
+    <div class="footer">
+        ✨ الهاشمي محمد ✨
+    </div>
+
     <script>
-        function previewFile() {
-            const file = document.getElementById('fileInput').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('previewImage').style.display = 'block';
-                    document.getElementById('uploadContent').style.display = 'none';
-                    document.getElementById('uploadArea').classList.add('has-image');
-                }
-                reader.readAsDataURL(file);
-            }
+        // إظهار رسالة النجاح بعد الإضافة
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('success') === '1') {
+            document.getElementById('successMsg').classList.add('show');
+            setTimeout(() => {
+                document.getElementById('successMsg').classList.remove('show');
+            }, 4000);
         }
-        
-        function previewCamera() {
-            const file = document.getElementById('cameraInput').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('previewImage').src = e.target.result;
-                    document.getElementById('previewImage').style.display = 'block';
-                    document.getElementById('uploadContent').style.display = 'none';
-                    document.getElementById('uploadArea').classList.add('has-image');
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        function editProduct(id) {
-            window.location.href = '/admin/products';
-        }
+
+        // تأثيرات على الفورم
+        document.querySelectorAll('.form-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.3s';
+            });
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
     </script>
 </body>
 </html>

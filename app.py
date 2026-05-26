@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', os.urandom(24))
+app.secret_key = os.environ.get('SECRET_KEY', 'areen-secret-key-2026')
 app.permanent_session_lifetime = timedelta(days=365)
 
 # ========== الإعدادات ==========
@@ -95,24 +95,31 @@ def close_connection(exception):
 # ========== معالج الأخطاء ==========
 @app.errorhandler(500)
 def internal_error(error):
+    tb = traceback.format_exc()
     return f"""
     <!DOCTYPE html>
     <html dir="rtl"><head><meta charset="UTF-8"><title>خطأ</title>
     <style>
         body {{ background:#000; color:#e74c3c; font-family:Cairo,sans-serif; padding:20px; }}
         .box {{ background:#111; border:1px solid #e74c3c; border-radius:15px; padding:20px; margin:20px 0; }}
-        pre {{ color:#888; font-size:0.8rem; overflow-x:auto; }}
+        pre {{ color:#888; font-size:0.75rem; overflow-x:auto; white-space:pre-wrap; }}
+        h2 {{ color:#d4af37; }}
+        a {{ color:#d4af37; }}
     </style></head><body>
     <h2>⚠️ خطأ في السيرفر</h2>
     <div class="box">
         <p><strong>النوع:</strong> {type(error).__name__}</p>
         <p><strong>الرسالة:</strong> {str(error)}</p>
-        <hr>
-        <pre>{traceback.format_exc()}</pre>
+        <hr style="border-color:#333;">
+        <pre>{tb}</pre>
     </div>
-    <a href="/" style="color:#d4af37;">🏠 العودة للرئيسية</a>
+    <a href="/">🏠 العودة للرئيسية</a>
     </body></html>
     """, 500
+
+@app.errorhandler(404)
+def not_found(error):
+    return redirect(url_for('index'))
 
 # ========== دوال مساعدة ==========
 def get_product(product_id):
@@ -157,6 +164,7 @@ def products():
                          current_category=category,
                          search=search,
                          is_admin=is_admin(),
+                         shop_name=SHOP_NAME,
                          reservation_phone=RESERVATION_PHONE)
 
 @app.route('/maintenance')
@@ -205,12 +213,6 @@ def location():
                 position:relative;
                 overflow:hidden;
             }
-            .card::before {
-                content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%;
-                background:radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
-                animation: rotate 15s linear infinite;
-            }
-            @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
             @keyframes float {
                 0%,100% { transform: translateY(0); }
                 50% { transform: translateY(-15px); }
@@ -381,7 +383,10 @@ def admin_products():
         return redirect(url_for('admin_products'))
     c.execute("SELECT * FROM products ORDER BY created_at DESC")
     products_list = c.fetchall()
-    return render_template('admin/products.html', products=products_list)
+    try:
+        return render_template('admin/products.html', products=products_list)
+    except:
+        return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/delete_product/<int:product_id>', methods=['POST'])
 def delete_product(product_id):
@@ -408,7 +413,10 @@ def admin_reservations():
         ORDER BY r.created_at DESC
     """)
     reservations = c.fetchall()
-    return render_template('admin/reservations.html', reservations=reservations)
+    try:
+        return render_template('admin/reservations.html', reservations=reservations)
+    except:
+        return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/confirm_reservation/<int:reservation_id>', methods=['POST'])
 def confirm_reservation(reservation_id):
@@ -451,14 +459,11 @@ def api_reserve():
     product_id = data.get('product_id')
     customer_name = data.get('customer_name', 'عميل')
     phone = data.get('phone', '')
-    
     if not product_id:
         return jsonify({'success': False, 'error': 'معرف المنتج مطلوب'}), 400
-    
     product = get_product(product_id)
     if not product:
         return jsonify({'success': False, 'error': 'المنتج غير موجود'}), 404
-    
     db = get_db()
     c = db.cursor()
     try:
@@ -488,7 +493,6 @@ def reservation_whatsapp(reservation_id):
     if not reservation:
         flash('الحجز غير موجود', 'error')
         return redirect(url_for('products'))
-    
     message = f"""مرحباً بدر الحضرمي،\nأرغب في حجز المنتج التالي:\n🏷️ المنتج: {reservation['product_name']}\n💰 السعر: {reservation['price']} {reservation['currency']}\n👤 الاسم: {reservation['customer_name']}\n📱 الرقم: {reservation['phone']}\n🆔 رقم الحجز: #{reservation_id}\n"""
     encoded_msg = urllib.parse.quote(message)
     whatsapp_url = f"https://wa.me/967{RESERVATION_PHONE}?text={encoded_msg}"

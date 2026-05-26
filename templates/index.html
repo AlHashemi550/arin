@@ -16,7 +16,6 @@
             width:100vw;
         }
 
-        /* شاشة الترحيب */
         #splash {
             position:fixed;
             top:0; left:0; right:0; bottom:0;
@@ -35,11 +34,10 @@
             pointer-events:none;
         }
 
-        /* تأثير الضوء الخلفي */
         .glow-bg {
             position:absolute;
-            width:300px; height:300px;
-            background:radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%);
+            width:350px; height:350px;
+            background:radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%);
             border-radius:50%;
             animation:pulse 3s ease-in-out infinite;
         }
@@ -48,7 +46,6 @@
             50% { transform:scale(1.3); opacity:0.8; }
         }
 
-        /* صورة الشعار */
         .logo-container {
             position:relative;
             z-index:2;
@@ -56,7 +53,6 @@
             transform-origin:center bottom;
         }
         
-        /* التتمايل */
         @keyframes sway {
             0%,100% { transform:rotate(-2deg) translateY(0); }
             25% { transform:rotate(2deg) translateY(-10px); }
@@ -64,7 +60,6 @@
             75% { transform:rotate(1deg) translateY(-8px); }
         }
 
-        /* السقوط النهائي */
         #splash.falling .logo-container {
             animation:fallDrop 1s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
         }
@@ -75,22 +70,40 @@
         }
 
         .splash-img {
-            width:280px;
-            max-width:80vw;
-            border-radius:20px;
-            box-shadow:0 20px 60px rgba(0,0,0,0.5);
-            filter:drop-shadow(0 0 30px rgba(212,175,55,0.2));
+            width:300px;
+            max-width:85vw;
+            border-radius:24px;
+            box-shadow:0 25px 80px rgba(0,0,0,0.6);
+            filter:drop-shadow(0 0 40px rgba(212,175,55,0.25));
         }
 
-        /* شريط التقدم */
-        .progress-container {
+        /* اسم المطور في الأسفل */
+        .developer {
             position:absolute;
-            bottom:60px;
+            bottom:100px;
             left:50%;
             transform:translateX(-50%);
-            width:200px;
+            color:#e91e8c;
+            font-size:0.95rem;
+            font-weight:700;
+            text-shadow:0 0 20px rgba(233,30,140,0.4);
+            z-index:2;
+            letter-spacing:1px;
+            animation:glowText 2s ease-in-out infinite;
+        }
+        @keyframes glowText {
+            0%,100% { text-shadow:0 0 10px rgba(233,30,140,0.3); }
+            50% { text-shadow:0 0 25px rgba(233,30,140,0.6), 0 0 40px rgba(233,30,140,0.2); }
+        }
+
+        .progress-container {
+            position:absolute;
+            bottom:55px;
+            left:50%;
+            transform:translateX(-50%);
+            width:220px;
             height:3px;
-            background:rgba(255,255,255,0.1);
+            background:rgba(255,255,255,0.08);
             border-radius:10px;
             overflow:hidden;
         }
@@ -100,7 +113,7 @@
             background:linear-gradient(90deg, #d4af37, #f0d878, #d4af37);
             border-radius:10px;
             animation:fillBar 6s linear forwards;
-            box-shadow:0 0 10px rgba(212,175,55,0.5);
+            box-shadow:0 0 15px rgba(212,175,55,0.5);
         }
         @keyframes fillBar {
             0% { width:0%; }
@@ -109,15 +122,15 @@
 
         .countdown {
             position:absolute;
-            bottom:80px;
+            bottom:70px;
             color:#d4af37;
-            font-size:0.85rem;
-            font-weight:600;
-            letter-spacing:2px;
-            opacity:0.7;
+            font-size:0.9rem;
+            font-weight:700;
+            letter-spacing:3px;
+            opacity:0.8;
+            font-variant-numeric:tabular-nums;
         }
 
-        /* النجوم المتحركة */
         .stars {
             position:fixed;
             top:0; left:0; width:100%; height:100%;
@@ -137,7 +150,6 @@
             50% { opacity:var(--opacity); transform:scale(1); }
         }
 
-        /* صفحة المنتجات (تظهر خلف الشاشة) */
         #products-frame {
             position:fixed;
             top:0; left:0; right:0; bottom:0;
@@ -155,35 +167,32 @@
 </head>
 <body>
 
-    <!-- نجوم خلفية -->
     <div class="stars" id="stars"></div>
 
-    <!-- شاشة الترحيب -->
     <div id="splash">
         <div class="glow-bg"></div>
         
         <div class="logo-container">
-            <!-- استخدم الصورة التي رفعتها -->
             <img src="{{ url_for('static', filename='images/splash.png') }}" 
                  alt="أرين - AREEN" 
                  class="splash-img"
-                 onerror="this.src='https://i.ibb.co/6JxYqXq/areen-splash.jpg'">
+                 onerror="this.style.display='none'; document.querySelector('.logo-container').innerHTML='<div style=\'font-size:4rem;color:#d4af37;text-shadow:0 0 30px rgba(212,175,55,0.5);font-weight:900;\'>AREEN</div>';">
         </div>
 
-        <div class="countdown" id="countdown">جاري التحميل...</div>
+        <div class="developer">✨ الهاشمي محمد ✨</div>
+
+        <div class="countdown" id="countdown">00:06</div>
         
         <div class="progress-container">
             <div class="progress-bar"></div>
         </div>
     </div>
 
-    <!-- iframe يحمل المنتجات خلف الشاشة -->
     <iframe id="products-frame" src="/products"></iframe>
 
     <script>
-        // إنشاء النجوم
         const starsContainer = document.getElementById('stars');
-        for(let i=0; i<<50; i++) {
+        for(let i=0; i<<60; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             star.style.left = Math.random() * 100 + '%';
@@ -194,7 +203,6 @@
             starsContainer.appendChild(star);
         }
 
-        // العد التنازلي
         let seconds = 6;
         const countdownEl = document.getElementById('countdown');
         const timer = setInterval(() => {
@@ -203,21 +211,19 @@
                 countdownEl.textContent = '00:0' + seconds;
             } else {
                 countdownEl.textContent = 'انطلق!';
+                clearInterval(timer);
             }
         }, 1000);
 
-        // الانتقال بعد 6 ثواني
         setTimeout(() => {
             const splash = document.getElementById('splash');
             const frame = document.getElementById('products-frame');
             
-            // تأثير السقوط
             splash.classList.add('falling');
             
             setTimeout(() => {
                 splash.classList.add('hide');
                 frame.classList.add('show');
-                // إزالة الشاشة من DOM بعد الانتقال
                 setTimeout(() => {
                     splash.style.display = 'none';
                 }, 1500);
