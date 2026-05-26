@@ -161,7 +161,7 @@
         transform: scale(1.05);
     }
     
-    /* Image placeholder when no image */
+    /* No image placeholder when no image */
     .no-image {
         position: absolute;
         top: 0;
@@ -384,7 +384,7 @@
     .stock-low { color: #ff8800; }
     .stock-out { color: #ff4444; }
     
-    /* Delete button for admin */
+    /* Delete button for admin ONLY */
     .btn-delete {
         position: absolute;
         top: 8px;
@@ -401,6 +401,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        text-decoration: none;
     }
 </style>
 {% endblock %}
@@ -453,6 +454,7 @@
             </span>
             {% endif %}
             
+            <!-- زر الحذف يظهر فقط للأدمن -->
             {% if is_admin %}
             <a href="/admin/product/delete/{{ product.id }}" class="btn-delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">🗑️</a>
             {% endif %}

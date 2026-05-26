@@ -408,7 +408,7 @@
         backdrop-filter: blur(10px);
     }
     
-    /* Admin Actions */
+    /* Admin Actions - ONLY FOR ADMIN */
     .admin-actions {
         display: flex;
         gap: 10px;
@@ -449,7 +449,7 @@
     <!-- Image Gallery -->
     {% set img_url = get_image_url(product.image) %}
     
-    {% if img_url and img_url != url_for('static', filename='uploads/default.jpg') %}
+    {% if img_url and img_url != '/static/uploads/default.jpg' %}
     <div class="image-gallery" onclick="toggleZoom()">
         <img src="{{ img_url }}" 
              class="main-image" 
@@ -497,10 +497,10 @@
             {% endif %}
         </div>
         
-        <!-- Admin Actions -->
+        <!-- Admin Actions - تظهر فقط للأدمن -->
         {% if is_admin %}
         <div class="admin-actions">
-            <button class="btn-admin edit" onclick="showEditModal()">✏️ تعديل</button>
+            <button class="btn-admin edit" onclick="alert('التعديل يتم من لوحة التحكم')">✏️ تعديل</button>
             <a href="/admin/product/delete/{{ product.id }}" class="btn-admin delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">🗑️ حذف</a>
         </div>
         {% endif %}
