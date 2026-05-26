@@ -14,6 +14,8 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
         
         body {
@@ -25,17 +27,9 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #d4af37;
-            border-radius: 2px;
-        }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #d4af37; border-radius: 2px; }
         
         /* Flash Messages */
         .flash-messages {
@@ -64,38 +58,17 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .flash-success {
-            background: rgba(0, 200, 83, 0.15);
-            border: 1px solid rgba(0, 200, 83, 0.3);
-            color: #00c853;
-        }
-        
-        .flash-error {
-            background: rgba(255, 68, 68, 0.15);
-            border: 1px solid rgba(255, 68, 68, 0.3);
-            color: #ff4444;
-        }
-        
-        .flash-warning {
-            background: rgba(255, 136, 0, 0.15);
-            border: 1px solid rgba(255, 136, 0, 0.3);
-            color: #ff8800;
-        }
-        
-        .flash-info {
-            background: rgba(33, 150, 243, 0.15);
-            border: 1px solid rgba(33, 150, 243, 0.3);
-            color: #2196f3;
-        }
+        .flash-success { background: rgba(0, 200, 83, 0.15); border: 1px solid rgba(0, 200, 83, 0.3); color: #00c853; }
+        .flash-error { background: rgba(255, 68, 68, 0.15); border: 1px solid rgba(255, 68, 68, 0.3); color: #ff4444; }
+        .flash-warning { background: rgba(255, 136, 0, 0.15); border: 1px solid rgba(255, 136, 0, 0.3); color: #ff8800; }
+        .flash-info { background: rgba(33, 150, 243, 0.15); border: 1px solid rgba(33, 150, 243, 0.3); color: #2196f3; }
         
         /* Location Modal */
         .location-modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.9);
             z-index: 9999;
             justify-content: center;
@@ -103,9 +76,7 @@
             padding: 20px;
         }
         
-        .location-modal.active {
-            display: flex;
-        }
+        .location-modal.active { display: flex; }
         
         .location-content {
             background: #0a0a0a;
@@ -125,10 +96,7 @@
             align-items: center;
         }
         
-        .location-header h3 {
-            font-size: 16px;
-            font-weight: 700;
-        }
+        .location-header h3 { font-size: 16px; font-weight: 700; }
         
         .close-modal {
             background: none;
@@ -138,9 +106,7 @@
             cursor: pointer;
         }
         
-        .location-body {
-            padding: 20px;
-        }
+        .location-body { padding: 20px; }
         
         .location-text {
             font-size: 14px;
@@ -149,24 +115,7 @@
             margin-bottom: 15px;
         }
         
-        .location-map {
-            width: 100%;
-            height: 200px;
-            background: #111;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: rgba(255,255,255,0.3);
-            font-size: 12px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        
-        .location-actions {
-            display: flex;
-            gap: 10px;
-        }
+        .location-actions { display: flex; gap: 10px; }
         
         .loc-btn {
             flex: 1;
@@ -181,22 +130,143 @@
             cursor: pointer;
         }
         
-        .loc-btn.primary {
-            background: #d4af37;
-            color: #000;
+        .loc-btn.primary { background: #d4af37; color: #000; }
+        .loc-btn.secondary { background: transparent; color: #d4af37; border: 1px solid rgba(212, 175, 55, 0.3); }
+        
+        /* Admin Secret Modal */
+        .secret-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
         
-        .loc-btn.secondary {
-            background: transparent;
-            color: #d4af37;
-            border: 1px solid rgba(212, 175, 55, 0.3);
+        .secret-modal.active { display: flex; }
+        
+        .secret-content {
+            background: #0a0a0a;
+            border: 2px solid rgba(212, 175, 55, 0.3);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 340px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .secret-content::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: #d4af37;
+        }
+        
+        .secret-icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        .secret-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #d4af37;
+            margin-bottom: 5px;
+        }
+        
+        .secret-hint {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 20px;
+        }
+        
+        .secret-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            color: #d4af37;
+            font-family: 'Cairo', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 3px;
+            outline: none;
+            margin-bottom: 15px;
+        }
+        
+        .secret-input:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+        
+        .secret-input::placeholder {
+            color: rgba(255,255,255,0.15);
+            letter-spacing: normal;
+            font-size: 14px;
+        }
+        
+        .secret-btn {
+            width: 100%;
+            background: #d4af37;
+            color: #000;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .secret-btn:hover { background: #e8c547; }
+        
+        .secret-close {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .secret-error {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        /* Progress ring for long press */
+        .press-ring {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid rgba(212, 175, 55, 0.3);
+            border-top-color: #d4af37;
+            pointer-events: none;
+            z-index: 99998;
+            display: none;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin { to { transform: rotate(360deg); } }
         
         /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
+            bottom: 0; left: 0;
             width: 100%;
             background: rgba(0, 0, 0, 0.95);
             backdrop-filter: blur(20px);
@@ -226,20 +296,11 @@
             border-radius: 12px;
         }
         
-        .nav-item.active {
-            color: #d4af37;
-        }
+        .nav-item.active { color: #d4af37; }
+        .nav-item:hover { color: #d4af37; }
+        .nav-icon { font-size: 22px; line-height: 1; }
         
-        .nav-item:hover {
-            color: #d4af37;
-        }
-        
-        .nav-icon {
-            font-size: 22px;
-            line-height: 1;
-        }
-        
-        /* Developer Footer */
+        /* Developer Footer - LONG PRESS TARGET */
         .dev-footer {
             text-align: center;
             padding: 15px;
@@ -250,13 +311,37 @@
         .dev-name {
             font-size: 14px;
             font-weight: 700;
-            background: #e91e8c;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #e91e8c;
             display: inline-flex;
             align-items: center;
             gap: 5px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .dev-name:active, .dev-name.pressing {
+            background: rgba(233, 30, 140, 0.1);
+            transform: scale(0.95);
+        }
+        
+        .dev-name::after {
+            content: '👆 اضغط مطولاً';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: rgba(255,255,255,0.2);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+        
+        .dev-name:hover::after {
+            opacity: 1;
         }
         
         .dev-links {
@@ -273,18 +358,14 @@
             transition: all 0.3s ease;
         }
         
-        .dev-links a:hover {
-            color: #e91e8c;
-            transform: scale(1.2);
-        }
+        .dev-links a:hover { color: #e91e8c; transform: scale(1.2); }
         
         /* Location FAB */
         .location-fab {
             position: fixed;
             bottom: 80px;
             left: 15px;
-            width: 45px;
-            height: 45px;
+            width: 45px; height: 45px;
             background: rgba(212, 175, 55, 0.15);
             border: 1px solid rgba(212, 175, 55, 0.3);
             border-radius: 50%;
@@ -305,21 +386,7 @@
             transform: scale(1.1);
         }
         
-        /* Content wrapper */
-        .content-wrapper {
-            min-height: 100vh;
-            padding-bottom: 20px;
-        }
-        
-        /* Loading animation */
-        .loading-pulse {
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        .content-wrapper { min-height: 100vh; padding-bottom: 20px; }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -352,17 +419,24 @@
                     <strong style="color:#d4af37;">{{ shop_name }}</strong><br>
                     {{ shop_location }}
                 </div>
-                <div class="location-map">
-                    🗺️ خريطة الموقع<br>
-                    <small>اضغط "فتح في الخرائط" للتوجيه</small>
-                </div>
                 <div class="location-actions">
-                    <a href="https://maps.google.com/?q={{ shop_location|urlencode }}" class="loc-btn primary" target="_blank">
-                        🗺️ فتح في الخرائط
-                    </a>
+                    <a href="https://maps.google.com/?q={{ shop_location|urlencode }}" class="loc-btn primary" target="_blank">🗺️ فتح في الخرائط</a>
                     <button class="loc-btn secondary" onclick="closeLocation()">إغلاق</button>
                 </div>
             </div>
+        </div>
+    </div>
+    
+    <!-- Admin Secret Modal -->
+    <div class="secret-modal" id="secretModal">
+        <div class="secret-content">
+            <button class="secret-close" onclick="closeSecret()">✕</button>
+            <div class="secret-icon">👑</div>
+            <div class="secret-title">وضع الأدمن</div>
+            <div class="secret-hint">أدخل كلمة السر المتفق عليها</div>
+            <input type="password" class="secret-input" id="secretPass" placeholder="•••••" maxlength="10">
+            <button class="secret-btn" onclick="checkSecret()">🔓 فتح</button>
+            <div class="secret-error" id="secretError">❌ كلمة السر غير صحيحة</div>
         </div>
     </div>
     
@@ -374,9 +448,9 @@
         {% block content %}{% endblock %}
     </div>
     
-    <!-- Developer Footer -->
+    <!-- Developer Footer - LONG PRESS TO ENTER ADMIN -->
     <div class="dev-footer">
-        <div class="dev-name">
+        <div class="dev-name" id="devName">
             ✨ الهاشمي محمد ✨
         </div>
         <div class="dev-links">
@@ -412,17 +486,96 @@
     </nav>
     
     <script>
+        // Location Modal
         function openLocation() {
             document.getElementById('locationModal').classList.add('active');
         }
-        
         function closeLocation() {
             document.getElementById('locationModal').classList.remove('active');
         }
-        
-        // Close modal on outside click
         document.getElementById('locationModal').addEventListener('click', function(e) {
             if (e.target === this) closeLocation();
+        });
+        
+        // Secret Admin Modal
+        function openSecret() {
+            document.getElementById('secretModal').classList.add('active');
+            setTimeout(() => document.getElementById('secretPass').focus(), 100);
+        }
+        function closeSecret() {
+            document.getElementById('secretModal').classList.remove('active');
+            document.getElementById('secretPass').value = '';
+            document.getElementById('secretError').style.display = 'none';
+        }
+        document.getElementById('secretModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSecret();
+        });
+        
+        // Check password
+        function checkSecret() {
+            const pass = document.getElementById('secretPass').value;
+            if (pass === '78323') {
+                window.location.href = '/admin/dashboard';
+            } else {
+                document.getElementById('secretError').style.display = 'block';
+                document.getElementById('secretPass').value = '';
+                document.getElementById('secretPass').focus();
+            }
+        }
+        
+        // Enter key in password field
+        document.getElementById('secretPass').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkSecret();
+        });
+        
+        // Long Press on Developer Name
+        const devName = document.getElementById('devName');
+        let pressTimer;
+        let isPressing = false;
+        
+        function startPress(e) {
+            if (e.type === 'touchstart') e.preventDefault();
+            isPressing = true;
+            devName.classList.add('pressing');
+            
+            pressTimer = setTimeout(() => {
+                if (isPressing) {
+                    openSecret();
+                    isPressing = false;
+                    devName.classList.remove('pressing');
+                }
+            }, 800); // 0.8 seconds long press
+        }
+        
+        function cancelPress() {
+            isPressing = false;
+            devName.classList.remove('pressing');
+            clearTimeout(pressTimer);
+        }
+        
+        // Touch events (mobile)
+        devName.addEventListener('touchstart', startPress, {passive: false});
+        devName.addEventListener('touchend', cancelPress);
+        devName.addEventListener('touchmove', cancelPress);
+        
+        // Mouse events (desktop)
+        devName.addEventListener('mousedown', startPress);
+        devName.addEventListener('mouseup', cancelPress);
+        devName.addEventListener('mouseleave', cancelPress);
+        
+        // Triple click fallback (desktop)
+        let clickCount = 0;
+        let clickTimer;
+        devName.addEventListener('click', function() {
+            clickCount++;
+            if (clickCount === 1) {
+                clickTimer = setTimeout(() => { clickCount = 0; }, 500);
+            }
+            if (clickCount === 3) {
+                clearTimeout(clickTimer);
+                clickCount = 0;
+                openSecret();
+            }
         });
     </script>
     

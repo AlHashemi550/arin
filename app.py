@@ -17,7 +17,7 @@ DB_PATH = os.path.join(BASE_DIR, 'laqta.db')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 ADMIN_PHONES = ['783234925', '779505979', '773852062']
 ADMIN_PASSWORD = '78323'
@@ -95,7 +95,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if not session.get('is_admin'):
             flash('يجب تسجيل الدخول كأدمن', 'warning')
-            return redirect(url_for('admin_login'))
+            return redirect('/products')
         return f(*args, **kwargs)
     return decorated_function
 
@@ -106,12 +106,10 @@ def generate_code(length=4):
 
 @app.route('/')
 def splash():
-    """صفحة الاستقبال - تظهر لمدة 4 ثواني"""
     return render_template('splash.html')
 
 @app.route('/products')
 def products():
-    """الصفحة الرئيسية - المتجر"""
     db = get_db()
     category = request.args.get('category', 'all')
     search = request.args.get('search', '').strip()
@@ -134,11 +132,9 @@ def products():
     query += " ORDER BY created_at DESC"
     products = db.execute(query, params).fetchall()
     
-    # Get categories list
     cats = db.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL").fetchall()
     categories = [c['category'] for c in cats if c['category']]
     
-    # Get currencies list
     curr = db.execute("SELECT DISTINCT currency FROM products WHERE currency IS NOT NULL").fetchall()
     currencies = [c['currency'] for c in curr if c['currency']]
     
@@ -154,14 +150,12 @@ def products():
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
-    """صفحة تفاصيل المنتج"""
     db = get_db()
     product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
     if not product:
         flash('المنتج غير موجود', 'error')
         return redirect(url_for('products'))
     
-    # Get related products (same category)
     related = db.execute(
         "SELECT * FROM products WHERE category = ? AND id != ? LIMIT 4",
         (product['category'], product_id)
@@ -175,7 +169,6 @@ def product_detail(product_id):
 
 @app.route('/reserve', methods=['POST'])
 def reserve():
-    """إنشاء حجز وفتح واتساب"""
     db = get_db()
     product_id = request.form.get('product_id')
     customer_name = request.form.get('customer_name', '').strip()
@@ -194,18 +187,14 @@ def reserve():
         flash('عذراً، هذا المنتج غير متوفر حالياً', 'error')
         return redirect(url_for('product_detail', product_id=product_id))
     
-    # Create reservation
     db.execute('''
         INSERT INTO reservations (product_id, customer_name, phone, status)
         VALUES (?, ?, ?, 'pending')
     ''', (product_id, customer_name, phone))
     
-    # Reduce stock immediately (or mark as reserved)
     db.execute("UPDATE products SET stock = stock - 1 WHERE id = ?", (product_id,))
-    
     db.commit()
     
-    # Build WhatsApp message
     msg = f"مرحباً {APP_NAME} 👋%0A%0A"
     msg += f"أريد حجز المنتج التالي:%0A"
     msg += f"📱 *{product['name']}*%0A"
@@ -242,31 +231,22 @@ def my_devices():
 
 # ==================== ADMIN ROUTES ====================
 
-@app.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    if session.get('is_admin'):
-        return redirect(url_for('admin_dashboard'))
-    
-    if request.method == 'POST':
-        phone = request.form.get('phone', '').strip()
-        password = request.form.get('password', '').strip()
-        
-        if phone in ADMIN_PHONES and password == ADMIN_PASSWORD:
-            session['is_admin'] = True
-            session['admin_phone'] = phone
-            session.permanent = True
-            flash('تم تسجيل الدخول كأدمن بنجاح ✅', 'success')
-            return redirect(url_for('admin_dashboard'))
-        else:
-            flash('رقم الهاتف أو كلمة المرور غير صحيحة', 'error')
-    
-    return render_template('admin/login.html', shop_name=SHOP_NAME)
+@app.route('/admin/verify', methods=['POST'])
+def admin_verify():
+    password = request.form.get('password', '').strip()
+    if password == ADMIN_PASSWORD:
+        session['is_admin'] = True
+        session.permanent = True
+        return redirect('/admin/dashboard')
+    else:
+        flash('كلمة السر غير صحيحة', 'error')
+        return redirect('/products')
 
 @app.route('/admin/logout')
 def admin_logout():
     session.clear()
     flash('تم تسجيل الخروج', 'info')
-    return redirect(url_for('products'))
+    return redirect('/products')
 
 @app.route('/admin/dashboard')
 @admin_required
@@ -316,7 +296,6 @@ def add_product():
     currency = request.form.get('currency', 'ر.ي')
     is_rare = 1 if request.form.get('is_rare') else 0
     
-    # Handle image upload
     image = 'default.jpg'
     if 'image' in request.files:
         file = request.files['image']
@@ -351,7 +330,6 @@ def edit_product(product_id):
     currency = request.form.get('currency', 'ر.ي')
     is_rare = 1 if request.form.get('is_rare') else 0
     
-    # Handle image upload if new image provided
     image_update = ""
     params = [name, price, original_price, description, category, stock, currency, is_rare]
     
@@ -383,7 +361,6 @@ def edit_product(product_id):
 @admin_required
 def delete_product(product_id):
     db = get_db()
-    # Delete associated reservations first
     db.execute("DELETE FROM reservations WHERE product_id = ?", (product_id,))
     db.execute("DELETE FROM products WHERE id = ?", (product_id,))
     db.commit()
@@ -411,7 +388,6 @@ def admin_reservations():
     query += " ORDER BY r.created_at DESC"
     reservations = db.execute(query, params).fetchall()
     
-    # Stats
     stats = {
         'pending': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='pending'").fetchone()['c'],
         'confirmed': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='confirmed'").fetchone()['c'],
@@ -434,7 +410,6 @@ def confirm_reservation(res_id):
         db.execute("UPDATE reservations SET status = 'confirmed' WHERE id = ?", (res_id,))
         db.commit()
         
-        # Send WhatsApp confirmation to customer
         product = db.execute("SELECT * FROM products WHERE id = ?", (res['product_id'],)).fetchone()
         if product and res['phone']:
             msg = f"مرحباً {res['customer_name']} 👋%0A%0A"
@@ -458,12 +433,10 @@ def cancel_reservation(res_id):
     res = db.execute("SELECT * FROM reservations WHERE id = ?", (res_id,)).fetchone()
     
     if res:
-        # Return stock
         db.execute("UPDATE products SET stock = stock + 1 WHERE id = ?", (res['product_id'],))
         db.execute("UPDATE reservations SET status = 'cancelled' WHERE id = ?", (res_id,))
         db.commit()
         
-        # Notify customer
         if res['phone']:
             msg = f"مرحباً {res['customer_name']} 😔%0A%0A"
             msg += f"❌ تم *إلغاء* حجزك للمنتج.%0A"
