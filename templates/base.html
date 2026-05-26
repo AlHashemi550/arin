@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}{{ app_name }}{% endblock %} - أرين</title>
+    <title>{% block title %}{{ app_name or 'أرين' }}{% endblock %} - أرين</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         * {
@@ -22,7 +22,6 @@
             position: relative;
         }
         
-        /* الهيدر */
         .app-header {
             background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
             border-bottom: 1px solid rgba(212, 175, 55, 0.2);
@@ -76,14 +75,12 @@
             text-decoration: none;
         }
         
-        /* المحتوى */
         .content {
             padding: 20px;
             max-width: 600px;
             margin: 0 auto;
         }
         
-        /* البطاقات الزجاجية */
         .glass-card {
             background: rgba(10, 10, 10, 0.8);
             border: 1px solid rgba(212, 175, 55, 0.2);
@@ -105,7 +102,6 @@
             background: linear-gradient(90deg, transparent, #d4af37, transparent);
         }
         
-        /* الأزرار الذهبية */
         .btn-gold {
             display: inline-flex;
             align-items: center;
@@ -144,7 +140,6 @@
             text-decoration: none;
         }
         
-        /* القائمة السفلية */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -193,7 +188,6 @@
             transition: all 0.3s;
         }
         
-        /* شاشة الموقع */
         .location-modal {
             display: none;
             position: fixed;
@@ -290,7 +284,6 @@
             width: 100%;
         }
         
-        /* اسم المطور */
         .dev-footer {
             text-align: center;
             padding: 20px;
@@ -305,7 +298,6 @@
             -webkit-text-fill-color: transparent;
         }
         
-        /* رسائل الفلاش */
         .flash-messages {
             position: fixed;
             top: 70px;
@@ -425,15 +417,13 @@
     </nav>
     {% endif %}
     
-    <!-- شاشة الموقع -->
     <div class="location-modal" id="locationModal">
         <div class="location-content">
             <div class="location-icon">📍</div>
             <div class="location-title">محل الراشد للجوالات</div>
             <div class="location-text">
                 موقعنا:<br>
-                المهرة - الغيضة - الهنجر<br>
-                سوق بن خودم
+                {{ shop_location or 'المهرة - الغيضة - الهنجر - سوق بن خودم' }}
             </div>
             <div class="location-badge">خيارك الأفضل ✅</div>
             <button class="location-close" onclick="hideLocation()">إغلاق</button>
@@ -454,12 +444,10 @@
             document.getElementById('locationModal').classList.remove('active');
         }
         
-        // إغلاق المودال بالضغط خارج المحتوى
         document.getElementById('locationModal').addEventListener('click', function(e) {
             if (e.target === this) hideLocation();
         });
         
-        // إخفاء رسائل الفلاش بعد 3 ثواني
         setTimeout(() => {
             document.querySelectorAll('.flash-message').forEach(el => {
                 el.style.opacity = '0';
