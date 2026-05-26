@@ -5,23 +5,12 @@ import random
 import string
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, g, session
-from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = 'areen_secret_key_2026'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
-
-# Jinja2 filter for JSON parsing
-@app.template_filter('fromjson')
-def fromjson_filter(value):
-    try:
-        return json.loads(value)
-    except:
-        return []
 
 DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'laqta.db')
 
-# ─── Helper: DB Connection ───
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
@@ -47,12 +36,17 @@ def execute_db(query, args=()):
     db.commit()
     return cur.lastrowid
 
-# ─── Initialize Tables (Keep existing data!) ───
+@app.template_filter('fromjson')
+def fromjson_filter(value):
+    try:
+        return json.loads(value)
+    except:
+        return []
+
 def init_db():
     db = get_db()
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS products (
+    tables = [
+        '''CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             category TEXT NOT NULL,
@@ -67,21 +61,15 @@ def init_db():
             seo_title TEXT,
             seo_desc TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS cart (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS cart (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             session_id TEXT NOT NULL,
             product_id INTEGER NOT NULL,
             qty INTEGER DEFAULT 1,
             added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS orders (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             customer_name TEXT NOT NULL,
             customer_phone TEXT NOT NULL,
@@ -92,11 +80,8 @@ def init_db():
             status TEXT DEFAULT 'pending',
             items TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS reviews (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS reviews (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id INTEGER NOT NULL,
             user_name TEXT,
@@ -105,11 +90,8 @@ def init_db():
             comment TEXT,
             image TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS coupons (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS coupons (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             code TEXT UNIQUE NOT NULL,
             discount_percent INTEGER DEFAULT 10,
@@ -117,16 +99,8 @@ def init_db():
             usage_limit INTEGER DEFAULT 100,
             used_count INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        INSERT OR IGNORE INTO coupons (code, discount_percent, active, usage_limit)
-        VALUES ('ARIN10', 10, 1, 100)
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS reservations (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS reservations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             product_id INTEGER,
             customer_name TEXT NOT NULL,
@@ -137,11 +111,8 @@ def init_db():
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS services (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS services (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             type TEXT NOT NULL,
             title TEXT NOT NULL,
@@ -149,31 +120,29 @@ def init_db():
             price TEXT,
             active INTEGER DEFAULT 1,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS users (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT,
             phone TEXT UNIQUE,
             banned INTEGER DEFAULT 0,
             coins INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    db.execute('''
-        CREATE TABLE IF NOT EXISTS notifications (
+        )''',
+        '''CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_phone TEXT,
             message TEXT NOT NULL,
             type TEXT DEFAULT 'info',
             is_read INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+        )'''
+    ]
+    for table in tables:
+        db.execute(table)
     
+    # Default coupon
+    db.execute("INSERT OR IGNORE INTO coupons (code, discount_percent, active, usage_limit) VALUES ('ARIN10', 10, 1, 100)")
     db.commit()
 
 @app.before_request
@@ -182,23 +151,15 @@ def before_request():
     if 'cart_id' not in session:
         session['cart_id'] = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
 
-# ─── Context Processor ───
 @app.context_processor
 def inject_globals():
     cart_count = 0
     if 'cart_id' in session:
-        row = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", 
-                       [session['cart_id']], one=True)
+        row = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", [session['cart_id']], one=True)
         cart_count = row['c'] if row else 0
-    return {
-        'now': datetime.now(),
-        'admin_password': '78323',
-        'cart_count': cart_count
-    }
+    return {'now': datetime.now(), 'admin_password': '78323', 'cart_count': cart_count}
 
-# ═══════════════════════════════════════════════════════
-# PUBLIC ROUTES
-# ═══════════════════════════════════════════════════════
+# ========== PUBLIC ROUTES ==========
 
 @app.route('/')
 def index():
@@ -219,8 +180,7 @@ def products():
         args.append(f'%{search}%')
     query += " ORDER BY created_at DESC"
     products_list = query_db(query, args)
-    return render_template('products.html', products=products_list, 
-                           category=category, search=search)
+    return render_template('products.html', products=products_list, category=category, search=search)
 
 @app.route('/product/<int:pid>')
 def product_detail(pid):
@@ -240,40 +200,46 @@ def cart():
         FROM cart c JOIN products p ON c.product_id = p.id
         WHERE c.session_id = ?
     ''', [session.get('cart_id', '')])
-    
     total = sum(item['price'] * item['qty'] for item in cart_items)
     coupon_discount = session.get('coupon_discount', 0)
     final_total = total * (1 - coupon_discount/100)
-    
-    return render_template('cart.html', items=cart_items, total=total, 
-                           discount=coupon_discount, final_total=final_total)
+    return render_template('cart.html', items=cart_items, total=total, discount=coupon_discount, final_total=final_total)
+
+@app.route('/maintenance')
+def maintenance():
+    services = query_db("SELECT * FROM services WHERE type='maintenance' AND active=1")
+    return render_template('maintenance.html', services=services)
+
+@app.route('/programming')
+def programming():
+    services = query_db("SELECT * FROM services WHERE type='programming' AND active=1")
+    return render_template('programming.html', services=services)
+
+@app.route('/location')
+def location():
+    return render_template('location.html')
+
+# ========== API ROUTES ==========
 
 @app.route('/api/cart/add', methods=['POST'])
 def api_cart_add():
     data = request.get_json()
     product_id = data.get('product_id')
     qty = int(data.get('qty', 1))
-    
     product = query_db("SELECT * FROM products WHERE id=? AND status='available'", [product_id], one=True)
     if not product:
         return jsonify({'success': False, 'message': 'المنتج غير متوفر'})
-    
     if product['quantity'] < qty:
         return jsonify({'success': False, 'message': 'الكمية غير كافية'})
-    
-    existing = query_db("SELECT * FROM cart WHERE session_id=? AND product_id=?", 
-                        [session['cart_id'], product_id], one=True)
+    existing = query_db("SELECT * FROM cart WHERE session_id=? AND product_id=?", [session['cart_id'], product_id], one=True)
     if existing:
         new_qty = existing['qty'] + qty
         if new_qty > product['quantity']:
             return jsonify({'success': False, 'message': 'الكمية المطلوبة غير متوفرة'})
         execute_db("UPDATE cart SET qty=? WHERE id=?", [new_qty, existing['id']])
     else:
-        execute_db("INSERT INTO cart (session_id, product_id, qty) VALUES (?,?,?)",
-                   [session['cart_id'], product_id, qty])
-    
-    row = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", 
-                   [session['cart_id']], one=True)
+        execute_db("INSERT INTO cart (session_id, product_id, qty) VALUES (?,?,?)", [session['cart_id'], product_id, qty])
+    row = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", [session['cart_id']], one=True)
     return jsonify({'success': True, 'cart_count': row['c'] if row else 0, 'message': 'تمت الإضافة للعربة ✅'})
 
 @app.route('/api/cart/update', methods=['POST'])
@@ -297,19 +263,15 @@ def api_cart_remove():
 def api_coupon_apply():
     code = request.get_json().get('code', '').upper().strip()
     coupon = query_db("SELECT * FROM coupons WHERE code=? AND active=1", [code], one=True)
-    
     if not coupon:
         session.pop('coupon_discount', None)
         session.pop('coupon_code', None)
         return jsonify({'success': False, 'message': 'كود الخصم غير صحيح'})
-    
     if coupon['used_count'] >= coupon['usage_limit']:
         return jsonify({'success': False, 'message': 'انتهت صلاحية الكود'})
-    
     session['coupon_discount'] = coupon['discount_percent']
     session['coupon_code'] = code
-    return jsonify({'success': True, 'discount': coupon['discount_percent'], 
-                    'message': f'تم تطبيق خصم {coupon["discount_percent"]}% ✅'})
+    return jsonify({'success': True, 'discount': coupon['discount_percent'], 'message': f'تم تطبيق خصم {coupon["discount_percent"]}% ✅'})
 
 @app.route('/api/order/checkout', methods=['POST'])
 def api_order_checkout():
@@ -317,75 +279,43 @@ def api_order_checkout():
     name = data.get('name', '').strip()
     phone = data.get('phone', '').strip()
     payment = data.get('payment', 'cod')
-    
     if not name or not phone:
         return jsonify({'success': False, 'message': 'الرجاء إدخال الاسم والرقم'})
-    
-    cart_items = query_db('''
-        SELECT c.*, p.name, p.price, p.currency
-        FROM cart c JOIN products p ON c.product_id = p.id
-        WHERE c.session_id = ?
-    ''', [session.get('cart_id', '')])
-    
+    cart_items = query_db('''SELECT c.*, p.name, p.price, p.currency FROM cart c JOIN products p ON c.product_id = p.id WHERE c.session_id = ?''', [session.get('cart_id', '')])
     if not cart_items:
         return jsonify({'success': False, 'message': 'العربة فارغة'})
-    
     total = sum(item['price'] * item['qty'] for item in cart_items)
     discount = session.get('coupon_discount', 0)
     final_total = total * (1 - discount/100)
-    
-    items_json = json.dumps([{
-        'id': i['product_id'], 'name': i['name'], 
-        'price': i['price'], 'qty': i['qty'], 'currency': i['currency']
-    } for i in cart_items])
-    
-    order_id = execute_db('''
-        INSERT INTO orders (customer_name, customer_phone, total, discount, coupon_code, payment_method, items)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', [name, phone, final_total, discount, session.get('coupon_code'), payment, items_json])
-    
+    items_json = json.dumps([{'id': i['product_id'], 'name': i['name'], 'price': i['price'], 'qty': i['qty'], 'currency': i['currency']} for i in cart_items])
+    order_id = execute_db('''INSERT INTO orders (customer_name, customer_phone, total, discount, coupon_code, payment_method, items) VALUES (?, ?, ?, ?, ?, ?, ?)''', [name, phone, final_total, discount, session.get('coupon_code'), payment, items_json])
     if session.get('coupon_code'):
-        execute_db("UPDATE coupons SET used_count=used_count+1 WHERE code=?", 
-                   [session['coupon_code']])
-    
-    lines = [f"🛒 طلب جديد من تطبيق AREEN", f"", f"👤 العميل: {name}", f"📱 الرقم: {phone}", f""]
+        execute_db("UPDATE coupons SET used_count=used_count+1 WHERE code=?", [session['coupon_code']])
+    lines = [f"🛒 طلب جديد من تطبيق AREEN", "", f"👤 العميل: {name}", f"📱 الرقم: {phone}", ""]
     for i, item in enumerate(cart_items, 1):
         lines.append(f"{i}. {item['name']} x{item['qty']} = {item['price']*item['qty']} {item['currency']}")
-    lines.append(f"")
+    lines.append("")
     lines.append(f"💰 المجموع: {total}")
     if discount > 0:
         lines.append(f"🎟️ خصم: {discount}%")
     lines.append(f"💵 النهائي: {round(final_total, 2)}")
     lines.append(f"💳 الدفع: {'عند الاستلام' if payment=='cod' else 'تحويل بنكي' if payment=='bank' else 'إلكتروني'}")
-    lines.append(f"")
-    lines.append(f"يرجى التواصل للتأكيد.")
-    
+    lines.append("")
+    lines.append("يرجى التواصل للتأكيد.")
     msg = '%0A'.join(lines)
     whatsapp_url = f"https://wa.me/967773852062?text={msg}"
-    
     execute_db("DELETE FROM cart WHERE session_id=?", [session['cart_id']])
     session.pop('coupon_discount', None)
     session.pop('coupon_code', None)
-    
     user = query_db("SELECT * FROM users WHERE phone=?", [phone], one=True)
     if not user:
         execute_db("INSERT INTO users (name, phone) VALUES (?, ?)", [name, phone])
-    
-    return jsonify({
-        'success': True,
-        'order_id': order_id,
-        'whatsapp_url': whatsapp_url,
-        'message': 'تم إرسال الطلب! جارِ تحويلك لواتساب...'
-    })
+    return jsonify({'success': True, 'order_id': order_id, 'whatsapp_url': whatsapp_url, 'message': 'تم إرسال الطلب! جارِ تحويلك لواتساب...'})
 
 @app.route('/api/review', methods=['POST'])
 def api_review():
     data = request.get_json()
-    execute_db('''
-        INSERT INTO reviews (product_id, user_name, user_phone, rating, comment)
-        VALUES (?, ?, ?, ?, ?)
-    ''', [data.get('product_id'), data.get('name'), data.get('phone'), 
-          data.get('rating', 5), data.get('comment')])
+    execute_db('''INSERT INTO reviews (product_id, user_name, user_phone, rating, comment) VALUES (?, ?, ?, ?, ?)''', [data.get('product_id'), data.get('name'), data.get('phone'), data.get('rating', 5), data.get('comment')])
     return jsonify({'success': True, 'message': 'شكراً لتقييمك! ⭐'})
 
 @app.route('/api/share/product/<int:pid>')
@@ -393,25 +323,13 @@ def api_share_product(pid):
     product = query_db("SELECT * FROM products WHERE id=?", [pid], one=True)
     if not product:
         return jsonify({'success': False})
-    msg = f"🛍️ منتج من AREEN%n%n{product['name']}%n💰 {product['price']} {product['currency']}%n%nشوف التفاصيل:"
-    msg = msg.replace('%n', '%0A')
-    return jsonify({
-        'success': True,
-        'whatsapp_url': f"https://wa.me/?text={msg}%0A{request.host_url}product/{pid}",
-        'facebook_url': f"https://www.facebook.com/sharer/sharer.php?u={request.host_url}product/{pid}"
-    })
+    msg = f"🛍️ منتج من AREEN%0A%0A{product['name']}%0A💰 {product['price']} {product['currency']}%0A%0Aشوف التفاصيل:"
+    return jsonify({'success': True, 'whatsapp_url': f"https://wa.me/?text={msg}%0A{request.host_url}product/{pid}", 'facebook_url': f"https://www.facebook.com/sharer/sharer.php?u={request.host_url}product/{pid}"})
 
 @app.route('/api/notify-me', methods=['POST'])
 def api_notify_me():
     data = request.get_json()
-    product_id = data.get('product_id')
-    phone = data.get('phone', '').strip()
-    if not phone:
-        return jsonify({'success': False, 'message': 'الرجاء إدخال الرقم'})
-    execute_db('''
-        INSERT INTO notifications (user_phone, message, type)
-        VALUES (?, ?, 'restock')
-    ''', [phone, f"سيتم إشعارك عند توفر المنتج #{product_id}"])
+    execute_db('''INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, 'restock')''', [data.get('phone', '').strip(), f"سيتم إشعارك عند توفر المنتج #{data.get('product_id')}"])
     return jsonify({'success': True, 'message': 'سنخبرك فور توفر المنتج ✅'})
 
 @app.route('/api/service-request', methods=['POST'])
@@ -422,62 +340,32 @@ def api_service_request():
     name = data.get('name', '').strip()
     phone = data.get('phone', '').strip()
     device = data.get('device', '').strip()
-    
     if not name or not phone or not device:
         return jsonify({'success': False, 'message': 'الرجاء ملء جميع الحقول'})
-    
     service = query_db("SELECT * FROM services WHERE id=?", [service_id], one=True)
     service_title = service['title'] if service else 'خدمة غير محددة'
-    
-    execute_db('''
-        INSERT INTO reservations (customer_name, customer_phone, device_model, service_type, status, notes)
-        VALUES (?, ?, ?, ?, 'pending', ?)
-    ''', [name, phone, device, service_type, service_title])
-    
+    execute_db('''INSERT INTO reservations (customer_name, customer_phone, device_model, service_type, status, notes) VALUES (?, ?, ?, ?, 'pending', ?)''', [name, phone, device, service_type, service_title])
     user = query_db("SELECT * FROM users WHERE phone=?", [phone], one=True)
     if not user:
         execute_db("INSERT INTO users (name, phone) VALUES (?, ?)", [name, phone])
-    
-    if service_type == 'maintenance':
-        target = "967779505979"
-        engineer = "المهندس راشد اليافعي"
-    else:
-        target = "967783234925"
-        engineer = "المبرمج محمد الهاشمي"
-    
-    msg = f"طلب {service_type} من تطبيق AREEN%n%nالخدمة: {service_title}%nالجهاز: {device}%n%nالعميل: {name}%nالرقم: {phone}%n%nيرجى التواصل."
-    msg = msg.replace('%n', '%0A')
+    target = "967779505979" if service_type == 'maintenance' else "967783234925"
+    engineer = "المهندس راشد اليافعي" if service_type == 'maintenance' else "المبرمج محمد الهاشمي"
+    msg = f"طلب {service_type} من تطبيق AREEN%0A%0Aالخدمة: {service_title}%0Aالجهاز: {device}%0A%0Aالعميل: {name}%0Aالرقم: {phone}%0A%0Aيرجى التواصل."
     whatsapp_url = f"https://wa.me/{target}?text={msg}"
-    
-    return jsonify({
-        'success': True,
-        'whatsapp_url': whatsapp_url,
-        'message': f'جارِ تحويلك لواتساب {engineer}...'
-    })
+    return jsonify({'success': True, 'whatsapp_url': whatsapp_url, 'message': f'جارِ تحويلك لواتساب {engineer}...'})
 
-@app.route('/maintenance')
-def maintenance():
-    services = query_db("SELECT * FROM services WHERE type='maintenance' AND active=1")
-    return render_template('maintenance.html', services=services)
+@app.route('/api/notifications/<phone>')
+def api_notifications(phone):
+    notes = query_db("SELECT * FROM notifications WHERE user_phone=? AND is_read=0 ORDER BY created_at DESC", [phone])
+    execute_db("UPDATE notifications SET is_read=1 WHERE user_phone=?", [phone])
+    return jsonify({'notifications': [dict(n) for n in notes]})
 
-@app.route('/programming')
-def programming():
-    services = query_db("SELECT * FROM services WHERE type='programming' AND active=1")
-    return render_template('programming.html', services=services)
-
-@app.route('/location')
-def location():
-    return render_template('location.html')
-
-# ═══════════════════════════════════════════════════════
-# ADMIN ROUTES
-# ═══════════════════════════════════════════════════════
+# ========== ADMIN ROUTES ==========
 
 @app.route('/admin')
 def admin_dashboard():
     if session.get('admin') != True:
         return redirect(url_for('admin_login'))
-    
     stats = {
         'products': query_db("SELECT COUNT(*) as c FROM products WHERE status!='deleted'", one=True)['c'],
         'orders': query_db("SELECT COUNT(*) as c FROM orders WHERE status='pending'", one=True)['c'],
@@ -509,7 +397,6 @@ def admin_logout():
 def admin_products():
     if session.get('admin') != True:
         return redirect(url_for('admin_login'))
-    
     if request.method == 'POST':
         name = request.form.get('name')
         category = request.form.get('category')
@@ -522,22 +409,12 @@ def admin_products():
         image_data = request.form.get('image_data', '')
         seo_title = request.form.get('seo_title', name)
         seo_desc = request.form.get('seo_desc', description[:160] if description else name)
-        
-        execute_db('''
-            INSERT INTO products (name, category, price, old_price, description, quantity, image, currency, rare, status, seo_title, seo_desc)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'available', ?, ?)
-        ''', [name, category, price, old_price, description, quantity, image_data, currency, rare, seo_title, seo_desc])
-        
+        execute_db('''INSERT INTO products (name, category, price, old_price, description, quantity, image, currency, rare, status, seo_title, seo_desc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'available', ?, ?)''', [name, category, price, old_price, description, quantity, image_data, currency, rare, seo_title, seo_desc])
         users = query_db("SELECT phone FROM users")
         for u in users:
-            execute_db('''
-                INSERT INTO notifications (user_phone, message, type)
-                VALUES (?, ?, 'new_product')
-            ''', [u['phone'], f"🎉 منتج جديد: {name} متوفر الآن في AREEN!"])
-        
+            execute_db('''INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, 'new_product')''', [u['phone'], f"🎉 منتج جديد: {name} متوفر الآن في AREEN!"])
         flash('تم إضافة المنتج بنجاح! 🔊', 'success')
         return redirect(url_for('admin_products'))
-    
     products_list = query_db("SELECT * FROM products WHERE status!='deleted' ORDER BY created_at DESC")
     return render_template('admin/products.html', products=products_list)
 
@@ -569,13 +446,11 @@ def admin_order_action():
     if action == 'confirm':
         execute_db("UPDATE orders SET status='confirmed' WHERE id=?", [oid])
         msg = f"مبروك! ✅ تم تأكيد طلبك #{oid}. يمكنك استلامه الآن."
-        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)',
-                   [order['customer_phone'], msg, 'success'])
+        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)', [order['customer_phone'], msg, 'success'])
     elif action == 'cancel':
         execute_db("UPDATE orders SET status='cancelled' WHERE id=?", [oid])
         msg = f"نأسف 🥲 تم إلغاء طلبك #{oid}. يمكنك التواصل معنا للاستفسار."
-        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)',
-                   [order['customer_phone'], msg, 'cancel'])
+        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)', [order['customer_phone'], msg, 'cancel'])
     elif action == 'delete':
         execute_db("DELETE FROM orders WHERE id=?", [oid])
     return jsonify({'success': True})
@@ -588,8 +463,7 @@ def admin_coupons():
         code = request.form.get('code', '').upper().strip()
         discount = request.form.get('discount', 10)
         limit = request.form.get('limit', 100)
-        execute_db('INSERT OR REPLACE INTO coupons (code, discount_percent, active, usage_limit) VALUES (?, ?, 1, ?)',
-                   [code, discount, limit])
+        execute_db('INSERT OR REPLACE INTO coupons (code, discount_percent, active, usage_limit) VALUES (?, ?, 1, ?)', [code, discount, limit])
         flash('تم إضافة الكوبون', 'success')
         return redirect(url_for('admin_coupons'))
     coupons_list = query_db("SELECT * FROM coupons ORDER BY created_at DESC")
@@ -607,9 +481,7 @@ def admin_reservations():
         args.append(status_filter)
     query += " ORDER BY r.created_at DESC"
     reservations_list = query_db(query, args)
-    return render_template('admin/reservations.html', 
-                           reservations=reservations_list, 
-                           status_filter=status_filter)
+    return render_template('admin/reservations.html', reservations=reservations_list, status_filter=status_filter)
 
 @app.route('/admin/reservation/action', methods=['POST'])
 def admin_reservation_action():
@@ -626,16 +498,14 @@ def admin_reservation_action():
         if res['product_id']:
             execute_db("UPDATE products SET status='reserved', quantity=quantity-1 WHERE id=?", [res['product_id']])
         msg = "مبروك! ✅ تم تأكيد حجزك بنجاح. يمكنك التواصل معنا لاستلام طلبك."
-        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)',
-                   [res['customer_phone'], msg, 'success'])
+        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)', [res['customer_phone'], msg, 'success'])
         return jsonify({'success': True, 'message': 'تم التأكيد وإشعار العميل'})
     elif action == 'cancel':
         execute_db("UPDATE reservations SET status='cancelled', updated_at=CURRENT_TIMESTAMP WHERE id=?", [rid])
         if res['product_id']:
             execute_db("UPDATE products SET status='available' WHERE id=?", [res['product_id']])
         msg = "نأسف 🥲 تم إلغاء حجزك. يمكنك التواصل معنا للاستفسار."
-        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)',
-                   [res['customer_phone'], msg, 'cancel'])
+        execute_db('INSERT INTO notifications (user_phone, message, type) VALUES (?, ?, ?)', [res['customer_phone'], msg, 'cancel'])
         return jsonify({'success': True, 'message': 'تم الإلغاء وإشعار العميل'})
     elif action == 'delete':
         if res['product_id'] and res['status'] == 'pending':
@@ -653,8 +523,7 @@ def admin_services():
         title = request.form.get('title')
         description = request.form.get('description', '')
         price = request.form.get('price', '')
-        execute_db('INSERT INTO services (type, title, description, price, active) VALUES (?, ?, ?, ?, 1)',
-                   [stype, title, description, price])
+        execute_db('INSERT INTO services (type, title, description, price, active) VALUES (?, ?, ?, ?, 1)', [stype, title, description, price])
         flash('تم إضافة الخدمة بنجاح', 'success')
         return redirect(url_for('admin_services'))
     maintenance = query_db("SELECT * FROM services WHERE type='maintenance' ORDER BY id DESC")
@@ -704,18 +573,10 @@ def admin_user_coins():
     if session.get('admin') != True:
         return jsonify({'success': False})
     data = request.get_json()
-    uid = data.get('id')
-    coins = data.get('coins', 0)
-    execute_db("UPDATE users SET coins=? WHERE id=?", [coins, uid])
+    execute_db("UPDATE users SET coins=? WHERE id=?", [data.get('coins', 0), data.get('id')])
     return jsonify({'success': True})
 
-@app.route('/api/notifications/<phone>')
-def api_notifications(phone):
-    notes = query_db("SELECT * FROM notifications WHERE user_phone=? AND is_read=0 ORDER BY created_at DESC", [phone])
-    execute_db("UPDATE notifications SET is_read=1 WHERE user_phone=?", [phone])
-    return jsonify({'notifications': [dict(n) for n in notes]})
-
-# ─── Run ───
+# ========== RUN ==========
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
