@@ -5,7 +5,7 @@ import string
 import traceback
 from datetime import datetime, timedelta
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, g, make_response
 
 app = Flask(__name__)
 app.secret_key = 'arin_secret_key_2024'
@@ -136,6 +136,13 @@ def before_request():
     except Exception as e:
         print(f"DB Error: {e}")
 
+@app.after_request
+def add_header(response):
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '-1'
+    return response
+
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('error.html', error="خطأ في السيرفر", shop_location=SHOP_LOCATION), 500
@@ -149,7 +156,8 @@ def index():
     try:
         db = get_db()
         products = db.execute('SELECT * FROM products WHERE status = "available" ORDER BY created_at DESC LIMIT 6').fetchall()
-        return render_template('index.html', products=products, app_name=APP_NAME, shop_location=SHOP_LOCATION)
+        resp = make_response(render_template('index.html', products=products, app_name=APP_NAME, shop_location=SHOP_LOCATION))
+        return resp
     except Exception as e:
         print(f"Index Error: {e}")
         return render_template('index.html', products=[], app_name=APP_NAME, shop_location=SHOP_LOCATION)
@@ -166,15 +174,12 @@ def login():
             db = get_db()
             user = db.execute('SELECT * FROM users WHERE phone = ?', (clean_phone,)).fetchone()
             
-            # ✅ إذا رقم أدمن - تحقق من باسورد الأدمن فقط
             if clean_phone in ADMIN_PHONES:
                 if admin_pass != ADMIN_PASSWORD:
                     flash('باسورد الأدمن غير صحيح', 'error')
                     return redirect(url_for('login'))
                 
-                # الأدمن موجود في قاعدة البيانات؟
                 if not user:
-                    # إنشاء حساب أدمن تلقائياً إذا مو موجود
                     referral_code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
                     db.execute('''INSERT INTO users (name, phone, password, points, is_admin, referral_code)
                                  VALUES (?, ?, ?, ?, ?, ?)''',
@@ -190,7 +195,6 @@ def login():
                 flash('تم تسجيل الدخول كأدمن', 'success')
                 return redirect(url_for('admin_dashboard'))
             
-            # ✅ إذا مو أدمن - تحقق من الباسورد العادي
             if not user:
                 flash('رقم الهاتف غير مسجل', 'error')
                 return redirect(url_for('login'))
@@ -213,7 +217,8 @@ def login():
             flash('حدث خطأ، حاول مرة أخرى', 'error')
             return redirect(url_for('login'))
     
-    return render_template('login.html', shop_location=SHOP_LOCATION)
+    resp = make_response(render_template('login.html', shop_location=SHOP_LOCATION))
+    return resp
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -294,7 +299,6 @@ def verify_otp():
                 flash('رمز التحقق غير صحيح', 'error')
                 return redirect(url_for('verify_otp'))
             
-            # ✅ إصلاح مقارنة التاريخ
             expires_at = otp_record['expires_at']
             if isinstance(expires_at, str):
                 try:
@@ -521,7 +525,6 @@ def whatsapp_redirect():
     url = f"https://wa.me/967{phone}?text={message.replace(' ', '%20').replace(chr(10), '%0A')}"
     return redirect(url)
 
-# Admin Routes
 @app.route('/admin')
 @admin_required
 def admin_dashboard():

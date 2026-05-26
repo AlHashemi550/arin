@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>تسجيل الدخول - أرين</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -90,23 +93,12 @@
             color: #555;
         }
         
-        .admin-section {
-            background: rgba(212, 175, 55, 0.05);
-            border: 1px solid rgba(212, 175, 55, 0.2);
+        .admin-box {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.25);
             border-radius: 16px;
             padding: 15px;
             margin-bottom: 20px;
-            display: none;
-        }
-        
-        .admin-section.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
         }
         
         .admin-badge {
@@ -118,7 +110,7 @@
             border: 1px solid rgba(212, 175, 55, 0.3);
             border-radius: 50px;
             color: #d4af37;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             margin-bottom: 12px;
         }
@@ -189,27 +181,26 @@
         <div class="title">تسجيل الدخول</div>
         <div class="subtitle">أهلاً بك في أرين</div>
         
-        <form action="{{ url_for('login') }}" method="post" id="loginForm">
+        <form action="{{ url_for('login') }}" method="post">
             <div class="form-group">
                 <label>رقم الجوال</label>
-                <input type="tel" name="phone" id="phoneInput" required placeholder="مثال: 783234925" maxlength="15">
+                <input type="tel" name="phone" required placeholder="مثال: 783234925" maxlength="15">
             </div>
             
             <div class="form-group">
                 <label>كلمة المرور</label>
-                <input type="password" name="password" placeholder="••••••" id="passwordInput">
+                <input type="password" name="password" placeholder="للعملاء المسجلين">
             </div>
             
-            <!-- حقل باسورد الأدمن (يظهر تلقائياً لأرقام الأدمن) -->
-            <div class="admin-section" id="adminSection">
-                <div class="admin-badge">⚡ دخول أدمن</div>
+            <div class="admin-box">
+                <div class="admin-badge">⚡ للأدمن فقط</div>
                 <div class="form-group" style="margin-bottom: 0;">
                     <label style="color: #d4af37;">باسورد الأدمن</label>
-                    <input type="password" name="admin_password" id="adminPassword" placeholder="باسورد خاص بالأدمن">
+                    <input type="password" name="admin_password" placeholder="باسورد خاص بالأدمن">
                 </div>
             </div>
             
-            <button type="submit" class="btn-submit">تسجيل الدخول</button>
+            <button type="submit" class="btn-submit">دخول</button>
         </form>
         
         <a href="{{ url_for('register') }}" class="register-link">
@@ -217,53 +208,9 @@
         </a>
         
         <div class="hint">
-            الأرقام المسجلة كأدمن تتطلب باسورد إضافي
+            الأدمن: اكتب رقمك + باسورد الأدمن فقط<br>
+            العميل: اكتب رقمك + كلمة المرور
         </div>
     </div>
-    
-    <script>
-        const phoneInput = document.getElementById('phoneInput');
-        const adminSection = document.getElementById('adminSection');
-        const adminPassword = document.getElementById('adminPassword');
-        const passwordInput = document.getElementById('passwordInput');
-        
-        // أرقام الأدمن
-        const adminPhones = ['783234925', '779505979', '773852062'];
-        
-        phoneInput.addEventListener('input', function() {
-            let val = this.value.replace(/[^0-9]/g, '').replace(/^967/, '').replace(/^\+967/, '').replace(/^0/, '');
-            
-            if (adminPhones.includes(val)) {
-                adminSection.classList.add('active');
-                passwordInput.removeAttribute('required');
-                adminPassword.setAttribute('required', 'required');
-            } else {
-                adminSection.classList.remove('active');
-                passwordInput.setAttribute('required', 'required');
-                adminPassword.removeAttribute('required');
-            }
-        });
-        
-        // تحقق قبل الإرسال
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            let val = phoneInput.value.replace(/[^0-9]/g, '').replace(/^967/, '').replace(/^\+967/, '').replace(/^0/, '');
-            
-            if (adminPhones.includes(val)) {
-                if (!adminPassword.value) {
-                    e.preventDefault();
-                    alert('أدخل باسورد الأدمن');
-                    adminPassword.focus();
-                    return;
-                }
-            } else {
-                if (!passwordInput.value) {
-                    e.preventDefault();
-                    alert('أدخل كلمة المرور');
-                    passwordInput.focus();
-                    return;
-                }
-            }
-        });
-    </script>
 </body>
 </html>
