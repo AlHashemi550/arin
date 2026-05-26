@@ -138,11 +138,11 @@ def before_request():
 
 @app.errorhandler(500)
 def internal_error(error):
-    return render_template('error.html', error="خطأ في السيرفر"), 500
+    return render_template('error.html', error="خطأ في السيرفر", shop_location=SHOP_LOCATION), 500
 
 @app.errorhandler(404)
 def not_found(error):
-    return render_template('error.html', error="الصفحة غير موجودة"), 404
+    return render_template('error.html', error="الصفحة غير موجودة", shop_location=SHOP_LOCATION), 404
 
 @app.route('/')
 def index():
@@ -193,7 +193,7 @@ def login():
             flash('حدث خطأ، حاول مرة أخرى', 'error')
             return redirect(url_for('login'))
     
-    return render_template('login.html')
+    return render_template('login.html', shop_location=SHOP_LOCATION)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -221,14 +221,38 @@ def register():
             db.commit()
             
             session['reg_phone'] = clean_phone
-            flash(f'رمز التحقق: {otp}', 'info')
-            return redirect(url_for('verify_otp'))
+            return redirect(url_for('otp_sent'))
         except Exception as e:
             print(f"Register Error: {e}")
             flash('حدث خطأ في التسجيل', 'error')
             return redirect(url_for('register'))
     
-    return render_template('register.html')
+    return render_template('register.html', shop_location=SHOP_LOCATION)
+
+@app.route('/otp_sent')
+def otp_sent():
+    if 'reg_phone' not in session:
+        return redirect(url_for('register'))
+    
+    try:
+        db = get_db()
+        otp_record = db.execute('SELECT * FROM otp_codes WHERE phone = ?', 
+                               (session['reg_phone'],)).fetchone()
+        if not otp_record:
+            flash('انتهت صلاحية الكود', 'error')
+            return redirect(url_for('register'))
+        
+        otp = otp_record['code']
+        phone = session['reg_phone']
+        message = f"كود التحقق من أرين: {otp}\nلا تشاركه مع أحد."
+        whatsapp_url = f"https://wa.me/967{phone}?text={message.replace(' ', '%20').replace(chr(10), '%0A')}"
+        
+        return render_template('otp_sent.html', otp=otp, phone=phone, 
+                               whatsapp_url=whatsapp_url, shop_location=SHOP_LOCATION)
+    except Exception as e:
+        print(f"OTP Sent Error: {e}")
+        flash('حدث خطأ', 'error')
+        return redirect(url_for('register'))
 
 @app.route('/verify_otp', methods=['GET', 'POST'])
 def verify_otp():
@@ -287,7 +311,7 @@ def verify_otp():
             flash('حدث خطأ أثناء التسجيل النهائي', 'error')
             return redirect(url_for('register'))
     
-    return render_template('verify_otp.html')
+    return render_template('verify_otp.html', shop_location=SHOP_LOCATION)
 
 @app.route('/logout')
 def logout():

@@ -2,54 +2,77 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كود التحقق - {{ app_name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تحقق OTP - أرين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; color: #fff; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 360px; }
+        .title { font-size: 24px; font-weight: 900; color: #d4af37; text-align: center; margin-bottom: 10px; }
+        .subtitle { color: #888; text-align: center; margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: #aaa; font-size: 13px; margin-bottom: 8px; }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0a0a0a;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            text-align: center;
+        }
+        .form-group input:focus { border-color: #d4af37; }
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #d4af37, #aa8c2c);
+            border: none;
+            border-radius: 50px;
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .back-link {
+            display: block;
+            text-align: center;
+            color: #666;
+            text-decoration: none;
+            margin-top: 20px;
+            font-size: 13px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <a href="{{ url_for('register') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
-            <h1><i class="fas fa-shield-alt"></i> كود التحقق</h1>
-        </div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
-        <div class="form-container">
-            <p style="color: var(--text-muted); margin-bottom: 20px; text-align: center;">تم إرسال كود التحقق لواتساب <strong style="color: var(--gold);">{{ phone }}</strong></p>
-            <a href="{{ wa_url }}" target="_blank" class="btn btn-success" style="margin-bottom: 20px;"><i class="fab fa-whatsapp"></i> فتح واتساب</a>
-            <form method="POST">
-                <input type="hidden" name="step" value="2">
-                <input type="hidden" name="phone" value="{{ phone }}">
-                <div class="form-group">
-                    <label><i class="fas fa-key"></i> كود التحقق</label>
-                    <input type="text" name="otp" placeholder="أدخل الكود" required maxlength="4">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> الاسم الكامل</label>
-                    <input type="text" name="name" placeholder="اسمك" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> كلمة المرور</label>
-                    <input type="password" name="password" placeholder="كلمة مرور قوية" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-gift"></i> كود الإحالة (اختياري)</label>
-                    <input type="text" name="referral_code" placeholder="كود صديقك">
-                </div>
-                <button type="submit" class="btn btn-gold"><i class="fas fa-check"></i> تأكيد التسجيل</button>
-            </form>
-        </div>
-        <div class="footer">
-            <p class="dev-name">الهاشمي محمد</p>
-        </div>
+        <div class="title">🔐 تحقق من الكود</div>
+        <div class="subtitle">أدخل الكود الذي وصلك عبر واتساب</div>
+        
+        <form action="{{ url_for('verify_otp') }}" method="post">
+            <div class="form-group">
+                <label>كود التحقق (4 أرقام)</label>
+                <input type="text" name="code" maxlength="4" pattern="[0-9]{4}" required placeholder="••••">
+            </div>
+            <div class="form-group">
+                <label>الاسم الكامل</label>
+                <input type="text" name="name" required placeholder="محمد أحمد">
+            </div>
+            <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" name="password" required placeholder="••••••">
+            </div>
+            <div class="form-group">
+                <label>كود الإحالة (اختياري)</label>
+                <input type="text" name="referral" placeholder="XXXXXX">
+            </div>
+            <button type="submit" class="btn-submit">تأكيد التسجيل</button>
+        </form>
+        
+        <a href="{{ url_for('register') }}" class="back-link">← الرجوع لإعادة إرسال الكود</a>
     </div>
 </body>
 </html>

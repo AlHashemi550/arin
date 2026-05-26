@@ -201,7 +201,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.85);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -213,43 +213,81 @@
         }
         
         .location-content {
-            background: #0a0a0a;
-            border: 1px solid rgba(212, 175, 55, 0.3);
+            background: linear-gradient(135deg, #0a0a0a, #111);
+            border: 1px solid rgba(212, 175, 55, 0.4);
             border-radius: 24px;
-            padding: 30px;
+            padding: 40px 30px;
             width: 100%;
-            max-width: 350px;
+            max-width: 320px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: modalIn 0.3s ease;
+        }
+        
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        
+        .location-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, #f4d03f, transparent);
         }
         
         .location-icon {
-            font-size: 48px;
+            font-size: 50px;
             margin-bottom: 15px;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
         
         .location-title {
             font-size: 22px;
+            font-weight: 800;
             color: #d4af37;
-            margin-bottom: 10px;
-            font-weight: 700;
+            margin-bottom: 12px;
         }
         
         .location-text {
-            color: #aaa;
-            font-size: 16px;
+            color: #ccc;
+            font-size: 15px;
             line-height: 1.8;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .location-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 15px;
         }
         
         .location-close {
-            padding: 12px 30px;
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            color: #d4af37;
+            margin-top: 25px;
+            padding: 12px 35px;
+            background: linear-gradient(135deg, #d4af37, #aa8c2c);
+            border: none;
             border-radius: 50px;
-            cursor: pointer;
+            color: #000;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
         }
         
         /* اسم المطور */
@@ -342,9 +380,9 @@
             <span class="header-title">{% block header_title %}أرين{% endblock %}</span>
         </div>
         <div class="header-actions">
-            <a href="#" class="header-icon" onclick="showLocation(); return false;">📍</a>
+            <a href="#" class="header-icon" onclick="showLocation(); return false;" title="موقع المحل">📍</a>
             {% if session.get('is_admin') %}
-            <a href="{{ url_for('admin_dashboard') }}" class="header-icon">⚡</a>
+            <a href="{{ url_for('admin_dashboard') }}" class="header-icon" title="لوحة التحكم">⚡</a>
             {% endif %}
         </div>
     </header>
@@ -354,7 +392,7 @@
         {% block content %}{% endblock %}
     </main>
     
-    {% if request.endpoint not in ['index', 'login', 'register', 'verify_otp'] %}
+    {% if request.endpoint not in ['index', 'login', 'register', 'verify_otp', 'otp_sent'] %}
     <nav class="bottom-nav">
         <div class="nav-container">
             <a href="{{ url_for('products') }}" class="nav-item {% if request.endpoint == 'products' %}active{% endif %}">
@@ -391,8 +429,13 @@
     <div class="location-modal" id="locationModal">
         <div class="location-content">
             <div class="location-icon">📍</div>
-            <div class="location-title">موقع المحل</div>
-            <div class="location-text">{{ shop_location }}</div>
+            <div class="location-title">محل الراشد للجوالات</div>
+            <div class="location-text">
+                موقعنا:<br>
+                المهرة - الغيضة - الهنجر<br>
+                سوق بن خودم
+            </div>
+            <div class="location-badge">خيارك الأفضل ✅</div>
             <button class="location-close" onclick="hideLocation()">إغلاق</button>
         </div>
     </div>
@@ -410,6 +453,11 @@
         function hideLocation() {
             document.getElementById('locationModal').classList.remove('active');
         }
+        
+        // إغلاق المودال بالضغط خارج المحتوى
+        document.getElementById('locationModal').addEventListener('click', function(e) {
+            if (e.target === this) hideLocation();
+        });
         
         // إخفاء رسائل الفلاش بعد 3 ثواني
         setTimeout(() => {
