@@ -107,13 +107,42 @@ def admin_required(f):
     return decorated_function
 
 def check_blocked(phone):
-    """التحقق إذا العميل محظور"""
     db = get_db()
     blocked = db.execute("SELECT * FROM blocked_customers WHERE phone = ?", (phone,)).fetchone()
     return blocked
 
-def generate_code(length=4):
-    return ''.join(random.choices(string.digits, k=length))
+def get_image_url(image_path):
+    """إرجاع مسار الصورة الصحيح"""
+    if not image_path or image_path == 'default.jpg' or image_path == '':
+        return url_for('static', filename='uploads/default.jpg')
+    
+    # إذا كان المسار يبدأ بـ uploads/
+    if image_path.startswith('uploads/'):
+        return url_for('static', filename=image_path)
+    
+    # إذا كان المسار يبدأ بـ static/
+    if image_path.startswith('static/'):
+        return '/' + image_path
+    
+    # إذا كان اسم الملف فقط
+    if '/' not in image_path:
+        return url_for('static', filename='uploads/' + image_path)
+    
+    return url_for('static', filename=image_path)
+
+def save_image(file):
+    """حفظ الصورة وإرجاع المسار"""
+    if not file or not file.filename:
+        return 'default.jpg'
+    
+    ext = secure_filename(file.filename).rsplit('.', 1)[1].lower() if '.' in file.filename else 'jpg'
+    if ext not in {'png', 'jpg', 'jpeg', 'gif', 'webp'}:
+        return 'default.jpg'
+    
+    filename = f"prod_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}.{ext}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    return f"uploads/{filename}"
 
 # ==================== PUBLIC ROUTES ====================
 
@@ -159,7 +188,8 @@ def products():
                          current_currency=currency_filter,
                          search=search,
                          is_admin=session.get('is_admin'),
-                         shop_name=SHOP_NAME)
+                         shop_name=SHOP_NAME,
+                         get_image_url=get_image_url)
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
@@ -178,7 +208,8 @@ def product_detail(product_id):
                          product=product, 
                          related=related,
                          is_admin=session.get('is_admin'),
-                         reservation_phone=RESERVATION_PHONE)
+                         reservation_phone=RESERVATION_PHONE,
+                         get_image_url=get_image_url)
 
 @app.route('/reserve', methods=['POST'])
 def reserve():
@@ -187,7 +218,6 @@ def reserve():
     customer_name = request.form.get('customer_name', '').strip()
     phone = request.form.get('phone', '').strip()
     
-    # التحقق من الحظر
     blocked = check_blocked(phone)
     if blocked:
         flash(f'⛔ عذراً، هذا الرقم محظور. السبب: {blocked["reason"]}', 'error')
@@ -299,7 +329,8 @@ def admin_products():
     products = db.execute("SELECT * FROM products ORDER BY created_at DESC").fetchall()
     return render_template('admin/products.html', 
                          products=products,
-                         shop_name=SHOP_NAME)
+                         shop_name=SHOP_NAME,
+                         get_image_url=get_image_url)
 
 @app.route('/admin/product/add', methods=['POST'])
 @admin_required
@@ -315,16 +346,12 @@ def add_product():
     currency = request.form.get('currency', 'ر.ي')
     is_rare = 1 if request.form.get('is_rare') else 0
     
+    # حفظ الصورة
     image = 'default.jpg'
     if 'image' in request.files:
-        file = request.files['image']
-        if file and file.filename:
-            ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-            if ext in {'png', 'jpg', 'jpeg', 'gif', 'webp'}:
-                filename = f"prod_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}.{ext}"
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(filepath)
-                image = f"uploads/{filename}"
+        image = save_image(request.files['image'])
+    elif 'image_camera' in request.files:
+        image = save_image(request.files['image_camera'])
     
     db.execute('''
         INSERT INTO products (name, price, original_price, image, description, category, stock, currency, is_rare)
@@ -349,19 +376,14 @@ def edit_product(product_id):
     currency = request.form.get('currency', 'ر.ي')
     is_rare = 1 if request.form.get('is_rare') else 0
     
+    # تحديث الصورة إذا تم رفعها
     image_update = ""
     params = [name, price, original_price, description, category, stock, currency, is_rare]
     
-    if 'image' in request.files:
-        file = request.files['image']
-        if file and file.filename:
-            ext = secure_filename(file.filename).rsplit('.', 1)[1].lower()
-            if ext in {'png', 'jpg', 'jpeg', 'gif', 'webp'}:
-                filename = f"prod_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}.{ext}"
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(filepath)
-                image_update = ", image = ?"
-                params.insert(3, f"uploads/{filename}")
+    if 'image' in request.files and request.files['image'].filename:
+        new_image = save_image(request.files['image'])
+        image_update = ", image = ?"
+        params.insert(3, new_image)
     
     params.append(product_id)
     
@@ -417,7 +439,8 @@ def admin_reservations():
                          reservations=reservations,
                          stats=stats,
                          current_status=status_filter,
-                         shop_name=SHOP_NAME)
+                         shop_name=SHOP_NAME,
+                         get_image_url=get_image_url)
 
 @app.route('/admin/reservation/confirm/<int:res_id>')
 @admin_required

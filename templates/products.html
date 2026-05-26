@@ -90,6 +90,7 @@
         background: #0a0a0a;
         color: rgba(255,255,255,0.6);
         white-space: nowrap;
+        text-decoration: none;
     }
     
     .chip.active, .chip:hover {
@@ -141,7 +142,7 @@
     .product-image-wrap {
         position: relative;
         width: 100%;
-        padding-top: 100%; /* 1:1 aspect ratio */
+        padding-top: 100%;
         overflow: hidden;
         background: #111;
     }
@@ -158,6 +159,30 @@
     
     .product-card:hover .product-image-wrap img {
         transform: scale(1.05);
+    }
+    
+    /* Image placeholder when no image */
+    .no-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #0a0a0a;
+        color: rgba(255,255,255,0.2);
+    }
+    
+    .no-image-icon {
+        font-size: 40px;
+        margin-bottom: 8px;
+    }
+    
+    .no-image-text {
+        font-size: 12px;
     }
     
     /* Badges */
@@ -349,29 +374,15 @@
         border-radius: 8px;
     }
     
-    /* Currency Filter */
-    .currency-filter {
-        display: flex;
-        gap: 6px;
-        margin-top: 8px;
+    /* Stock indicator */
+    .stock-indicator {
+        font-size: 10px;
+        color: rgba(255,255,255,0.4);
+        margin-top: 4px;
     }
     
-    .currency-chip {
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 11px;
-        font-weight: 600;
-        cursor: pointer;
-        border: 1px solid rgba(255,255,255,0.1);
-        background: transparent;
-        color: rgba(255,255,255,0.5);
-    }
-    
-    .currency-chip.active {
-        background: rgba(212, 175, 55, 0.2);
-        color: #d4af37;
-        border-color: #d4af37;
-    }
+    .stock-low { color: #ff8800; }
+    .stock-out { color: #ff4444; }
     
     /* Delete button for admin */
     .btn-delete {
@@ -391,16 +402,6 @@
         align-items: center;
         justify-content: center;
     }
-    
-    /* Stock indicator */
-    .stock-indicator {
-        font-size: 10px;
-        color: rgba(255,255,255,0.4);
-        margin-top: 4px;
-    }
-    
-    .stock-low { color: #ff8800; }
-    .stock-out { color: #ff4444; }
 </style>
 {% endblock %}
 
@@ -457,8 +458,17 @@
             {% endif %}
             
             <div class="product-image-wrap">
-                <img src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='uploads/default.jpg') }}" 
-                     alt="{{ product.name }}" loading="lazy">
+                {% set img_url = get_image_url(product.image) %}
+                <img src="{{ img_url }}" 
+                     alt="{{ product.name }}" 
+                     loading="lazy"
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                
+                <div class="no-image" style="display: none;">
+                    <div class="no-image-icon">📷</div>
+                    <div class="no-image-text">لا توجد صورة</div>
+                </div>
+                
                 {% if product.stock <= 0 %}
                 <div class="badge-out">❌ نفذت الكمية</div>
                 {% endif %}
