@@ -57,6 +57,7 @@ def init_db():
                 product_id INTEGER,
                 customer_name TEXT,
                 phone TEXT,
+                service_type TEXT DEFAULT 'product',
                 status TEXT DEFAULT "pending",
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -75,9 +76,19 @@ def init_db():
         c.execute('''
             CREATE TABLE IF NOT EXISTS notifications (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone TEXT,
                 title TEXT,
                 message TEXT,
                 is_read INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS customers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                phone TEXT UNIQUE,
+                name TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
@@ -147,6 +158,25 @@ def get_products(category=None, search=None):
 def is_admin():
     return session.get('admin_unlocked') == True
 
+def save_customer(phone, name=''):
+    db = get_db()
+    c = db.cursor()
+    try:
+        c.execute("INSERT OR IGNORE INTO customers (phone, name) VALUES (?, ?)", (phone, name))
+        db.commit()
+    except:
+        pass
+
+def notify_all_customers(title, message):
+    db = get_db()
+    c = db.cursor()
+    c.execute("SELECT DISTINCT phone FROM customers")
+    customers = c.fetchall()
+    for customer in customers:
+        c.execute("INSERT INTO notifications (phone, title, message) VALUES (?, ?, ?)",
+                 (customer['phone'], title, message))
+    db.commit()
+
 # ========== المسارات ==========
 @app.route('/')
 def index():
@@ -175,7 +205,6 @@ def maintenance():
 def programming():
     return render_template('programming.html', phone=PROGRAMMING_PHONE)
 
-# ========== صفحة الموقع ==========
 @app.route('/location')
 def location():
     return """
@@ -300,6 +329,7 @@ def location():
 def notify_me():
     product_name = request.form.get('product_name')
     phone = request.form.get('phone', '')
+    save_customer(phone)
     db = get_db()
     c = db.cursor()
     c.execute("INSERT INTO alerts (product_name, phone) VALUES (?, ?)", (product_name, phone))
@@ -328,8 +358,13 @@ def admin_dashboard():
     total_products = c.fetchone()['total']
     c.execute("SELECT COUNT(*) as total FROM reservations WHERE status = 'pending'")
     pending_reservations = c.fetchone()['total']
+    c.execute("SELECT COUNT(*) as total FROM reservations WHERE status = 'confirmed'")
+    confirmed_reservations = c.fetchone()['total']
     try:
-        return render_template('admin/dashboard.html', total_products=total_products, pending_reservations=pending_reservations)
+        return render_template('admin/dashboard.html', 
+                             total_products=total_products, 
+                             pending_reservations=pending_reservations,
+                             confirmed_reservations=confirmed_reservations)
     except:
         return f"""
         <!DOCTYPE html>
@@ -339,20 +374,22 @@ def admin_dashboard():
             body {{ background:#000; color:#fff; font-family:'Cairo',sans-serif; padding:20px; }}
             .box {{ background:rgba(255,255,255,0.03); border:1px solid rgba(212,175,55,0.2); border-radius:25px; padding:35px; margin:20px 0; backdrop-filter:blur(20px); }}
             h1 {{ color:#d4af37; font-size:1.8rem; }}
-            .stat {{ display:inline-block; background:linear-gradient(145deg, rgba(212,175,55,0.1), transparent); border:1px solid rgba(212,175,55,0.2); border-radius:20px; padding:25px; margin:10px; min-width:160px; text-align:center; transition:all 0.3s; }}
+            .stat {{ display:inline-block; background:linear-gradient(145deg, rgba(212,175,55,0.1), transparent); border:1px solid rgba(212,175,55,0.2); border-radius:20px; padding:25px; margin:10px; min-width:140px; text-align:center; transition:all 0.3s; }}
             .stat:hover {{ transform:translateY(-5px); box-shadow:0 10px 30px rgba(212,175,55,0.15); }}
-            .num {{ font-size:2.5rem; color:#d4af37; font-weight:900; text-shadow:0 0 20px rgba(212,175,55,0.3); }}
+            .num {{ font-size:2.2rem; color:#d4af37; font-weight:900; text-shadow:0 0 20px rgba(212,175,55,0.3); }}
             a {{ color:#d4af37; text-decoration:none; display:block; margin:15px 0; font-size:1.1rem; padding:15px; border-radius:15px; background:rgba(212,175,55,0.05); border:1px solid rgba(212,175,55,0.1); transition:all 0.3s; }}
             a:hover {{ background:rgba(212,175,55,0.15); transform:translateX(-5px); }}
         </style></head><body>
         <h1>👑 لوحة تحكم {APP_NAME}</h1>
         <div class="box">
             <div class="stat"><div class="num">{total_products}</div><div style="color:#aaa;">المنتجات</div></div>
-            <div class="stat"><div class="num">{pending_reservations}</div><div style="color:#aaa;">حجوزات معلقة</div></div>
+            <div class="stat"><div class="num">{pending_reservations}</div><div style="color:#aaa;">معلقة</div></div>
+            <div class="stat"><div class="num">{confirmed_reservations}</div><div style="color:#aaa;">مؤكدة</div></div>
         </div>
         <div class="box">
             <a href="/admin/products">📦 إدارة المنتجات</a>
             <a href="/admin/reservations">📋 إدارة الحجوزات</a>
+            <a href="/admin/services">🔧 إدارة الخدمات</a>
             <a href="/">🏠 العودة للموقع</a>
         </div>
         </body></html>
@@ -379,7 +416,9 @@ def admin_products():
         c.execute("INSERT INTO products (name, price, original_price, image, description, category, stock, status, is_rare, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                  (name, price, original_price, image, description, category, stock, status, is_rare, currency))
         db.commit()
-        flash('تم إضافة المنتج بنجاح', 'success')
+        # تنبيه جميع العملاء
+        notify_all_customers('🆕 منتج جديد!', f'تم إضافة {name} إلى متجر أرين. تفضل بزيارتنا!')
+        flash('تم إضافة المنتج بنجاح وتم إشعار العملاء', 'success')
         return redirect(url_for('admin_products'))
     c.execute("SELECT * FROM products ORDER BY created_at DESC")
     products_list = c.fetchall()
@@ -452,23 +491,28 @@ def delete_reservation(reservation_id):
     flash('تم حذف الحجز نهائياً', 'success')
     return redirect(url_for('admin_reservations'))
 
-# ========== API الحجز (بدون تسجيل دخول) ==========
+# ========== API الحجز ==========
 @app.route('/api/reserve', methods=['POST'])
 def api_reserve():
     data = request.get_json() or request.form
     product_id = data.get('product_id')
     customer_name = data.get('customer_name', 'عميل')
     phone = data.get('phone', '')
+    
     if not product_id:
         return jsonify({'success': False, 'error': 'معرف المنتج مطلوب'}), 400
+    
     product = get_product(product_id)
     if not product:
         return jsonify({'success': False, 'error': 'المنتج غير موجود'}), 404
+    
+    save_customer(phone, customer_name)
+    
     db = get_db()
     c = db.cursor()
     try:
-        c.execute("INSERT INTO reservations (product_id, customer_name, phone, status) VALUES (?, ?, ?, ?)",
-                 (product_id, customer_name, phone, 'pending'))
+        c.execute("INSERT INTO reservations (product_id, customer_name, phone, service_type, status) VALUES (?, ?, ?, ?, ?)",
+                 (product_id, customer_name, phone, 'product', 'pending'))
         db.commit()
         return jsonify({
             'success': True,
@@ -479,24 +523,62 @@ def api_reserve():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/reservation_whatsapp/<int:reservation_id>')
-def reservation_whatsapp(reservation_id):
+# ========== API الخدمات (صيانة/برمجة) ==========
+@app.route('/api/service', methods=['POST'])
+def api_service():
+    data = request.get_json() or request.form
+    service_type = data.get('service_type')  # 'maintenance' or 'programming'
+    service_name = data.get('service_name')
+    customer_name = data.get('customer_name', 'عميل')
+    phone = data.get('phone', '')
+    device = data.get('device', '')
+    
+    if not service_type or not service_name:
+        return jsonify({'success': False, 'error': 'نوع الخدمة مطلوب'}), 400
+    
+    save_customer(phone, customer_name)
+    
+    # تحويل مباشر لواتساب
+    if service_type == 'maintenance':
+        target_phone = MAINTENANCE_PHONE
+        target_name = 'المهندس راشد اليافعي'
+    else:
+        target_phone = PROGRAMMING_PHONE
+        target_name = 'المبرمج محمد الهاشمي'
+    
+    message = f"""مرحباً {target_name}،
+أرغب في خدمة الصيانة التالية:
+🔧 الخدمة: {service_name}
+📱 الجهاز: {device}
+👤 الاسم: {customer_name}
+📞 الرقم: {phone}
+"""
+    
+    encoded_msg = urllib.parse.quote(message)
+    whatsapp_url = f"https://wa.me/967{target_phone}?text={encoded_msg}"
+    
+    return jsonify({
+        'success': True,
+        'message': f'جاري التحويل لواتساب {target_name}',
+        'whatsapp_url': whatsapp_url
+    })
+
+# ========== API إشعار الصوتي ==========
+@app.route('/api/notifications')
+def get_notifications():
+    phone = request.args.get('phone', '')
     db = get_db()
     c = db.cursor()
-    c.execute("""
-        SELECT r.*, p.name as product_name, p.price, p.currency
-        FROM reservations r
-        LEFT JOIN products p ON r.product_id = p.id
-        WHERE r.id = ?
-    """, (reservation_id,))
-    reservation = c.fetchone()
-    if not reservation:
-        flash('الحجز غير موجود', 'error')
-        return redirect(url_for('products'))
-    message = f"""مرحباً بدر الحضرمي،\nأرغب في حجز المنتج التالي:\n🏷️ المنتج: {reservation['product_name']}\n💰 السعر: {reservation['price']} {reservation['currency']}\n👤 الاسم: {reservation['customer_name']}\n📱 الرقم: {reservation['phone']}\n🆔 رقم الحجز: #{reservation_id}\n"""
-    encoded_msg = urllib.parse.quote(message)
-    whatsapp_url = f"https://wa.me/967{RESERVATION_PHONE}?text={encoded_msg}"
-    return redirect(whatsapp_url)
+    c.execute("SELECT * FROM notifications WHERE phone = ? AND is_read = 0 ORDER BY created_at DESC", (phone,))
+    notifications = c.fetchall()
+    # تحديث كمقروء
+    c.execute("UPDATE notifications SET is_read = 1 WHERE phone = ?", (phone,))
+    db.commit()
+    return jsonify({
+        'success': True,
+        'count': len(notifications),
+        'notifications': [{'title': n['title'], 'message': n['message']} for n in notifications]
+    })
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

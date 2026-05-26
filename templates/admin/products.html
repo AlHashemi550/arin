@@ -13,7 +13,6 @@
             --gold-light: #f0d878;
             --pink: #e91e8c;
             --dark: #000;
-            --card: #0a0a0a;
         }
 
         body {
@@ -40,7 +39,6 @@
             font-weight:900;
             text-shadow:0 0 20px rgba(212,175,55,0.3);
         }
-        .header-sub { color:#666; font-size:0.8rem; margin-top:5px; }
 
         .back-btn {
             position:fixed;
@@ -65,6 +63,31 @@
             transform:translateX(-3px);
         }
 
+        /* رسالة النجاح */
+        .success-toast {
+            position:fixed;
+            top:20px;
+            left:50%;
+            transform:translateX(-50%) translateY(-100px);
+            background:linear-gradient(135deg, rgba(46,204,113,0.9), rgba(39,174,96,0.9));
+            color:#fff;
+            padding:15px 30px;
+            border-radius:15px;
+            font-weight:900;
+            font-size:1rem;
+            z-index:5000;
+            box-shadow:0 10px 40px rgba(46,204,113,0.3);
+            transition:transform 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+            text-align:center;
+            min-width:250px;
+        }
+        .success-toast.show {
+            transform:translateX(-50%) translateY(0);
+        }
+        .success-toast::before {
+            content:'🔔 ';
+        }
+
         /* فورم الإضافة */
         .add-section {
             background:linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
@@ -84,6 +107,138 @@
             gap:10px;
         }
 
+        /* أزرار الصورة */
+        .image-methods {
+            display:flex;
+            gap:10px;
+            margin-bottom:15px;
+            flex-wrap:wrap;
+        }
+        .img-method-btn {
+            flex:1;
+            min-width:100px;
+            padding:12px;
+            border-radius:14px;
+            border:1px solid rgba(212,175,55,0.3);
+            background:rgba(212,175,55,0.05);
+            color:var(--gold);
+            font-family:'Cairo',sans-serif;
+            font-size:0.85rem;
+            font-weight:700;
+            cursor:pointer;
+            transition:all 0.3s;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+        }
+        .img-method-btn:hover {
+            background:rgba(212,175,55,0.15);
+            transform:translateY(-2px);
+        }
+        .img-method-btn.active {
+            background:linear-gradient(135deg, var(--gold), #b8941f);
+            color:#000;
+            border-color:transparent;
+        }
+
+        /* معاينة الصورة */
+        .img-preview {
+            width:100%;
+            height:200px;
+            border-radius:16px;
+            border:2px dashed rgba(212,175,55,0.3);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            margin-bottom:15px;
+            overflow:hidden;
+            background:rgba(255,255,255,0.02);
+            position:relative;
+        }
+        .img-preview img {
+            width:100%;
+            height:100%;
+            object-fit:cover;
+        }
+        .img-preview .placeholder {
+            color:#555;
+            font-size:3rem;
+        }
+
+        /* الكاميرا */
+        .camera-modal {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.95);
+            z-index:4000;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+        }
+        .camera-modal.active { display:flex; }
+        #cameraVideo {
+            width:100%;
+            max-width:500px;
+            border-radius:20px;
+        }
+        .camera-controls {
+            display:flex;
+            gap:20px;
+            margin-top:20px;
+        }
+        .cam-btn {
+            width:60px;
+            height:60px;
+            border-radius:50%;
+            border:3px solid var(--gold);
+            background:rgba(212,175,55,0.1);
+            color:var(--gold);
+            font-size:1.5rem;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .cam-btn.capture {
+            background:var(--gold);
+            color:#000;
+            width:70px;
+            height:70px;
+        }
+
+        /* الاستوديو */
+        .studio-modal {
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.95);
+            z-index:4000;
+            flex-direction:column;
+            padding:20px;
+        }
+        .studio-modal.active { display:flex; }
+        .studio-grid {
+            display:grid;
+            grid-template-columns:repeat(3, 1fr);
+            gap:10px;
+            overflow-y:auto;
+            flex:1;
+            margin-top:15px;
+        }
+        .studio-item {
+            aspect-ratio:1;
+            border-radius:12px;
+            overflow:hidden;
+            cursor:pointer;
+            border:2px solid transparent;
+            transition:all 0.3s;
+        }
+        .studio-item:hover { border-color:var(--gold); transform:scale(1.05); }
+        .studio-item img { width:100%; height:100%; object-fit:cover; }
+        .studio-item.selected { border-color:#2ecc71; box-shadow:0 0 20px rgba(46,204,113,0.3); }
+
         .form-grid {
             display:grid;
             grid-template-columns:1fr 1fr;
@@ -98,9 +253,7 @@
             flex-direction:column;
             gap:6px;
         }
-        .form-group.full {
-            grid-column:1 / -1;
-        }
+        .form-group.full { grid-column:1 / -1; }
         .form-label {
             color:#888;
             font-size:0.8rem;
@@ -120,9 +273,7 @@
         .form-input:focus {
             border-color:var(--gold);
             box-shadow:0 0 15px rgba(212,175,55,0.1);
-            background:rgba(255,255,255,0.05);
         }
-        .form-input::placeholder { color:#444; }
 
         select.form-input {
             cursor:pointer;
@@ -142,11 +293,6 @@
         .checkbox-wrap input[type="checkbox"] {
             width:20px; height:20px;
             accent-color:var(--gold);
-            cursor:pointer;
-        }
-        .checkbox-wrap label {
-            color:#aaa;
-            font-size:0.9rem;
             cursor:pointer;
         }
 
@@ -169,39 +315,15 @@
             transform:translateY(-2px);
             box-shadow:0 10px 35px rgba(212,175,55,0.4);
         }
-        .submit-btn:active { transform:scale(0.98); }
-
-        /* رسالة النجاح */
-        .success-msg {
-            background:linear-gradient(135deg, rgba(46,204,113,0.15), rgba(46,204,113,0.05));
-            border:1px solid rgba(46,204,113,0.3);
-            border-radius:16px;
-            padding:20px;
-            margin:20px;
-            text-align:center;
-            color:#2ecc71;
-            font-weight:700;
-            font-size:1.1rem;
-            animation:slideDown 0.5s ease;
-            display:none;
-        }
-        .success-msg.show { display:block; }
-        @keyframes slideDown {
-            from { opacity:0; transform:translateY(-20px); }
-            to { opacity:1; transform:translateY(0); }
-        }
 
         /* قائمة المنتجات */
-        .products-list {
-            margin:20px;
-        }
+        .products-list { margin:20px; }
         .list-title {
             color:var(--gold);
             font-size:1.1rem;
             font-weight:900;
             margin-bottom:15px;
         }
-
         .product-item {
             background:linear-gradient(145deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
             border:1px solid rgba(255,255,255,0.06);
@@ -217,23 +339,9 @@
             border-color:rgba(212,175,55,0.2);
             transform:translateX(-5px);
         }
-
-        .product-info h3 {
-            color:#fff;
-            font-size:1rem;
-            font-weight:700;
-            margin-bottom:4px;
-        }
-        .product-info .meta {
-            color:#666;
-            font-size:0.8rem;
-        }
-        .product-info .price {
-            color:var(--gold);
-            font-weight:900;
-            font-size:1.1rem;
-        }
-
+        .product-info h3 { color:#fff; font-size:1rem; font-weight:700; margin-bottom:4px; }
+        .product-info .meta { color:#666; font-size:0.8rem; }
+        .product-info .price { color:var(--gold); font-weight:900; font-size:1.1rem; }
         .delete-btn {
             width:40px; height:40px;
             border-radius:12px;
@@ -247,19 +355,11 @@
             font-size:1.1rem;
             transition:all 0.3s;
         }
-        .delete-btn:hover {
-            background:rgba(231,76,60,0.2);
-            transform:scale(1.1);
-        }
+        .delete-btn:hover { background:rgba(231,76,60,0.2); transform:scale(1.1); }
 
-        .empty {
-            text-align:center;
-            padding:60px 20px;
-            color:#444;
-        }
+        .empty { text-align:center; padding:60px 20px; color:#444; }
         .empty-icon { font-size:4rem; margin-bottom:15px; opacity:0.3; }
 
-        /* فوتر */
         .footer {
             text-align:center;
             padding:30px;
@@ -268,20 +368,40 @@
             font-weight:700;
             text-shadow:0 0 15px rgba(233,30,140,0.2);
         }
+
+        /* تنبيه صوتي */
+        .sound-toggle {
+            position:fixed;
+            top:15px;
+            right:15px;
+            z-index:200;
+            width:45px;
+            height:45px;
+            border-radius:50%;
+            border:1px solid rgba(212,175,55,0.3);
+            background:rgba(10,10,10,0.8);
+            color:var(--gold);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            font-size:1.2rem;
+            backdrop-filter:blur(10px);
+        }
     </style>
 </head>
 <body>
 
     <a href="/admin/dashboard" class="back-btn">🔙 رجوع</a>
+    <div class="sound-toggle" onclick="toggleSound()" id="soundBtn">🔔</div>
+
+    <!-- رسالة النجاح -->
+    <div class="success-toast" id="successToast">
+        ✅ تم إضافة المنتج وإشعار العملاء!
+    </div>
 
     <div class="header">
         <h1>📦 إدارة المنتجات</h1>
-        <div class="header-sub">أضف، عدل، احذف منتجاتك</div>
-    </div>
-
-    <!-- رسالة النجاح -->
-    <div class="success-msg" id="successMsg">
-        ✅ تم إضافة المنتج بنجاح!
     </div>
 
     <!-- فورم الإضافة -->
@@ -290,29 +410,45 @@
             <span>➕</span>
             <span>إضافة منتج جديد</span>
         </div>
-        
+
+        <!-- اختيار طريقة الصورة -->
+        <div class="image-methods">
+            <button type="button" class="img-method-btn active" onclick="setImageMethod('url')">
+                🔗 رابط
+            </button>
+            <button type="button" class="img-method-btn" onclick="openCamera()">
+                📷 كاميرا
+            </button>
+            <button type="button" class="img-method-btn" onclick="openStudio()">
+                🖼️ استوديو
+            </button>
+        </div>
+
+        <!-- معاينة الصورة -->
+        <div class="img-preview" id="imgPreview">
+            <div class="placeholder">📱</div>
+        </div>
+
         <form method="POST" action="/admin/products" id="addForm">
+            <input type="hidden" name="image" id="imageInput" value="">
+
             <div class="form-grid">
                 <div class="form-group">
                     <label class="form-label">🏷️ اسم المنتج</label>
                     <input type="text" name="name" class="form-input" placeholder="مثال: شاشة iPhone 14" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">💰 السعر</label>
                     <input type="number" name="price" class="form-input" placeholder="3000" required>
                 </div>
-                
                 <div class="form-group">
-                    <label class="form-label">🏷️ السعر قبل الخصم (اختياري)</label>
+                    <label class="form-label">🏷️ السعر قبل الخصم</label>
                     <input type="number" name="original_price" class="form-input" placeholder="3500">
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">📦 الكمية</label>
                     <input type="number" name="stock" class="form-input" placeholder="5" required>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">🏷️ الفئة</label>
                     <select name="category" class="form-input" required>
@@ -325,7 +461,6 @@
                         <option value="هواتف">📞 هواتف</option>
                     </select>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">💱 العملة</label>
                     <select name="currency" class="form-input">
@@ -334,43 +469,50 @@
                         <option value="$">🇺🇸 $ دولار</option>
                     </select>
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">📸 رابط الصورة (اختياري)</label>
-                    <input type="url" name="image" class="form-input" placeholder="https://example.com/image.jpg">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">📋 الحالة</label>
-                    <select name="status" class="form-input">
-                        <option value="available">✅ متوفر</option>
-                        <option value="out_of_stock">❌ نفذت الكمية</option>
-                    </select>
-                </div>
-                
                 <div class="form-group full">
                     <label class="form-label">📝 الوصف</label>
                     <input type="text" name="description" class="form-input" placeholder="وصف مختصر للمنتج...">
                 </div>
-                
                 <div class="form-group full">
                     <div class="checkbox-wrap">
                         <input type="checkbox" name="is_rare" id="isRare" value="1">
                         <label for="isRare">🏆 قطعة نادرة (يظهر شارة ذهبية)</label>
                     </div>
                 </div>
-                
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn" onclick="playSuccessSound()">
                     💾 حفظ المنتج
                 </button>
             </div>
         </form>
     </div>
 
+    <!-- مودال الكاميرا -->
+    <div class="camera-modal" id="cameraModal">
+        <video id="cameraVideo" autoplay playsinline></video>
+        <div class="camera-controls">
+            <button class="cam-btn" onclick="closeCamera()">❌</button>
+            <button class="cam-btn capture" onclick="capturePhoto()">📸</button>
+            <button class="cam-btn" onclick="switchCamera()">🔄</button>
+        </div>
+    </div>
+
+    <!-- مودال الاستوديو -->
+    <div class="studio-modal" id="studioModal">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 style="color:var(--gold);">🖼️ استوديو الصور</h3>
+            <button onclick="closeStudio()" style="background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer;">✕</button>
+        </div>
+        <div class="studio-grid" id="studioGrid">
+            <!-- سيتم ملؤها بالصور -->
+        </div>
+        <button class="submit-btn" onclick="selectStudioImage()" style="margin-top:15px;">
+            ✅ اختيار الصورة
+        </button>
+    </div>
+
     <!-- قائمة المنتجات -->
     <div class="products-list">
         <div class="list-title">📋 المنتجات الحالية ({{ products|length }})</div>
-        
         {% for product in products %}
         <div class="product-item">
             <div class="product-info">
@@ -399,17 +541,156 @@
         ✨ الهاشمي محمد ✨
     </div>
 
+    <!-- صوت النجاح -->
+    <audio id="successSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZSA0PVanu8LdnGgU1k9n1unEiBC13yO/eizsIHGu98+OZURE" type="audio/wav">
+    </audio>
+
     <script>
-        // إظهار رسالة النجاح بعد الإضافة
-        const urlParams = new URLSearchParams(window.location.search);
-        if(urlParams.get('success') === '1') {
-            document.getElementById('successMsg').classList.add('show');
-            setTimeout(() => {
-                document.getElementById('successMsg').classList.remove('show');
-            }, 4000);
+        let currentImageMethod = 'url';
+        let cameraStream = null;
+        let selectedStudioImage = null;
+        let soundEnabled = true;
+
+        // تنبيه صوتي
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').textContent = soundEnabled ? '🔔' : '🔕';
         }
 
-        // تأثيرات على الفورم
+        function playSuccessSound() {
+            if(soundEnabled) {
+                const audio = document.getElementById('successSound');
+                audio.play().catch(e => console.log('Audio play failed'));
+            }
+        }
+
+        // إظهار رسالة النجاح
+        {% if request.args.get('success') %}
+        window.addEventListener('load', () => {
+            const toast = document.getElementById('successToast');
+            toast.classList.add('show');
+            playSuccessSound();
+            setTimeout(() => toast.classList.remove('show'), 4000);
+        });
+        {% endif %}
+
+        // اختيار طريقة الصورة
+        function setImageMethod(method) {
+            currentImageMethod = method;
+            document.querySelectorAll('.img-method-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if(method === 'url') {
+                document.getElementById('imgPreview').innerHTML = `
+                    <input type="text" class="form-input" style="width:90%;" 
+                           placeholder="🔗 ألصق رابط الصورة هنا" 
+                           onchange="previewUrlImage(this.value)"
+                           oninput="document.getElementById('imageInput').value = this.value">
+                `;
+            }
+        }
+
+        function previewUrlImage(url) {
+            if(url) {
+                document.getElementById('imgPreview').innerHTML = `<img src="${url}" onerror="this.parentElement.innerHTML='<div class=placeholder>❌ خطأ في الرابط</div>'">`;
+            }
+        }
+
+        // الكاميرا
+        async function openCamera() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                document.getElementById('cameraVideo').srcObject = cameraStream;
+                document.getElementById('cameraModal').classList.add('active');
+            } catch(e) {
+                alert('❌ لا يمكن الوصول للكاميرا. تأكد من السماح بالصلاحيات.');
+            }
+        }
+
+        function closeCamera() {
+            if(cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            document.getElementById('cameraModal').classList.remove('active');
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            const imageData = canvas.toDataURL('image/jpeg', 0.8);
+            
+            document.getElementById('imgPreview').innerHTML = `<img src="${imageData}">`;
+            document.getElementById('imageInput').value = imageData;
+            closeCamera();
+        }
+
+        function switchCamera() {
+            // تبديل الكاميرا (أمامية/خلفية)
+            if(cameraStream) {
+                const currentTrack = cameraStream.getVideoTracks()[0];
+                const facingMode = currentTrack.getSettings().facingMode === 'environment' ? 'user' : 'environment';
+                closeCamera();
+                navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } })
+                    .then(stream => {
+                        cameraStream = stream;
+                        document.getElementById('cameraVideo').srcObject = stream;
+                    });
+            }
+        }
+
+        // الاستوديو
+        function openStudio() {
+            // صور تجريبية للاستوديو (يمكن استبدالها بصور حقيقية)
+            const demoImages = [
+                'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1580910051074-3eb6db76c6df?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1565849904461-04a58ad377e0?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1574944985070-8f3ebc6b79d2?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1512054502232-10a0a035d672?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1567581935884-3349723552ca?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=300&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1616348436168-de49ad0f8e8f?w=300&h=300&fit=crop'
+            ];
+            
+            const grid = document.getElementById('studioGrid');
+            grid.innerHTML = demoImages.map((img, i) => `
+                <div class="studio-item" onclick="selectImage(${i}, '${img}')" data-index="${i}">
+                    <img src="${img}" loading="lazy">
+                </div>
+            `).join('');
+            
+            document.getElementById('studioModal').classList.add('active');
+        }
+
+        function closeStudio() {
+            document.getElementById('studioModal').classList.remove('active');
+        }
+
+        function selectImage(index, url) {
+            document.querySelectorAll('.studio-item').forEach(item => item.classList.remove('selected'));
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            selectedStudioImage = url;
+        }
+
+        function selectStudioImage() {
+            if(selectedStudioImage) {
+                document.getElementById('imgPreview').innerHTML = `<img src="${selectedStudioImage}">`;
+                document.getElementById('imageInput').value = selectedStudioImage;
+                closeStudio();
+            } else {
+                alert('يرجى اختيار صورة أولاً');
+            }
+        }
+
+        // تأثيرات الفورم
         document.querySelectorAll('.form-input').forEach(input => {
             input.addEventListener('focus', function() {
                 this.parentElement.style.transform = 'scale(1.02)';
