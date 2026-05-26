@@ -1,62 +1,99 @@
 {% extends "base.html" %}
 
-{% block title %}نقاط الولاء | {{ app_name }}{% endblock %}
-{% block page_title %}نقاط الولاء{% endblock %}
+{% block title %}نقاط الولاء - أرين{% endblock %}
+
+{% block extra_css %}
+<style>
+    .loyalty-page { padding: 20px; padding-bottom: 100px; text-align: center; }
+    .loyalty-header { padding-top: 20px; margin-bottom: 30px; }
+    .loyalty-icon { font-size: 60px; margin-bottom: 10px; }
+    .loyalty-title { font-size: 24px; font-weight: 700; color: #d4af37; }
+    .points-card {
+        background: #0a0a0a;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 25px;
+    }
+    .points-number { font-size: 48px; font-weight: 800; color: #d4af37; }
+    .points-label { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+    .rewards-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .reward-card {
+        background: #0a0a0a;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 14px;
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-align: right;
+    }
+    .reward-icon { font-size: 30px; }
+    .reward-info { flex: 1; }
+    .reward-name { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .reward-points { font-size: 12px; color: #d4af37; }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="loyalty-page">
-    <div class="points-hero">
-        <div class="points-circle">
-            <span class="points-number">{{ points }}</span>
-            <span class="points-label">نقطة</span>
-        </div>
-        <p class="points-sub">كل حجز مؤكد = 20 نقطة | إحالة صديق = 50 نقطة</p>
+    <div class="loyalty-header">
+        <div class="loyalty-icon">💎</div>
+        <div class="loyalty-title">نقاط الولاء</div>
     </div>
-
-    <div class="referral-box">
-        <h3>🎁 كود الإحالة الخاص بك</h3>
-        <div class="referral-code" onclick="copyCode(this)">
-            <span>{{ session.get('user_phone','') }}</span>
-            <small>اضغط للنسخ</small>
-        </div>
-        <p class="referral-hint">شارك الكود مع أصدقائك واربح 50 نقطة لكل تسجيل!</p>
+    
+    <div class="points-card">
+        <div class="points-number">0</div>
+        <div class="points-label">نقطة</div>
+        <p style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:10px;">
+            سجل دخول للمشاركة في برنامج الولاء
+        </p>
     </div>
-
-    <h3 class="rewards-title">🏆 المكافآت المتاحة</h3>
+    
+    <div style="font-size:16px;font-weight:700;color:#d4af37;margin-bottom:15px;">🎁 المكافآت</div>
     <div class="rewards-grid">
-        {% for r in rewards %}
-        <div class="reward-card {% if points >= r.points %}available{% else %}locked{% endif %}">
-            <div class="reward-icon">{{ r.icon }}</div>
-            <div class="reward-points">{{ r.points }} نقطة</div>
-            <div class="reward-name">{{ r.reward }}</div>
-            {% if points >= r.points %}
-            <form method="POST" action="{{ url_for('claim_reward') }}">
-                <input type="hidden" name="points" value="{{ r.points }}">
-                <input type="hidden" name="reward_name" value="{{ r.reward }}">
-                <button type="submit" class="btn-claim glass-btn">استبدال الآن</button>
-            </form>
-            {% else %}
-            <div class="progress-bar">
-                <div class="progress-fill" style="width:{{ (points / r.points * 100)|int }}%"></div>
+        <div class="reward-card">
+            <div class="reward-icon">🔧</div>
+            <div class="reward-info">
+                <div class="reward-name">صيانة مجانية</div>
+                <div class="reward-points">100 نقطة</div>
             </div>
-            <span class="progress-text">باقي {{ r.points - points }} نقطة</span>
-            {% endif %}
         </div>
-        {% endfor %}
+        <div class="reward-card">
+            <div class="reward-icon">🏷️</div>
+            <div class="reward-info">
+                <div class="reward-name">خصم 20%</div>
+                <div class="reward-points">200 نقطة</div>
+            </div>
+        </div>
+        <div class="reward-card">
+            <div class="reward-icon">📱</div>
+            <div class="reward-info">
+                <div class="reward-name">كفر حماية</div>
+                <div class="reward-points">300 نقطة</div>
+            </div>
+        </div>
+        <div class="reward-card">
+            <div class="reward-icon">🎧</div>
+            <div class="reward-info">
+                <div class="reward-name">سماعة أذن</div>
+                <div class="reward-points">500 نقطة</div>
+            </div>
+        </div>
+        <div class="reward-card">
+            <div class="reward-icon">🔌</div>
+            <div class="reward-info">
+                <div class="reward-name">شاحن أصلي</div>
+                <div class="reward-points">800 نقطة</div>
+            </div>
+        </div>
+        <div class="reward-card">
+            <div class="reward-icon">📱</div>
+            <div class="reward-info">
+                <div class="reward-name">شاشة جديدة</div>
+                <div class="reward-points">1000 نقطة</div>
+            </div>
+        </div>
     </div>
 </div>
-
-<script>
-function copyCode(el) {
-    const code = el.querySelector('span').innerText;
-    navigator.clipboard.writeText(code).then(() => {
-        el.style.background = 'rgba(76,175,80,0.3)';
-        el.style.borderColor = '#4caf50';
-        setTimeout(() => {
-            el.style.background = '';
-            el.style.borderColor = '';
-        }, 1500);
-    });
-}
-</script>
 {% endblock %}

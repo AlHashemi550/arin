@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة التحكم - أرين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        body {
+            background: #000;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: #0a0a0a;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 24px;
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #d4af37;
+        }
+        
+        .logo {
+            font-size: 60px;
+            font-weight: 800;
+            color: #d4af37;
+            margin-bottom: 5px;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+        
+        .title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 18px;
+            text-align: right;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        
+        .form-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .form-input:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.1);
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+        
+        .btn-login {
+            width: 100%;
+            background: #d4af37;
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        .btn-login:hover {
+            background: #e8c547;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            color: #d4af37;
+        }
+        
+        .shield-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        /* Flash messages */
+        .flash-msg {
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .flash-error {
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+        }
+        
+        .flash-success {
+            background: rgba(0, 200, 83, 0.15);
+            border: 1px solid rgba(0, 200, 83, 0.3);
+            color: #00c853;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="shield-icon">👑</div>
+        <div class="logo">A</div>
+        <div class="title">لوحة التحكم</div>
+        <div class="subtitle">أرين - دخول الأدمن فقط</div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+        <form action="/admin/login" method="POST">
+            <div class="form-group">
+                <label class="form-label">📞 رقم الهاتف</label>
+                <input type="tel" name="phone" class="form-input" placeholder="مثال: 783234925" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">🔐 كلمة المرور</label>
+                <input type="password" name="password" class="form-input" placeholder="كلمة مرور الأدمن" required>
+            </div>
+            
+            <button type="submit" class="btn-login">دخول 👑</button>
+        </form>
+        
+        <a href="/products" class="back-link">← العودة للمتجر</a>
+    </div>
+</body>
+</html>

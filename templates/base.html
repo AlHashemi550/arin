@@ -3,202 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>{% block title %}{{ app_name or 'أرين' }}{% endblock %} - أرين</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>{% block title %}أرين - AREEN{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Cairo', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
         
         body {
-            background: #000000;
+            font-family: 'Cairo', sans-serif;
+            background: #000;
             color: #fff;
             min-height: 100vh;
-            padding-bottom: 90px;
-            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
         
-        .app-header {
-            background: linear-gradient(180deg, #0a0a0a 0%, #000000 100%);
-            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
-            padding: 15px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d4af37;
+            border-radius: 2px;
         }
         
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .header-logo svg {
-            width: 30px;
-            height: 35px;
-        }
-        
-        .header-title {
-            font-size: 20px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #d4af37, #f4d03f);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .header-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #d4af37;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        
-        .content {
-            padding: 20px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .glass-card {
-            background: rgba(10, 10, 10, 0.8);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 15px;
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #d4af37, transparent);
-        }
-        
-        .btn-gold {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 24px;
-            background: linear-gradient(135deg, #d4af37, #aa8c2c);
-            color: #000;
-            border: none;
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-        }
-        
-        .btn-gold:active {
-            transform: scale(0.96);
-        }
-        
-        .btn-outline-gold {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: transparent;
-            color: #d4af37;
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            border-radius: 50px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        
-        .bottom-nav {
+        /* Flash Messages */
+        .flash-messages {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(5, 5, 5, 0.95);
-            border-top: 1px solid rgba(212, 175, 55, 0.2);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            z-index: 1000;
-            padding: 8px 0 12px;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            width: 90%;
+            max-width: 400px;
         }
         
-        .nav-container {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            text-decoration: none;
-            color: #666;
-            font-size: 10px;
-            font-weight: 600;
-            transition: all 0.3s;
-            padding: 5px 8px;
+        .flash-message {
+            padding: 12px 20px;
             border-radius: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            animation: slideDown 0.3s ease;
+            backdrop-filter: blur(10px);
         }
         
-        .nav-item.active {
-            color: #d4af37;
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
-        .nav-item.active .nav-icon {
-            filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.6));
+        .flash-success {
+            background: rgba(0, 200, 83, 0.15);
+            border: 1px solid rgba(0, 200, 83, 0.3);
+            color: #00c853;
         }
         
-        .nav-icon {
-            font-size: 22px;
-            transition: all 0.3s;
+        .flash-error {
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
         }
         
+        .flash-warning {
+            background: rgba(255, 136, 0, 0.15);
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            color: #ff8800;
+        }
+        
+        .flash-info {
+            background: rgba(33, 150, 243, 0.15);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            color: #2196f3;
+        }
+        
+        /* Location Modal */
         .location-modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 2000;
-            align-items: center;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 9999;
             justify-content: center;
+            align-items: center;
             padding: 20px;
         }
         
@@ -207,255 +108,324 @@
         }
         
         .location-content {
-            background: linear-gradient(135deg, #0a0a0a, #111);
-            border: 1px solid rgba(212, 175, 55, 0.4);
-            border-radius: 24px;
-            padding: 40px 30px;
+            background: #0a0a0a;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
             width: 100%;
-            max-width: 320px;
-            text-align: center;
-            position: relative;
+            max-width: 400px;
             overflow: hidden;
-            animation: modalIn 0.3s ease;
         }
         
-        @keyframes modalIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+        .location-header {
+            background: #d4af37;
+            color: #000;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .location-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #d4af37, #f4d03f, transparent);
+        .location-header h3 {
+            font-size: 16px;
+            font-weight: 700;
         }
         
-        .location-icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite;
+        .close-modal {
+            background: none;
+            border: none;
+            color: #000;
+            font-size: 20px;
+            cursor: pointer;
         }
         
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .location-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: #d4af37;
-            margin-bottom: 12px;
+        .location-body {
+            padding: 20px;
         }
         
         .location-text {
-            color: #ccc;
-            font-size: 15px;
-            line-height: 1.8;
-            margin-bottom: 10px;
-        }
-        
-        .location-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid rgba(34, 197, 94, 0.4);
-            color: #4ade80;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: 700;
-            margin-top: 15px;
-        }
-        
-        .location-close {
-            margin-top: 25px;
-            padding: 12px 35px;
-            background: linear-gradient(135deg, #d4af37, #aa8c2c);
-            border: none;
-            border-radius: 50px;
-            color: #000;
             font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        
+        .location-map {
             width: 100%;
-        }
-        
-        .dev-footer {
-            text-align: center;
-            padding: 20px;
-            margin-top: 20px;
-        }
-        
-        .dev-name {
-            font-size: 16px;
-            font-weight: 700;
-            background: linear-gradient(90deg, #e91e8c, #ff69b4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .flash-messages {
-            position: fixed;
-            top: 70px;
-            left: 20px;
-            right: 20px;
-            z-index: 1500;
+            height: 200px;
+            background: #111;
+            border-radius: 12px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 12px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .location-actions {
+            display: flex;
             gap: 10px;
         }
         
-        .flash-message {
-            padding: 14px 20px;
-            border-radius: 16px;
-            font-size: 14px;
+        .loc-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
             font-weight: 600;
             text-align: center;
-            animation: slideDown 0.3s ease;
-            backdrop-filter: blur(10px);
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
         }
         
-        @keyframes slideDown {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .loc-btn.primary {
+            background: #d4af37;
+            color: #000;
         }
         
-        .flash-success {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #4ade80;
+        .loc-btn.secondary {
+            background: transparent;
+            color: #d4af37;
+            border: 1px solid rgba(212, 175, 55, 0.3);
         }
         
-        .flash-error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(212, 175, 55, 0.1);
+            z-index: 999;
+            padding-bottom: env(safe-area-inset-bottom);
         }
         
-        .flash-info {
+        .nav-items {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 8px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            text-decoration: none;
+            color: rgba(255,255,255,0.4);
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 5px 10px;
+            border-radius: 12px;
+        }
+        
+        .nav-item.active {
+            color: #d4af37;
+        }
+        
+        .nav-item:hover {
+            color: #d4af37;
+        }
+        
+        .nav-icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+        
+        /* Developer Footer */
+        .dev-footer {
+            text-align: center;
+            padding: 15px;
+            padding-bottom: 90px;
+            background: #000;
+        }
+        
+        .dev-name {
+            font-size: 14px;
+            font-weight: 700;
+            background: #e91e8c;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .dev-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 8px;
+        }
+        
+        .dev-links a {
+            color: rgba(233, 30, 140, 0.6);
+            font-size: 20px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .dev-links a:hover {
+            color: #e91e8c;
+            transform: scale(1.2);
+        }
+        
+        /* Location FAB */
+        .location-fab {
+            position: fixed;
+            bottom: 80px;
+            left: 15px;
+            width: 45px;
+            height: 45px;
             background: rgba(212, 175, 55, 0.15);
             border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #d4af37;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 998;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .location-fab:hover {
+            background: rgba(212, 175, 55, 0.3);
+            transform: scale(1.1);
+        }
+        
+        /* Content wrapper */
+        .content-wrapper {
+            min-height: 100vh;
+            padding-bottom: 20px;
+        }
+        
+        /* Loading animation */
+        .loading-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="flash-message flash-{{ category }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    <script>
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(el => el.style.display = 'none');
+        }, 4000);
+    </script>
+    {% endif %}
     {% endwith %}
     
-    {% if request.endpoint != 'index' %}
-    <header class="app-header">
-        <div class="header-logo">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#f4d03f"/>
-                        <stop offset="50%" style="stop-color:#d4af37"/>
-                        <stop offset="100%" style="stop-color:#aa8c2c"/>
-                    </linearGradient>
-                </defs>
-                <path d="M50 5 L90 110 L75 110 L65 85 L35 85 L25 110 L10 110 Z" fill="url(#goldGrad)"/>
-                <path d="M50 25 L62 70 L38 70 Z" fill="#000"/>
-            </svg>
-            <span class="header-title">{% block header_title %}أرين{% endblock %}</span>
+    <!-- Location Modal -->
+    <div class="location-modal" id="locationModal">
+        <div class="location-content">
+            <div class="location-header">
+                <h3>📍 موقع المحل</h3>
+                <button class="close-modal" onclick="closeLocation()">✕</button>
+            </div>
+            <div class="location-body">
+                <div class="location-text">
+                    <strong style="color:#d4af37;">{{ shop_name }}</strong><br>
+                    {{ shop_location }}
+                </div>
+                <div class="location-map">
+                    🗺️ خريطة الموقع<br>
+                    <small>اضغط "فتح في الخرائط" للتوجيه</small>
+                </div>
+                <div class="location-actions">
+                    <a href="https://maps.google.com/?q={{ shop_location|urlencode }}" class="loc-btn primary" target="_blank">
+                        🗺️ فتح في الخرائط
+                    </a>
+                    <button class="loc-btn secondary" onclick="closeLocation()">إغلاق</button>
+                </div>
+            </div>
         </div>
-        <div class="header-actions">
-            <a href="#" class="header-icon" onclick="showLocation(); return false;" title="موقع المحل">📍</a>
-            {% if session.get('is_admin') %}
-            <a href="{{ url_for('admin_dashboard') }}" class="header-icon" title="لوحة التحكم">⚡</a>
-            {% endif %}
-        </div>
-    </header>
-    {% endif %}
+    </div>
     
-    <main class="content">
+    <!-- Location FAB -->
+    <a href="#" class="location-fab" onclick="openLocation(); return false;">📍</a>
+    
+    <!-- Main Content -->
+    <div class="content-wrapper">
         {% block content %}{% endblock %}
-    </main>
+    </div>
     
-    {% if request.endpoint not in ['index', 'login', 'register', 'verify_otp', 'otp_sent'] %}
+    <!-- Developer Footer -->
+    <div class="dev-footer">
+        <div class="dev-name">
+            ✨ الهاشمي محمد ✨
+        </div>
+        <div class="dev-links">
+            <a href="https://facebook.com" target="_blank">📘</a>
+            <a href="https://instagram.com" target="_blank">📸</a>
+        </div>
+    </div>
+    
+    <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <div class="nav-container">
-            <a href="{{ url_for('products') }}" class="nav-item {% if request.endpoint == 'products' %}active{% endif %}">
+        <div class="nav-items">
+            <a href="/products" class="nav-item {% if request.path == '/products' or request.path == '/' %}active{% endif %}">
                 <span class="nav-icon">🏪</span>
                 <span>المتجر</span>
             </a>
-            <a href="{{ url_for('maintenance') }}" class="nav-item {% if request.endpoint == 'maintenance' %}active{% endif %}">
+            <a href="/maintenance" class="nav-item {% if request.path == '/maintenance' %}active{% endif %}">
                 <span class="nav-icon">🔧</span>
                 <span>الصيانة</span>
             </a>
-            <a href="{{ url_for('programming') }}" class="nav-item {% if request.endpoint == 'programming' %}active{% endif %}">
+            <a href="/programming" class="nav-item {% if request.path == '/programming' %}active{% endif %}">
                 <span class="nav-icon">💻</span>
                 <span>البرمجة</span>
             </a>
-            <a href="{{ url_for('my_devices') }}" class="nav-item {% if request.endpoint == 'my_devices' %}active{% endif %}">
-                <span class="nav-icon">📱</span>
-                <span>أجهزتي</span>
-            </a>
-            <a href="{{ url_for('loyalty') }}" class="nav-item {% if request.endpoint == 'loyalty' %}active{% endif %}">
+            <a href="/loyalty" class="nav-item {% if request.path == '/loyalty' %}active{% endif %}">
                 <span class="nav-icon">💎</span>
                 <span>الولاء</span>
             </a>
-            {% if session.get('is_admin') %}
-            <a href="{{ url_for('admin_dashboard') }}" class="nav-item {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}">
-                <span class="nav-icon">⚡</span>
-                <span>التحكم</span>
+            <a href="/my_devices" class="nav-item {% if request.path == '/my_devices' %}active{% endif %}">
+                <span class="nav-icon">📱</span>
+                <span>أجهزتي</span>
             </a>
-            {% endif %}
         </div>
     </nav>
-    {% endif %}
-    
-    <div class="location-modal" id="locationModal">
-        <div class="location-content">
-            <div class="location-icon">📍</div>
-            <div class="location-title">محل الراشد للجوالات</div>
-            <div class="location-text">
-                موقعنا:<br>
-                {{ shop_location or 'المهرة - الغيضة - الهنجر - سوق بن خودم' }}
-            </div>
-            <div class="location-badge">خيارك الأفضل ✅</div>
-            <button class="location-close" onclick="hideLocation()">إغلاق</button>
-        </div>
-    </div>
-    
-    {% if request.endpoint != 'index' %}
-    <div class="dev-footer">
-        <span class="dev-name">✨ الهاشمي محمد ✨</span>
-    </div>
-    {% endif %}
     
     <script>
-        function showLocation() {
+        function openLocation() {
             document.getElementById('locationModal').classList.add('active');
         }
-        function hideLocation() {
+        
+        function closeLocation() {
             document.getElementById('locationModal').classList.remove('active');
         }
         
+        // Close modal on outside click
         document.getElementById('locationModal').addEventListener('click', function(e) {
-            if (e.target === this) hideLocation();
+            if (e.target === this) closeLocation();
         });
-        
-        setTimeout(() => {
-            document.querySelectorAll('.flash-message').forEach(el => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(-20px)';
-                setTimeout(() => el.remove(), 300);
-            });
-        }, 3000);
     </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html>

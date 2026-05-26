@@ -1,43 +1,399 @@
-{% extends "base.html" %}
-
-{% block title %}لوحة التحكم | {{ app_name }}{% endblock %}
-{% block page_title %}لوحة التحكم ⚡{% endblock %}
-
-{% block content %}
-<div class="admin-page">
-    <div class="admin-welcome">
-        <h2>أهلاً أدمن {{ session.get('user_name','') }} 👑</h2>
-        <p>أرين للجوالات - المهرة - الغيضة</p>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة التحكم - أرين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        body {
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .admin-header {
+            background: #0a0a0a;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-title .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: #d4af37;
+        }
+        
+        .header-title .text {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        
+        .header-title .badge {
+            font-size: 10px;
+            background: #d4af37;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+        }
+        
+        .logout-btn {
+            background: rgba(255, 68, 68, 0.15);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: #ff4444;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 68, 68, 0.3);
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 20px;
+        }
+        
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        .stat-card {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            border-color: rgba(212, 175, 55, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 3px;
+            height: 100%;
+            background: #d4af37;
+            opacity: 0.5;
+        }
+        
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #d4af37;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .stat-card.warning::before {
+            background: #ff8800;
+        }
+        
+        .stat-card.success::before {
+            background: #00c853;
+        }
+        
+        .stat-card.danger::before {
+            background: #ff4444;
+        }
+        
+        /* Quick Actions */
+        .actions-section {
+            padding: 0 20px 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #d4af37;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: #0a0a0a;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 14px;
+            padding: 18px;
+            text-decoration: none;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .action-btn:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .action-icon {
+            font-size: 30px;
+        }
+        
+        .action-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        /* Recent Reservations Table */
+        .reservations-section {
+            padding: 0 20px 20px;
+        }
+        
+        .table-container {
+            background: #0a0a0a;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .table-row {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: all 0.2s ease;
+        }
+        
+        .table-row:hover {
+            background: rgba(212, 175, 55, 0.03);
+        }
+        
+        .table-row:last-child {
+            border-bottom: none;
+        }
+        
+        .res-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+        
+        .res-status.pending { background: #ff8800; box-shadow: 0 0 6px #ff8800; }
+        .res-status.confirmed { background: #00c853; box-shadow: 0 0 6px #00c853; }
+        .res-status.cancelled { background: #ff4444; box-shadow: 0 0 6px #ff4444; }
+        
+        .res-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .res-product {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .res-meta {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+        
+        .res-price {
+            font-size: 13px;
+            font-weight: 700;
+            color: #d4af37;
+            margin-left: 10px;
+        }
+        
+        .view-all {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            color: #d4af37;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .view-all:hover {
+            background: rgba(212, 175, 55, 0.05);
+        }
+        
+        /* Empty state */
+        .empty-table {
+            text-align: center;
+            padding: 40px 20px;
+            color: rgba(255,255,255,0.3);
+        }
+        
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        /* Bottom padding for mobile */
+        .bottom-padding {
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="admin-header">
+        <div class="header-title">
+            <span class="logo">A</span>
+            <span class="text">أرين</span>
+            <span class="badge">ADMIN</span>
+        </div>
+        <a href="/admin/logout" class="logout-btn">🚪 خروج</a>
     </div>
-
-    <div class="admin-menu">
-        <a href="{{ url_for('admin_products') }}" class="admin-card">
-            <div class="card-gold-line"></div>
-            <span class="admin-icon">📦</span>
-            <span class="admin-label">المنتجات</span>
-            <span class="admin-desc">إضافة وتعديل المنتجات</span>
-        </a>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value">{{ stats.total_products }}</div>
+            <div class="stat-label">إجمالي المنتجات</div>
+        </div>
         
-        <a href="{{ url_for('admin_reservations') }}" class="admin-card">
-            <div class="card-gold-line"></div>
-            <span class="admin-icon">📋</span>
-            <span class="admin-label">الحجوزات</span>
-            <span class="admin-desc">تأكيد أو إلغاء الحجوزات</span>
-        </a>
+        <div class="stat-card warning">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value">{{ stats.pending_reservations }}</div>
+            <div class="stat-label">حجوزات معلقة</div>
+        </div>
         
-        <a href="{{ url_for('products') }}" class="admin-card">
-            <div class="card-gold-line"></div>
-            <span class="admin-icon">🏪</span>
-            <span class="admin-label">المتجر</span>
-            <span class="admin-desc">عرض المتجر كمستخدم</span>
-        </a>
+        <div class="stat-card success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ stats.confirmed_reservations }}</div>
+            <div class="stat-label">حجوزات مؤكدة</div>
+        </div>
         
-        <a href="{{ url_for('logout') }}" class="admin-card logout">
-            <div class="card-gold-line"></div>
-            <span class="admin-icon">🚪</span>
-            <span class="admin-label">خروج</span>
-            <span class="admin-desc">تسجيل الخروج</span>
-        </a>
+        <div class="stat-card danger">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-value">{{ stats.low_stock }}</div>
+            <div class="stat-label">منتجات منخفضة</div>
+        </div>
     </div>
-</div>
-{% endblock %}
+    
+    <!-- Quick Actions -->
+    <div class="actions-section">
+        <div class="section-header">
+            <div class="section-title">⚡ إجراءات سريعة</div>
+        </div>
+        <div class="actions-grid">
+            <a href="/admin/products" class="action-btn">
+                <span class="action-icon">➕</span>
+                <span class="action-text">إضافة منتج</span>
+            </a>
+            <a href="/admin/reservations" class="action-btn">
+                <span class="action-icon">📋</span>
+                <span class="action-text">الحجوزات</span>
+            </a>
+            <a href="/products" class="action-btn">
+                <span class="action-icon">🏪</span>
+                <span class="action-text">عرض المتجر</span>
+            </a>
+            <a href="/admin/reservations?status=pending" class="action-btn">
+                <span class="action-icon">🔔</span>
+                <span class="action-text">حجوزات جديدة</span>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Reservations -->
+    <div class="reservations-section">
+        <div class="section-header">
+            <div class="section-title">📋 آخر الحجوزات</div>
+        </div>
+        
+        <div class="table-container">
+            {% if reservations %}
+                {% for res in reservations %}
+                <div class="table-row">
+                    <span class="res-status {{ res.status }}"></span>
+                    <div class="res-info">
+                        <div class="res-product">{{ res.product_name }}</div>
+                        <div class="res-meta">
+                            {{ res.customer_name }} • {{ res.phone }} • {{ res.created_at[:10] if res.created_at else '' }}
+                        </div>
+                    </div>
+                    <div class="res-price">{{ res.price }} {{ res.currency }}</div>
+                </div>
+                {% endfor %}
+                <a href="/admin/reservations" class="view-all">عرض كل الحجوزات ←</a>
+            {% else %}
+                <div class="empty-table">
+                    <div class="empty-icon">📭</div>
+                    <div>لا توجد حجوزات حالياً</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="bottom-padding"></div>
+</body>
+</html>

@@ -1,100 +1,588 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product.name }} - {{ app_name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <a href="{{ url_for('products') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
-            <h1><i class="fas fa-mobile-alt"></i> تفاصيل المنتج</h1>
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - أرين{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-detail-page {
+        padding-bottom: 100px;
+    }
+    
+    /* Image Gallery */
+    .image-gallery {
+        position: relative;
+        width: 100%;
+        background: #0a0a0a;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .main-image {
+        width: 100%;
+        height: 350px;
+        object-fit: contain;
+        background: #0a0a0a;
+        display: block;
+    }
+    
+    /* Image overlay for zoom */
+    .image-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95);
+        z-index: 10000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    
+    .image-overlay.active {
+        display: flex;
+    }
+    
+    .image-overlay img {
+        max-width: 90%;
+        max-height: 80%;
+        object-fit: contain;
+    }
+    
+    .close-overlay {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        color: #fff;
+        font-size: 30px;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .zoom-hint {
+        position: absolute;
+        bottom: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255,255,255,0.5);
+        font-size: 12px;
+        background: rgba(0,0,0,0.6);
+        padding: 5px 15px;
+        border-radius: 20px;
+    }
+    
+    /* Badges on image */
+    .image-badges {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .img-badge {
+        padding: 5px 12px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+    
+    .img-badge.rare {
+        background: #d4af37;
+        color: #000;
+    }
+    
+    .img-badge.discount {
+        background: #e91e8c;
+        color: #fff;
+    }
+    
+    .img-badge.out {
+        background: #ff4444;
+        color: #fff;
+    }
+    
+    /* Product Info Section */
+    .info-section {
+        padding: 20px;
+    }
+    
+    .product-title {
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 8px;
+        line-height: 1.4;
+    }
+    
+    .product-meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .meta-tag {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        background: rgba(212, 175, 55, 0.1);
+        color: #d4af37;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+    }
+    
+    /* Price Block */
+    .price-block {
+        background: #0a0a0a;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .price-main {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+    
+    .price-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: #d4af37;
+    }
+    
+    .price-currency {
+        font-size: 16px;
+        color: rgba(212, 175, 55, 0.7);
+    }
+    
+    .price-original-line {
+        font-size: 14px;
+        color: rgba(255,255,255,0.3);
+        text-decoration: line-through;
+    }
+    
+    .savings {
+        font-size: 12px;
+        color: #e91e8c;
+        margin-top: 5px;
+    }
+    
+    /* Stock Status */
+    .stock-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .stock-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .stock-dot.in { background: #00cc66; box-shadow: 0 0 8px #00cc66; }
+    .stock-dot.low { background: #ff8800; box-shadow: 0 0 8px #ff8800; }
+    .stock-dot.out { background: #ff4444; box-shadow: 0 0 8px #ff4444; }
+    
+    .stock-text {
+        font-size: 13px;
+        color: rgba(255,255,255,0.6);
+    }
+    
+    /* Description */
+    .description-block {
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #d4af37;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .description-text {
+        font-size: 14px;
+        color: rgba(255,255,255,0.7);
+        line-height: 1.8;
+        text-align: justify;
+    }
+    
+    /* Reservation Form */
+    .reserve-section {
+        background: #0a0a0a;
+        border: 1px solid rgba(212, 175, 55, 0.15);
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .reserve-form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .form-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+        font-weight: 600;
+    }
+    
+    .form-input {
+        background: #111;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 12px 15px;
+        color: #fff;
+        font-family: 'Cairo', sans-serif;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+    
+    .form-input:focus {
+        border-color: #d4af37;
+        box-shadow: 0 0 10px rgba(212, 175, 55, 0.1);
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255,255,255,0.2);
+    }
+    
+    .btn-submit {
+        background: #d4af37;
+        color: #000;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-family: 'Cairo', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 5px;
+    }
+    
+    .btn-submit:hover {
+        background: #e8c547;
+        transform: scale(1.02);
+    }
+    
+    .btn-submit.disabled {
+        background: #333;
+        color: rgba(255,255,255,0.3);
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    
+    /* WhatsApp Note */
+    .wa-note {
+        background: rgba(37, 211, 102, 0.1);
+        border: 1px solid rgba(37, 211, 102, 0.2);
+        border-radius: 10px;
+        padding: 10px;
+        font-size: 12px;
+        color: rgba(37, 211, 102, 0.8);
+        text-align: center;
+        margin-top: 5px;
+    }
+    
+    /* Related Products */
+    .related-section {
+        padding: 0 20px 20px;
+    }
+    
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .related-card {
+        background: #0a0a0a;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        overflow: hidden;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .related-card:hover {
+        border-color: rgba(212, 175, 55, 0.2);
+    }
+    
+    .related-img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        background: #111;
+    }
+    
+    .related-info {
+        padding: 10px;
+    }
+    
+    .related-name {
+        font-size: 12px;
+        color: #fff;
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .related-price {
+        font-size: 14px;
+        font-weight: 700;
+        color: #d4af37;
+    }
+    
+    /* Back Button */
+    .back-btn {
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 1000;
+        background: rgba(0,0,0,0.7);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 18px;
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Admin Actions */
+    .admin-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .btn-admin {
+        flex: 1;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        font-family: 'Cairo', sans-serif;
+    }
+    
+    .btn-admin.edit {
+        background: rgba(212, 175, 55, 0.2);
+        color: #d4af37;
+        border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    
+    .btn-admin.delete {
+        background: rgba(255, 68, 68, 0.2);
+        color: #ff4444;
+        border: 1px solid rgba(255, 68, 68, 0.3);
+    }
+    
+    /* Reserved overlay */
+    .reserved-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 5;
+        border-radius: 16px;
+    }
+    
+    .reserved-icon {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+    
+    .reserved-text {
+        color: #d4af37;
+        font-size: 16px;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/products" class="back-btn">←</a>
+
+<div class="product-detail-page">
+    <!-- Image Gallery -->
+    <div class="image-gallery" onclick="toggleZoom()">
+        <img src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='uploads/default.jpg') }}" 
+             class="main-image" alt="{{ product.name }}" id="mainImage">
+        
+        <div class="image-badges">
+            {% if product.is_rare %}
+            <span class="img-badge rare">🏆 قطعة نادرة</span>
+            {% endif %}
+            {% if product.original_price and product.original_price > product.price %}
+            <span class="img-badge discount">
+                خصم {{ ((product.original_price - product.price) / product.original_price * 100)|int }}%
+            </span>
+            {% endif %}
+            {% if product.stock <= 0 %}
+            <span class="img-badge out">❌ نفذت الكمية</span>
+            {% endif %}
         </div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
-            {% endfor %}
+        
+        <div class="zoom-hint">🔍 اضغط لتكبير الصورة</div>
+    </div>
+    
+    <!-- Zoom Overlay -->
+    <div class="image-overlay" id="imageOverlay" onclick="toggleZoom()">
+        <button class="close-overlay">✕</button>
+        <img src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='uploads/default.jpg') }}" 
+             alt="{{ product.name }}">
+    </div>
+    
+    <!-- Info Section -->
+    <div class="info-section">
+        <h1 class="product-title">{{ product.name }}</h1>
+        
+        <div class="product-meta">
+            <span class="meta-tag">{{ product.category }}</span>
+            {% if product.is_rare %}
+            <span class="meta-tag">🏆 نادر</span>
+            {% endif %}
+        </div>
+        
+        <!-- Admin Actions -->
+        {% if is_admin %}
+        <div class="admin-actions">
+            <button class="btn-admin edit" onclick="showEditModal()">✏️ تعديل</button>
+            <a href="/admin/product/delete/{{ product.id }}" class="btn-admin delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">🗑️ حذف</a>
         </div>
         {% endif %}
-        {% endwith %}
-
-        <div class="card">
-            {% if images %}
-            <img src="{{ url_for('static', filename=images[0]) }}" class="main-image" id="mainImg" onclick="openLightbox('{{ url_for('static', filename=images[0]) }}')">
-            {% if images|length > 1 %}
-            <div class="image-gallery">
-                {% for img in images %}
-                <img src="{{ url_for('static', filename=img) }}" class="gallery-img {% if loop.first %}active{% endif %}" onclick="changeMain('{{ url_for('static', filename=img) }}', this)">
-                {% endfor %}
+        
+        <!-- Price -->
+        <div class="price-block">
+            <div class="price-main">
+                <span class="price-value">{{ product.price }}</span>
+                <span class="price-currency">{{ product.currency }}</span>
             </div>
+            {% if product.original_price and product.original_price > product.price %}
+            <div class="price-original-line">{{ product.original_price }} {{ product.currency }}</div>
+            <div class="savings">💰 وفرت {{ (product.original_price - product.price)|round(2) }} {{ product.currency }}</div>
             {% endif %}
-            {% endif %}
-
-            <h2 style="color: var(--gold); margin-bottom: 10px;">{{ product.name }}</h2>
-            <div style="margin-bottom: 15px;">
-                {% if product.original_price and product.original_price > product.price %}
-                <span class="product-original" style="font-size: 1.1rem;">{{ product.original_price }} {{ product.currency }}</span>
-                {% endif %}
-                <span class="product-price" style="font-size: 1.5rem;">{{ product.price }} {{ product.currency }}</span>
+            
+            <div class="stock-status">
+                <span class="stock-dot {% if product.stock > 5 %}in{% elif product.stock > 0 %}low{% else %}out{% endif %}"></span>
+                <span class="stock-text">
+                    {% if product.stock > 5 %}✅ متوفر - {{ product.stock }} قطع
+                    {% elif product.stock > 0 %}⚠️ باقي {{ product.stock }} فقط
+                    {% else %}❌ نفذت الكمية
+                    {% endif %}
+                </span>
             </div>
-            <p style="color: var(--text-muted); line-height: 1.7; margin-bottom: 20px;">{{ product.description or 'لا يوجد وصف' }}</p>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <span class="status-badge status-pending">{{ product.category }}</span>
-                {% if product.is_rare %}<span class="status-badge" style="background: rgba(212,175,55,0.2); color: var(--gold);">نادر</span>{% endif %}
-                <span class="status-badge" style="background: rgba(0,176,255,0.2); color: var(--info);">المخزون: {{ product.stock }}</span>
-            </div>
-
-            {% if product.confirmed %}
-            <div class="flash flash-error" style="margin-bottom: 15px;"><i class="fas fa-lock"></i> هذا المنتج تم حجزه ولا يمكن شراؤه</div>
-            {% elif session.get('user_id') and not session.get('is_admin') %}
-            <form method="POST" action="{{ url_for('buy_product', pid=product.id) }}">
+        </div>
+        
+        <!-- Description -->
+        {% if product.description %}
+        <div class="description-block">
+            <div class="section-title">📋 الوصف</div>
+            <div class="description-text">{{ product.description }}</div>
+        </div>
+        {% endif %}
+        
+        <!-- Reservation -->
+        <div class="reserve-section" id="reserve">
+            <div class="section-title">🛒 احجز الآن</div>
+            
+            {% if product.stock > 0 %}
+            <form class="reserve-form" action="/reserve" method="POST">
+                <input type="hidden" name="product_id" value="{{ product.id }}">
+                
                 <div class="form-group">
-                    <label><i class="fas fa-user"></i> الاسم</label>
-                    <input type="text" name="name" value="{{ session.get('user_name','') }}" required>
+                    <label class="form-label">👤 الاسم الكامل</label>
+                    <input type="text" name="customer_name" class="form-input" placeholder="أدخل اسمك" required>
                 </div>
+                
                 <div class="form-group">
-                    <label><i class="fas fa-phone"></i> الرقم</label>
-                    <input type="tel" name="phone" value="{{ session.get('user_phone','') }}" required pattern="[0-9]{9}">
+                    <label class="form-label">📞 رقم الهاتف</label>
+                    <input type="tel" name="phone" class="form-input" placeholder="مثال: 773852062" required>
                 </div>
-                <div class="form-group">
-                    <label><i class="fas fa-map-marker-alt"></i> العنوان</label>
-                    <input type="text" name="address" placeholder="عنوان التوصيل" required>
+                
+                <button type="submit" class="btn-submit">
+                    📱 تواصل عبر واتساب
+                </button>
+                
+                <div class="wa-note">
+                    📲 سيتم توجيهك مباشرة لواتساب العامل لإتمام الحجز
                 </div>
-                <button type="submit" class="btn btn-gold"><i class="fab fa-whatsapp"></i> طلب الشراء</button>
             </form>
-            {% elif not session.get('user_id') %}
-            <a href="{{ url_for('login') }}" class="btn btn-dark"><i class="fas fa-sign-in-alt"></i> سجل دخول للشراء</a>
+            {% else %}
+            <button class="btn-submit disabled" disabled>
+                ❌ هذا المنتج غير متوفر حالياً
+            </button>
+            <div class="wa-note" style="background:rgba(255,68,68,0.1);border-color:rgba(255,68,68,0.2);color:rgba(255,68,68,0.8);">
+                🔔 سيتم إشعارك عند توفر المنتج
+            </div>
             {% endif %}
         </div>
-
-        <div class="footer">
-            <p class="dev-name">الهاشمي محمد</p>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related %}
+    <div class="related-section">
+        <div class="section-title">🎯 منتجات مشابهة</div>
+        <div class="related-grid">
+            {% for r in related %}
+            <a href="/product/{{ r.id }}" class="related-card">
+                <img src="{{ url_for('static', filename=r.image) if r.image else url_for('static', filename='uploads/default.jpg') }}" 
+                     class="related-img" alt="{{ r.name }}">
+                <div class="related-info">
+                    <div class="related-name">{{ r.name }}</div>
+                    <div class="related-price">{{ r.price }} {{ r.currency }}</div>
+                </div>
+            </a>
+            {% endfor %}
         </div>
     </div>
+    {% endif %}
+</div>
 
-    <div class="lightbox" id="lightbox">
-        <button class="lightbox-close" onclick="closeLightbox()"><i class="fas fa-times"></i></button>
-        <img src="" id="lightboxImg">
-    </div>
-
-    <script>
-        function changeMain(src, el) {
-            document.getElementById('mainImg').src = src;
-            document.querySelectorAll('.gallery-img').forEach(img => img.classList.remove('active'));
-            el.classList.add('active');
-        }
-        function openLightbox(src) {
-            document.getElementById('lightboxImg').src = src;
-            document.getElementById('lightbox').classList.add('active');
-        }
-        function closeLightbox() {
-            document.getElementById('lightbox').classList.remove('active');
-        }
-    </script>
-</body>
-</html>
+<script>
+    function toggleZoom() {
+        document.getElementById('imageOverlay').classList.toggle('active');
+    }
+</script>
+{% endblock %}

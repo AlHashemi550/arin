@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>أرين - AREEN</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #0a0a0a;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        .splash-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            animation: fadeOut 1s ease-in-out 3.5s forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        
+        /* Background phones */
+        .bg-phones {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+        }
+        
+        .phone-left, .phone-right {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            opacity: 0.15;
+            filter: blur(1px);
+        }
+        
+        .phone-left {
+            top: 10%;
+            left: -30px;
+            transform: rotate(-15deg);
+            animation: floatLeft 4s ease-in-out infinite;
+        }
+        
+        .phone-right {
+            top: 10%;
+            right: -30px;
+            transform: rotate(15deg);
+            animation: floatRight 4s ease-in-out infinite;
+        }
+        
+        @keyframes floatLeft {
+            0%, 100% { transform: rotate(-15deg) translateY(0); }
+            50% { transform: rotate(-15deg) translateY(-15px); }
+        }
+        
+        @keyframes floatRight {
+            0%, 100% { transform: rotate(15deg) translateY(0); }
+            50% { transform: rotate(15deg) translateY(-15px); }
+        }
+        
+        /* Light beam from top */
+        .light-beam {
+            position: absolute;
+            top: -50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 100%;
+            background: linear-gradient(180deg, 
+                rgba(212, 175, 55, 0.3) 0%, 
+                rgba(212, 175, 55, 0.05) 50%, 
+                transparent 100%);
+            filter: blur(40px);
+            z-index: 2;
+            animation: beamPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes beamPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Main content */
+        .content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            animation: contentFadeIn 1.5s ease-out;
+        }
+        
+        @keyframes contentFadeIn {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Big A letter */
+        .big-letter {
+            font-size: 180px;
+            font-weight: 800;
+            color: #d4af37;
+            text-shadow: 
+                0 0 20px rgba(212, 175, 55, 0.5),
+                0 0 40px rgba(212, 175, 55, 0.3),
+                0 0 80px rgba(212, 175, 55, 0.1);
+            line-height: 1;
+            margin-bottom: 10px;
+            animation: letterGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes letterGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(212, 175, 55, 0.5), 0 0 40px rgba(212, 175, 55, 0.3); }
+            50% { text-shadow: 0 0 30px rgba(212, 175, 55, 0.8), 0 0 60px rgba(212, 175, 55, 0.5), 0 0 100px rgba(212, 175, 55, 0.2); }
+        }
+        
+        /* Welcome text */
+        .welcome-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            font-weight: 300;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+        
+        /* AREEN name */
+        .areen-name {
+            font-size: 52px;
+            font-weight: 700;
+            color: #d4af37;
+            margin-bottom: 5px;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+        }
+        
+        /* Subtitle */
+        .subtitle {
+            color: rgba(212, 175, 55, 0.6);
+            font-size: 16px;
+            font-weight: 400;
+            margin-bottom: 20px;
+        }
+        
+        /* English AREEN */
+        .areen-en {
+            font-size: 28px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.5);
+            letter-spacing: 8px;
+            margin-bottom: 25px;
+        }
+        
+        /* Description */
+        .desc {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+            font-weight: 300;
+            margin-bottom: 8px;
+        }
+        
+        .cta {
+            color: #d4af37;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 10px;
+            animation: ctaPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes ctaPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        
+        /* Loading bar */
+        .loading-bar {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .loading-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            background: #d4af37;
+            animation: loadProgress 3.5s ease-out forwards;
+        }
+        
+        @keyframes loadProgress {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+        
+        /* SVG Phone icons as background */
+        .phone-icon-left, .phone-icon-right {
+            position: absolute;
+            width: 120px;
+            height: 240px;
+            opacity: 0.08;
+            z-index: 1;
+        }
+        
+        .phone-icon-left { top: 15%; left: 5%; }
+        .phone-icon-right { top: 15%; right: 5%; }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .big-letter { font-size: 140px; }
+            .areen-name { font-size: 42px; }
+            .areen-en { font-size: 22px; letter-spacing: 6px; }
+            .phone-left, .phone-right { width: 150px; }
+        }
+    </style>
+    <script>
+        setTimeout(function() {
+            window.location.href = '/products';
+        }, 4000);
+    </script>
+</head>
+<body>
+    <div class="splash-container" id="splash">
+        <div class="light-beam"></div>
+        
+        <!-- Background phone silhouettes -->
+        <svg class="phone-icon-left" viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="5" width="80" height="190" rx="12" stroke="white" stroke-width="2"/>
+            <rect x="20" y="20" width="60" height="140" rx="4" stroke="white" stroke-width="1"/>
+            <circle cx="50" cy="175" r="8" stroke="white" stroke-width="1"/>
+            <rect x="35" y="8" width="30" height="3" rx="1.5" fill="white"/>
+        </svg>
+        
+        <svg class="phone-icon-right" viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="5" width="80" height="190" rx="15" stroke="white" stroke-width="2"/>
+            <rect x="18" y="25" width="64" height="130" rx="4" stroke="white" stroke-width="1"/>
+            <circle cx="50" cy="170" r="6" stroke="white" stroke-width="1"/>
+            <rect x="30" y="10" width="40" height="4" rx="2" fill="white"/>
+        </svg>
+        
+        <div class="content">
+            <div class="big-letter">A</div>
+            <div class="welcome-text">أهلاً بكم في</div>
+            <div class="areen-name">أرين</div>
+            <div class="subtitle">متجركم الذكي</div>
+            <div class="areen-en">A R E E N</div>
+            <div class="desc">هنا ستجد كل ما يحتاجه هاتفك</div>
+            <div class="cta">اختيارك الأفضل</div>
+        </div>
+        
+        <div class="loading-bar"></div>
+    </div>
+</body>
+</html>

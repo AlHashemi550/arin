@@ -1,75 +1,167 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>برمجة الجوالات - {{ app_name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
-            <h1><i class="fas fa-code"></i> برمجة الجوالات</h1>
-        </div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+{% extends "base.html" %}
 
-        <div class="contact-card">
-            <i class="fas fa-laptop-code"></i>
-            <div>
-                <h3>المبرمج محمد</h3>
-                <p>مختص برمجة وسوفت وير</p>
-                <a href="tel:+967783234925" class="phone-link"><i class="fas fa-phone"></i> 783234925</a>
-            </div>
-        </div>
+{% block title %}البرمجة - أرين{% endblock %}
 
-        <div class="form-container">
-            <form method="POST" action="{{ url_for('programming_book') }}">
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> الاسم</label>
-                    <input type="text" name="name" placeholder="اسمك" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
-                    <input type="tel" name="phone" placeholder="رقمك" required pattern="[0-9]{9}">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-list"></i> نوع الخدمة</label>
-                    <select name="service" required>
-                        <option value="">اختر الخدمة</option>
-                        <option value="فلاش">فلاش (تفليش)</option>
-                        <option value="فك شفرة">فك شفرة</option>
-                        <option value="تخطي حساب">تخطي حساب Google/Apple</option>
-                        <option value="تعريب">تعريب الجهاز</option>
-                        <option value="روت">عمل روت</option>
-                        <option value="استرجاع">استرجاع بيانات</option>
-                        <option value="أخرى">أخرى</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-comment"></i> التفاصيل</label>
-                    <textarea name="details" rows="3" placeholder="تفاصيل إضافية..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-gold"><i class="fab fa-whatsapp"></i> طلب برمجة عبر واتساب</button>
-            </form>
-        </div>
+{% block extra_css %}
+<style>
+    .service-page {
+        padding: 20px;
+        padding-bottom: 100px;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-top: 20px;
+    }
+    
+    .page-icon {
+        font-size: 60px;
+        margin-bottom: 10px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #d4af37;
+        margin-bottom: 5px;
+    }
+    
+    .page-subtitle {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .service-card {
+        background: #0a0a0a;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: #fff;
+        display: block;
+    }
+    
+    .service-card:hover {
+        border-color: rgba(212, 175, 55, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+    }
+    
+    .service-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+    
+    .service-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    
+    .service-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+        line-height: 1.6;
+    }
+    
+    .programmer-info {
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid rgba(212, 175, 55, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .programmer-avatar {
+        font-size: 50px;
+        margin-bottom: 10px;
+    }
+    
+    .programmer-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #d4af37;
+        margin-bottom: 5px;
+    }
+    
+    .programmer-title {
+        font-size: 13px;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 15px;
+    }
+    
+    .wa-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #25d366;
+        color: #fff;
+        padding: 12px 25px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .wa-btn:hover {
+        background: #128c7e;
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
 
-        <div class="footer">
-            <p class="dev-name">الهاشمي محمد</p>
-            <div class="social-links">
-                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
+{% block content %}
+<div class="service-page">
+    <div class="page-header">
+        <div class="page-icon">💻</div>
+        <div class="page-title">خدمات البرمجة</div>
+        <div class="page-subtitle">برمجة احترافية لجميع الأجهزة</div>
     </div>
-</body>
-</html>
+    
+    <a href="https://wa.me/967{{ programming_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *تفليش نظام* ⚡%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:" class="service-card">
+        <div class="service-icon">⚡</div>
+        <div class="service-name">تفليش نظام</div>
+        <div class="service-desc">تنزيل نظام أصلي أو معدل مع الحفاظ على البيانات</div>
+    </a>
+    
+    <a href="https://wa.me/967{{ programming_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *تفعيل 4G* 📡%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:" class="service-card">
+        <div class="service-icon">📡</div>
+        <div class="service-name">تفعيل 4G</div>
+        <div class="service-desc">تفعيل خدمة 4G LTE على الأجهزة المدعومة</div>
+    </a>
+    
+    <a href="https://wa.me/967{{ programming_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *تفعيل VoLTE* 📶%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:" class="service-card">
+        <div class="service-icon">📶</div>
+        <div class="service-name">تفعيل VoLTE</div>
+        <div class="service-desc">تفعيل مكالمات عبر 4G بجودة عالية</div>
+    </a>
+    
+    <a href="https://wa.me/967{{ programming_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *فك حظر واتساب* 🔓%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:" class="service-card">
+        <div class="service-icon">🔓</div>
+        <div class="service-name">فك حظر واتساب</div>
+        <div class="service-desc">حل مشاكل الحظر والقيود على واتساب</div>
+    </a>
+    
+    <a href="https://wa.me/967{{ programming_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *برمجة أخرى* 🛠️%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:%0A💻 الخدمة المطلوبة:" class="service-card">
+        <div class="service-icon">🛠️</div>
+        <div class="service-name">خدمات أخرى</div>
+        <div class="service-desc">فك شفرات، تخطي حسابات، صيانة برمجية متنوعة</div>
+    </a>
+    
+    <div class="programmer-info">
+        <div class="programmer-avatar">👨‍💻</div>
+        <div class="programmer-name">المبرمج محمد الهاشمي</div>
+        <div class="programmer-title">مختص برمجة جوالات</div>
+        <a href="https://wa.me/967{{ programming_phone }}" class="wa-btn" target="_blank">
+            💬 تواصل عبر واتساب
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,252 +1,510 @@
 {% extends "base.html" %}
 
-{% block title %}المتجر{% endblock %}
-{% block header_title %}المتجر{% endblock %}
+{% block title %}المتجر - أرين{% endblock %}
 
-{% block content %}
+{% block extra_css %}
 <style>
+    /* Hero Section */
+    .hero-section {
+        background: #0a0a0a;
+        padding: 15px 0;
+        text-align: center;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    }
+    
+    .hero-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #d4af37;
+        margin-bottom: 5px;
+    }
+    
+    .hero-subtitle {
+        font-size: 12px;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    /* Search & Filter Bar */
+    .search-filter-bar {
+        padding: 12px 15px;
+        background: #000;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+    }
+    
     .search-box {
         display: flex;
-        gap: 10px;
-        margin-bottom: 20px;
+        align-items: center;
+        background: #0a0a0a;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 25px;
+        padding: 8px 15px;
+        margin-bottom: 10px;
     }
+    
     .search-box input {
         flex: 1;
-        padding: 12px 16px;
-        background: #0a0a0a;
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        border-radius: 50px;
+        background: transparent;
+        border: none;
         color: #fff;
+        font-family: 'Cairo', sans-serif;
         font-size: 14px;
         outline: none;
+        text-align: right;
     }
+    
     .search-box input::placeholder {
-        color: #666;
+        color: rgba(255,255,255,0.3);
     }
-    .search-box button {
-        padding: 12px 20px;
-        background: linear-gradient(135deg, #d4af37, #aa8c2c);
-        border: none;
-        border-radius: 50px;
-        color: #000;
-        font-weight: 700;
-        cursor: pointer;
+    
+    .search-icon {
+        color: #d4af37;
+        font-size: 18px;
+        margin-left: 10px;
     }
-    .categories {
+    
+    /* Category Chips */
+    .category-chips {
         display: flex;
         gap: 8px;
         overflow-x: auto;
-        margin-bottom: 20px;
         padding-bottom: 5px;
+        scrollbar-width: none;
     }
-    .categories::-webkit-scrollbar {
+    
+    .category-chips::-webkit-scrollbar {
         display: none;
     }
-    .cat-btn {
-        padding: 8px 16px;
-        background: rgba(212, 175, 55, 0.1);
-        border: 1px solid rgba(212, 175, 55, 0.3);
-        border-radius: 50px;
-        color: #d4af37;
+    
+    .chip {
+        flex-shrink: 0;
+        padding: 6px 16px;
+        border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
-        white-space: nowrap;
         cursor: pointer;
-        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        background: #0a0a0a;
+        color: rgba(255,255,255,0.6);
+        white-space: nowrap;
     }
-    .cat-btn.active {
-        background: linear-gradient(135deg, #d4af37, #aa8c2c);
+    
+    .chip.active, .chip:hover {
+        background: #d4af37;
         color: #000;
+        border-color: #d4af37;
     }
+    
+    /* Products Grid */
+    .products-container {
+        padding: 15px;
+        padding-bottom: 100px;
+    }
+    
     .products-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 12px;
     }
+    
+    @media (min-width: 768px) {
+        .products-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .products-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+    
+    /* Product Card */
     .product-card {
         background: #0a0a0a;
-        border: 1px solid rgba(212, 175, 55, 0.2);
+        border: 1px solid rgba(255,255,255,0.05);
         border-radius: 16px;
         overflow: hidden;
+        transition: all 0.3s ease;
         position: relative;
     }
-    .product-card::before {
-        content: '';
+    
+    .product-card:hover, .product-card:active {
+        transform: translateY(-3px);
+        border-color: rgba(212, 175, 55, 0.3);
+        box-shadow: 0 8px 25px rgba(212, 175, 55, 0.1);
+    }
+    
+    .product-image-wrap {
+        position: relative;
+        width: 100%;
+        padding-top: 100%; /* 1:1 aspect ratio */
+        overflow: hidden;
+        background: #111;
+    }
+    
+    .product-image-wrap img {
         position: absolute;
         top: 0;
         left: 0;
-        right: 0;
-        height: 2px;
-        background: linear-gradient(90deg, transparent, #d4af37, transparent);
-    }
-    .product-img {
-        width: 100%;
-        height: 140px;
-        object-fit: cover;
-        background: #111;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #333;
-        font-size: 40px;
-    }
-    .product-img img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.4s ease;
     }
+    
+    .product-card:hover .product-image-wrap img {
+        transform: scale(1.05);
+    }
+    
+    /* Badges */
+    .badge-rare {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: #d4af37;
+        color: #000;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 8px;
+        z-index: 2;
+    }
+    
+    .badge-out {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.85);
+        color: #ff4444;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 8px 16px;
+        border-radius: 8px;
+        z-index: 2;
+        border: 1px solid #ff4444;
+    }
+    
+    .discount-badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: #e91e8c;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 8px;
+        z-index: 2;
+    }
+    
+    /* Product Info */
     .product-info {
         padding: 12px;
     }
+    
     .product-name {
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 600;
         color: #fff;
         margin-bottom: 6px;
-        line-height: 1.3;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
-    .product-price {
+    
+    .product-category {
+        font-size: 10px;
+        color: rgba(212, 175, 55, 0.7);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .price-row {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin-bottom: 8px;
+        justify-content: space-between;
+        margin-bottom: 10px;
     }
+    
     .price-current {
         font-size: 16px;
-        font-weight: 900;
+        font-weight: 700;
         color: #d4af37;
     }
-    .price-old {
+    
+    .price-original {
         font-size: 12px;
-        color: #666;
+        color: rgba(255,255,255,0.3);
         text-decoration: line-through;
     }
-    .rare-badge {
-        display: inline-block;
-        padding: 2px 8px;
-        background: rgba(212, 175, 55, 0.2);
-        border: 1px solid rgba(212, 175, 55, 0.4);
-        border-radius: 50px;
-        font-size: 10px;
-        color: #d4af37;
-        margin-bottom: 8px;
-    }
+    
+    /* Action Buttons */
     .product-actions {
         display: flex;
         gap: 6px;
     }
-    .btn-sm {
+    
+    .btn-reserve {
         flex: 1;
-        padding: 8px;
-        border-radius: 50px;
-        font-size: 11px;
-        font-weight: 700;
+        background: #d4af37;
+        color: #000;
         border: none;
+        padding: 8px;
+        border-radius: 10px;
+        font-family: 'Cairo', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
         cursor: pointer;
+        transition: all 0.3s ease;
         text-align: center;
         text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
     }
-    .btn-reserve {
-        background: linear-gradient(135deg, #d4af37, #aa8c2c);
-        color: #000;
+    
+    .btn-reserve:hover {
+        background: #e8c547;
+        transform: scale(1.02);
     }
-    .btn-notify {
-        background: rgba(239, 68, 68, 0.2);
-        border: 1px solid rgba(239, 68, 68, 0.4);
-        color: #f87171;
+    
+    .btn-reserve.disabled {
+        background: #333;
+        color: rgba(255,255,255,0.3);
+        cursor: not-allowed;
+        pointer-events: none;
     }
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-        color: #666;
-    }
-    .empty-state-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
-        opacity: 0.3;
-    }
-    .delete-btn {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        background: rgba(239, 68, 68, 0.8);
-        border: none;
-        color: #fff;
-        font-size: 14px;
-        cursor: pointer;
+    
+    .btn-view {
+        width: 36px;
+        height: 36px;
+        background: rgba(212, 175, 55, 0.1);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        color: #d4af37;
+        border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        z-index: 5;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        font-size: 16px;
     }
+    
+    .btn-view:hover {
+        background: rgba(212, 175, 55, 0.2);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255,255,255,0.3);
+    }
+    
+    .empty-icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+        opacity: 0.5;
+    }
+    
+    .empty-text {
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+    
+    /* Admin Quick Access */
+    .admin-bar {
+        background: rgba(212, 175, 55, 0.1);
+        border: 1px solid rgba(212, 175, 55, 0.2);
+        border-radius: 12px;
+        padding: 10px 15px;
+        margin: 10px 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .admin-bar span {
+        color: #d4af37;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .admin-bar a {
+        color: #d4af37;
+        font-size: 12px;
+        text-decoration: none;
+        padding: 4px 12px;
+        border: 1px solid #d4af37;
+        border-radius: 8px;
+    }
+    
+    /* Currency Filter */
+    .currency-filter {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .currency-chip {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: transparent;
+        color: rgba(255,255,255,0.5);
+    }
+    
+    .currency-chip.active {
+        background: rgba(212, 175, 55, 0.2);
+        color: #d4af37;
+        border-color: #d4af37;
+    }
+    
+    /* Delete button for admin */
+    .btn-delete {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(255, 68, 68, 0.9);
+        color: #fff;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        font-size: 14px;
+        cursor: pointer;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Stock indicator */
+    .stock-indicator {
+        font-size: 10px;
+        color: rgba(255,255,255,0.4);
+        margin-top: 4px;
+    }
+    
+    .stock-low { color: #ff8800; }
+    .stock-out { color: #ff4444; }
 </style>
+{% endblock %}
 
-<div class="search-box">
-    <form action="{{ url_for('products') }}" method="get" style="display:flex; gap:10px; width:100%;">
-        <input type="text" name="search" placeholder="ابحث عن منتج..." value="{{ search }}">
-        <button type="submit">🔍</button>
-    </form>
+{% block content %}
+<!-- Hero -->
+<div class="hero-section">
+    <div class="hero-title">🏪 المتجر</div>
+    <div class="hero-subtitle">{{ shop_name }}</div>
 </div>
 
-<div class="categories">
-    <a href="{{ url_for('products') }}" class="cat-btn {% if not current_category %}active{% endif %}">الكل</a>
-    {% for cat in categories %}
-    <a href="{{ url_for('products', category=cat.category) }}" class="cat-btn {% if current_category == cat.category %}active{% endif %}">{{ cat.category }}</a>
-    {% endfor %}
-</div>
-
-{% if products %}
-<div class="products-grid">
-    {% for product in products %}
-    <div class="product-card">
-        {% if session.get('is_admin') %}
-        <form action="{{ url_for('delete_product', id=product.id) }}" method="post" onsubmit="return confirm('حذف المنتج نهائياً؟')">
-            <button type="submit" class="delete-btn">🗑️</button>
-        </form>
-        {% endif %}
-        
-        <div class="product-img">
-            {% if product.image %}
-            <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
-            {% else %}
-            📦
-            {% endif %}
-        </div>
-        <div class="product-info">
-            {% if product.is_rare %}
-            <div class="rare-badge">🏆 قطعة نادرة</div>
-            {% endif %}
-            <div class="product-name">{{ product.name }}</div>
-            <div class="product-price">
-                <span class="price-current">{{ product.price }} {{ product.currency or 'ر.ي' }}</span>
-                {% if product.original_price %}
-                <span class="price-old">{{ product.original_price }}</span>
-                {% endif %}
-            </div>
-            <div class="product-actions">
-                {% if product.stock > 0 %}
-                <form action="{{ url_for('reserve') }}" method="post" style="flex:1;">
-                    <input type="hidden" name="product_id" value="{{ product.id }}">
-                    <button type="submit" class="btn-sm btn-reserve">احجز الآن</button>
-                </form>
-                {% else %}
-                <form action="{{ url_for('notify_me') }}" method="post" style="flex:1;">
-                    <input type="hidden" name="product_name" value="{{ product.name }}">
-                    <button type="submit" class="btn-sm btn-notify">🔔 نبهني</button>
-                </form>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-</div>
-{% else %}
-<div class="empty-state">
-    <div class="empty-state-icon">📦</div>
-    <div>لا توجد منتجات حالياً</div>
+<!-- Admin Quick Access (only for admin) -->
+{% if is_admin %}
+<div class="admin-bar">
+    <span>👑 لوحة التحكم</span>
+    <a href="/admin/dashboard">الدخول</a>
 </div>
 {% endif %}
+
+<!-- Search & Filter -->
+<div class="search-filter-bar">
+    <form action="/products" method="get" style="margin:0;">
+        <div class="search-box">
+            <input type="text" name="search" placeholder="ابحث عن منتج..." value="{{ search }}">
+            <span class="search-icon">🔍</span>
+        </div>
+    </form>
+    
+    <div class="category-chips">
+        <a href="/products" class="chip {% if current_category == 'all' %}active{% endif %}">الكل</a>
+        {% for cat in categories %}
+        <a href="/products?category={{ cat }}&search={{ search }}" class="chip {% if current_category == cat %}active{% endif %}">{{ cat }}</a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Products Grid -->
+<div class="products-container">
+    {% if products %}
+    <div class="products-grid">
+        {% for product in products %}
+        <div class="product-card">
+            {% if product.is_rare %}
+            <span class="badge-rare">🏆 نادر</span>
+            {% endif %}
+            
+            {% if product.original_price and product.original_price > product.price %}
+            <span class="discount-badge">
+                -{{ ((product.original_price - product.price) / product.original_price * 100)|int }}%
+            </span>
+            {% endif %}
+            
+            {% if is_admin %}
+            <a href="/admin/product/delete/{{ product.id }}" class="btn-delete" onclick="return confirm('هل أنت متأكد من حذف هذا المنتج؟')">🗑️</a>
+            {% endif %}
+            
+            <div class="product-image-wrap">
+                <img src="{{ url_for('static', filename=product.image) if product.image else url_for('static', filename='uploads/default.jpg') }}" 
+                     alt="{{ product.name }}" loading="lazy">
+                {% if product.stock <= 0 %}
+                <div class="badge-out">❌ نفذت الكمية</div>
+                {% endif %}
+            </div>
+            
+            <div class="product-info">
+                <div class="product-category">{{ product.category }}</div>
+                <div class="product-name">{{ product.name }}</div>
+                
+                <div class="price-row">
+                    <span class="price-current">{{ product.price }} {{ product.currency }}</span>
+                    {% if product.original_price and product.original_price > product.price %}
+                    <span class="price-original">{{ product.original_price }} {{ product.currency }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="stock-indicator {% if product.stock <= 2 and product.stock > 0 %}stock-low{% elif product.stock <= 0 %}stock-out{% endif %}">
+                    {% if product.stock > 5 %}✅ متوفر ({{ product.stock }})
+                    {% elif product.stock > 0 %}⚠️ باقي {{ product.stock }}
+                    {% else %}❌ غير متوفر
+                    {% endif %}
+                </div>
+                
+                <div class="product-actions" style="margin-top:10px;">
+                    <a href="/product/{{ product.id }}" class="btn-view">👁️</a>
+                    
+                    {% if product.stock > 0 %}
+                    <a href="/product/{{ product.id }}#reserve" class="btn-reserve">
+                        🛒 احجز الآن
+                    </a>
+                    {% else %}
+                    <button class="btn-reserve disabled" disabled>
+                        ❌ غير متوفر
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-text">لا توجد منتجات حالياً</div>
+        <p style="font-size:12px;">سيتم إضافة منتجات جديدة قريباً</p>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

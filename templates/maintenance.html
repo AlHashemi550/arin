@@ -1,66 +1,155 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صيانة الجوالات - {{ app_name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <a href="{{ url_for('index') }}" class="back-btn"><i class="fas fa-arrow-right"></i></a>
-            <h1><i class="fas fa-tools"></i> صيانة الجوالات</h1>
-        </div>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        <div class="flash-messages">
-            {% for category, message in messages %}
-            <div class="flash flash-{{ category }}"><i class="fas fa-info-circle"></i> {{ message }}</div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% endwith %}
+{% extends "base.html" %}
 
-        <div class="contact-card">
-            <i class="fas fa-wrench"></i>
-            <div>
-                <h3>المهندس راشد</h3>
-                <p>فني صيانة متخصص</p>
-                <a href="tel:+967779505979" class="phone-link"><i class="fas fa-phone"></i> 779505979</a>
-            </div>
-        </div>
+{% block title %}الصيانة - أرين{% endblock %}
 
-        <div class="form-container">
-            <form method="POST" action="{{ url_for('maintenance_book') }}">
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> الاسم</label>
-                    <input type="text" name="name" placeholder="اسمك" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-phone"></i> رقم الجوال</label>
-                    <input type="tel" name="phone" placeholder="رقمك" required pattern="[0-9]{9}">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-mobile-alt"></i> نوع الجهاز</label>
-                    <input type="text" name="device" placeholder="مثال: Samsung S23 Ultra" required>
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-exclamation-circle"></i> المشكلة</label>
-                    <textarea name="issue" rows="3" placeholder="اشرح المشكلة بالتفصيل..." required></textarea>
-                </div>
-                <button type="submit" class="btn btn-gold"><i class="fab fa-whatsapp"></i> حجز صيانة عبر واتساب</button>
-            </form>
-        </div>
+{% block extra_css %}
+<style>
+    .service-page {
+        padding: 20px;
+        padding-bottom: 100px;
+    }
+    
+    .page-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-top: 20px;
+    }
+    
+    .page-icon {
+        font-size: 60px;
+        margin-bottom: 10px;
+    }
+    
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #d4af37;
+        margin-bottom: 5px;
+    }
+    
+    .page-subtitle {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+    }
+    
+    .service-card {
+        background: #0a0a0a;
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+        color: #fff;
+        display: block;
+    }
+    
+    .service-card:hover {
+        border-color: rgba(212, 175, 55, 0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.1);
+    }
+    
+    .service-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+    
+    .service-name {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    
+    .service-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,0.4);
+        line-height: 1.6;
+    }
+    
+    .engineer-info {
+        background: rgba(212, 175, 55, 0.05);
+        border: 1px solid rgba(212, 175, 55, 0.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 20px;
+        text-align: center;
+    }
+    
+    .engineer-avatar {
+        font-size: 50px;
+        margin-bottom: 10px;
+    }
+    
+    .engineer-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #d4af37;
+        margin-bottom: 5px;
+    }
+    
+    .engineer-title {
+        font-size: 13px;
+        color: rgba(255,255,255,0.5);
+        margin-bottom: 15px;
+    }
+    
+    .wa-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #25d366;
+        color: #fff;
+        padding: 12px 25px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+    
+    .wa-btn:hover {
+        background: #128c7e;
+        transform: scale(1.05);
+    }
+</style>
+{% endblock %}
 
-        <div class="footer">
-            <p class="dev-name">الهاشمي محمد</p>
-            <div class="social-links">
-                <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook"></i></a>
-                <a href="https://instagram.com" target="_blank"><i class="fab fa-instagram"></i></a>
-            </div>
-        </div>
+{% block content %}
+<div class="service-page">
+    <div class="page-header">
+        <div class="page-icon">🔧</div>
+        <div class="page-title">خدمات الصيانة</div>
+        <div class="page-subtitle">صيانة احترافية بأيدي خبيرة</div>
     </div>
-</body>
-</html>
+    
+    <a href="https://wa.me/967{{ maintenance_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *تغيير شاشة* 📱%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:" class="service-card">
+        <div class="service-icon">📱</div>
+        <div class="service-name">تغيير شاشة</div>
+        <div class="service-desc">تركيب شاشات أصلية وكوبي بجودة عالية مع ضمان</div>
+    </a>
+    
+    <a href="https://wa.me/967{{ maintenance_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *تغيير بطارية* 🔋%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:" class="service-card">
+        <div class="service-icon">🔋</div>
+        <div class="service-name">تغيير بطارية</div>
+        <div class="service-desc">بطاريات أصلية بضمان معايرة كاملة للجهاز</div>
+    </a>
+    
+    <a href="https://wa.me/967{{ maintenance_phone }}?text=مرحباً أرين 👋%0A%0Aأريد خدمة: *صيانة أخرى* 🛠️%0A👤 الاسم: %0A📞 الهاتف: %0A📱 نوع الجهاز:%0A🔧 المشكلة:" class="service-card">
+        <div class="service-icon">🛠️</div>
+        <div class="service-name">خدمات أخرى</div>
+        <div class="service-desc">صيانة عامة، تبديل قطع، حل مشاكل تقنية متنوعة</div>
+    </a>
+    
+    <div class="engineer-info">
+        <div class="engineer-avatar">👨‍🔧</div>
+        <div class="engineer-name">المهندس راشد اليافعي</div>
+        <div class="engineer-title">مهندس صيانة جوالات</div>
+        <a href="https://wa.me/967{{ maintenance_phone }}" class="wa-btn" target="_blank">
+            💬 تواصل عبر واتساب
+        </a>
+    </div>
+</div>
+{% endblock %}
