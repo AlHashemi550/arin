@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        
+
         body {
             font-family:'Cairo',sans-serif;
             background:#000;
@@ -19,118 +19,186 @@
         #splash {
             position:fixed;
             top:0; left:0; right:0; bottom:0;
-            background:radial-gradient(ellipse at center, #0d0d1a 0%, #000 70%);
+            background:radial-gradient(ellipse at 50% 30%, #1a1520 0%, #0d0b12 40%, #000 100%);
             display:flex;
             flex-direction:column;
             align-items:center;
             justify-content:center;
             z-index:9999;
             transition:all 1.2s cubic-bezier(0.7, 0, 0.3, 1);
+            perspective:1000px;
         }
 
         #splash.hide {
-            transform:translateY(-100%) rotateX(20deg);
+            transform:translateY(-100%) rotateX(25deg);
             opacity:0;
             pointer-events:none;
         }
 
-        .glow-bg {
+        /* تأثير الضوء الخلفي المتحرك */
+        .ambient-light {
             position:absolute;
-            width:350px; height:350px;
-            background:radial-gradient(circle, rgba(212,175,55,0.12) 0%, transparent 70%);
+            width:500px;
+            height:500px;
+            background:radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 60%);
             border-radius:50%;
-            animation:pulse 3s ease-in-out infinite;
+            top:20%;
+            animation:ambientPulse 4s ease-in-out infinite;
+            filter:blur(40px);
         }
-        @keyframes pulse {
-            0%,100% { transform:scale(1); opacity:0.5; }
-            50% { transform:scale(1.3); opacity:0.8; }
+        @keyframes ambientPulse {
+            0%,100% { transform:scale(1); opacity:0.6; }
+            50% { transform:scale(1.3); opacity:1; }
         }
 
-        .logo-container {
+        /* الشعار ثلاثي الأبعاد */
+        .logo-3d {
             position:relative;
             z-index:2;
-            animation:sway 3s ease-in-out infinite;
-            transform-origin:center bottom;
-        }
-        
-        @keyframes sway {
-            0%,100% { transform:rotate(-2deg) translateY(0); }
-            25% { transform:rotate(2deg) translateY(-10px); }
-            50% { transform:rotate(-1deg) translateY(-5px); }
-            75% { transform:rotate(1deg) translateY(-8px); }
+            text-align:center;
+            animation:float3d 4s ease-in-out infinite;
+            transform-style:preserve-3d;
         }
 
-        #splash.falling .logo-container {
-            animation:fallDrop 1s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
-        }
-        @keyframes fallDrop {
-            0% { transform:rotate(0deg) translateY(0); opacity:1; }
-            40% { transform:rotate(5deg) translateY(20px); }
-            100% { transform:rotate(15deg) translateY(150vh); opacity:0; }
+        @keyframes float3d {
+            0%,100% { transform:translateY(0) rotateX(0deg) rotateY(0deg); }
+            25% { transform:translateY(-15px) rotateX(2deg) rotateY(-3deg); }
+            50% { transform:translateY(-8px) rotateX(-1deg) rotateY(2deg); }
+            75% { transform:translateY(-12px) rotateX(1deg) rotateY(-2deg); }
         }
 
-        .splash-img {
-            width:300px;
-            max-width:85vw;
-            border-radius:24px;
-            box-shadow:0 25px 80px rgba(0,0,0,0.6);
-            filter:drop-shadow(0 0 40px rgba(212,175,55,0.25));
+        /* الحرف A ثلاثي الأبعاد */
+        .letter-a {
+            font-size:8rem;
+            font-weight:900;
+            color:transparent;
+            background:linear-gradient(135deg, #d4af37 0%, #f0d878 30%, #fff 50%, #b8941f 70%, #d4af37 100%);
+            -webkit-background-clip:text;
+            background-clip:text;
+            text-shadow:
+                0 0 40px rgba(212,175,55,0.4),
+                0 0 80px rgba(212,175,55,0.2),
+                0 10px 30px rgba(0,0,0,0.5);
+            filter:drop-shadow(0 15px 30px rgba(212,175,55,0.3));
+            line-height:1;
+            letter-spacing:-5px;
         }
 
-        /* اسم المطور في الأسفل */
+        /* اسم أرين */
+        .brand-name {
+            font-size:3rem;
+            font-weight:900;
+            color:#fff;
+            margin-top:-10px;
+            text-shadow:
+                0 0 20px rgba(255,255,255,0.1),
+                0 5px 15px rgba(0,0,0,0.5);
+            letter-spacing:8px;
+        }
+
+        /* النص الفرعي */
+        .tagline {
+            color:#888;
+            font-size:0.95rem;
+            margin-top:15px;
+            font-weight:400;
+            letter-spacing:3px;
+            text-shadow:0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        /* خط ذهبي تحت الشعار */
+        .gold-line {
+            width:100px;
+            height:2px;
+            background:linear-gradient(90deg, transparent, #d4af37, transparent);
+            margin:20px auto;
+            border-radius:2px;
+            box-shadow:0 0 10px rgba(212,175,55,0.5);
+        }
+
+        /* أيقونات الهواتف الشفافة */
+        .phones-bg {
+            position:absolute;
+            width:100%;
+            height:100%;
+            pointer-events:none;
+            z-index:1;
+            opacity:0.15;
+        }
+        .phone-icon {
+            position:absolute;
+            font-size:4rem;
+            filter:blur(1px);
+            animation:phoneFloat 6s ease-in-out infinite;
+        }
+        .phone-icon:nth-child(1) { top:15%; left:10%; animation-delay:0s; }
+        .phone-icon:nth-child(2) { top:20%; right:15%; animation-delay:2s; }
+        .phone-icon:nth-child(3) { bottom:25%; left:20%; animation-delay:4s; }
+        .phone-icon:nth-child(4) { bottom:20%; right:10%; animation-delay:1s; }
+
+        @keyframes phoneFloat {
+            0%,100% { transform:translateY(0) rotate(0deg); opacity:0.1; }
+            50% { transform:translateY(-20px) rotate(5deg); opacity:0.2; }
+        }
+
+        /* اسم المطور */
         .developer {
             position:absolute;
-            bottom:100px;
+            bottom:90px;
             left:50%;
             transform:translateX(-50%);
             color:#e91e8c;
-            font-size:0.95rem;
+            font-size:0.9rem;
             font-weight:700;
-            text-shadow:0 0 20px rgba(233,30,140,0.4);
             z-index:2;
-            letter-spacing:1px;
-            animation:glowText 2s ease-in-out infinite;
+            letter-spacing:2px;
+            animation:devGlow 2s ease-in-out infinite;
+            text-shadow:0 0 15px rgba(233,30,140,0.4);
         }
-        @keyframes glowText {
-            0%,100% { text-shadow:0 0 10px rgba(233,30,140,0.3); }
-            50% { text-shadow:0 0 25px rgba(233,30,140,0.6), 0 0 40px rgba(233,30,140,0.2); }
+        @keyframes devGlow {
+            0%,100% { text-shadow:0 0 10px rgba(233,30,140,0.3); opacity:0.8; }
+            50% { text-shadow:0 0 25px rgba(233,30,140,0.6), 0 0 40px rgba(233,30,140,0.2); opacity:1; }
         }
 
-        .progress-container {
+        /* العد التنازلي */
+        .countdown {
             position:absolute;
             bottom:55px;
+            color:#d4af37;
+            font-size:0.85rem;
+            font-weight:700;
+            letter-spacing:4px;
+            z-index:2;
+            font-variant-numeric:tabular-nums;
+            opacity:0.7;
+        }
+
+        /* شريط التقدم */
+        .progress-container {
+            position:absolute;
+            bottom:35px;
             left:50%;
             transform:translateX(-50%);
-            width:220px;
-            height:3px;
-            background:rgba(255,255,255,0.08);
+            width:180px;
+            height:2px;
+            background:rgba(255,255,255,0.05);
             border-radius:10px;
             overflow:hidden;
         }
         .progress-bar {
             height:100%;
             width:0%;
-            background:linear-gradient(90deg, #d4af37, #f0d878, #d4af37);
+            background:linear-gradient(90deg, transparent, #d4af37, #f0d878, #d4af37, transparent);
             border-radius:10px;
             animation:fillBar 6s linear forwards;
-            box-shadow:0 0 15px rgba(212,175,55,0.5);
+            box-shadow:0 0 10px rgba(212,175,55,0.5);
         }
         @keyframes fillBar {
             0% { width:0%; }
             100% { width:100%; }
         }
 
-        .countdown {
-            position:absolute;
-            bottom:70px;
-            color:#d4af37;
-            font-size:0.9rem;
-            font-weight:700;
-            letter-spacing:3px;
-            opacity:0.8;
-            font-variant-numeric:tabular-nums;
-        }
-
+        /* النجوم */
         .stars {
             position:fixed;
             top:0; left:0; width:100%; height:100%;
@@ -150,6 +218,17 @@
             50% { opacity:var(--opacity); transform:scale(1); }
         }
 
+        /* تأثير السقوط النهائي */
+        #splash.falling .logo-3d {
+            animation:finalDrop 1s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+        }
+        @keyframes finalDrop {
+            0% { transform:translateY(0) rotateX(0deg) scale(1); opacity:1; }
+            40% { transform:translateY(30px) rotateX(10deg) scale(0.95); opacity:0.8; }
+            100% { transform:translateY(200vh) rotateX(30deg) scale(0.5); opacity:0; }
+        }
+
+        /* iframe المنتجات */
         #products-frame {
             position:fixed;
             top:0; left:0; right:0; bottom:0;
@@ -169,20 +248,28 @@
 
     <div class="stars" id="stars"></div>
 
+    <div class="phones-bg">
+        <div class="phone-icon">📱</div>
+        <div class="phone-icon">📲</div>
+        <div class="phone-icon">📱</div>
+        <div class="phone-icon">📲</div>
+    </div>
+
     <div id="splash">
-        <div class="glow-bg"></div>
-        
-        <div class="logo-container">
-            <img src="{{ url_for('static', filename='images/splash.png') }}" 
-                 alt="أرين - AREEN" 
-                 class="splash-img"
-                 onerror="this.style.display='none'; document.querySelector('.logo-container').innerHTML='<div style=\'font-size:4rem;color:#d4af37;text-shadow:0 0 30px rgba(212,175,55,0.5);font-weight:900;\'>AREEN</div>';">
+        <div class="ambient-light"></div>
+
+        <div class="logo-3d">
+            <div class="letter-a">A</div>
+            <div class="brand-name">AREEN</div>
+            <div class="tagline">متجركم الذكي</div>
+            <div class="gold-line"></div>
+            <div class="tagline" style="font-size:0.8rem; color:#666;">هنا ستجد كل ما يحتاجه هاتفك</div>
         </div>
 
         <div class="developer">✨ الهاشمي محمد ✨</div>
 
         <div class="countdown" id="countdown">00:06</div>
-        
+
         <div class="progress-container">
             <div class="progress-bar"></div>
         </div>
@@ -191,8 +278,9 @@
     <iframe id="products-frame" src="/products"></iframe>
 
     <script>
+        // إنشاء النجوم
         const starsContainer = document.getElementById('stars');
-        for(let i=0; i<<60; i++) {
+        for(let i=0; i<<80; i++) {
             const star = document.createElement('div');
             star.className = 'star';
             star.style.left = Math.random() * 100 + '%';
@@ -203,6 +291,7 @@
             starsContainer.appendChild(star);
         }
 
+        // العد التنازلي
         let seconds = 6;
         const countdownEl = document.getElementById('countdown');
         const timer = setInterval(() => {
@@ -215,12 +304,13 @@
             }
         }, 1000);
 
+        // الانتقال بعد 6 ثواني
         setTimeout(() => {
             const splash = document.getElementById('splash');
             const frame = document.getElementById('products-frame');
-            
+
             splash.classList.add('falling');
-            
+
             setTimeout(() => {
                 splash.classList.add('hide');
                 frame.classList.add('show');
@@ -228,7 +318,7 @@
                     splash.style.display = 'none';
                 }, 1500);
             }, 800);
-            
+
         }, 6000);
     </script>
 </body>
