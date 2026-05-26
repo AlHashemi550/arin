@@ -11,6 +11,14 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 app.secret_key = 'areen_secret_key_2026'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+# Jinja2 filter for JSON parsing
+@app.template_filter('fromjson')
+def fromjson_filter(value):
+    try:
+        return json.loads(value)
+    except:
+        return []
+
 DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'laqta.db')
 
 # ─── Helper: DB Connection ───
@@ -43,7 +51,6 @@ def execute_db(query, args=()):
 def init_db():
     db = get_db()
     
-    # Products
     db.execute('''
         CREATE TABLE IF NOT EXISTS products (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -63,7 +70,6 @@ def init_db():
         )
     ''')
     
-    # Cart (per session)
     db.execute('''
         CREATE TABLE IF NOT EXISTS cart (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,7 +80,6 @@ def init_db():
         )
     ''')
     
-    # Orders
     db.execute('''
         CREATE TABLE IF NOT EXISTS orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,7 +95,6 @@ def init_db():
         )
     ''')
     
-    # Reviews
     db.execute('''
         CREATE TABLE IF NOT EXISTS reviews (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,7 +108,6 @@ def init_db():
         )
     ''')
     
-    # Coupons
     db.execute('''
         CREATE TABLE IF NOT EXISTS coupons (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -117,13 +120,11 @@ def init_db():
         )
     ''')
     
-    # Insert default coupon if not exists
     db.execute('''
         INSERT OR IGNORE INTO coupons (code, discount_percent, active, usage_limit)
         VALUES ('ARIN10', 10, 1, 100)
     ''')
     
-    # Reservations (legacy + services)
     db.execute('''
         CREATE TABLE IF NOT EXISTS reservations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,7 +140,6 @@ def init_db():
         )
     ''')
     
-    # Services
     db.execute('''
         CREATE TABLE IF NOT EXISTS services (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -152,7 +152,6 @@ def init_db():
         )
     ''')
     
-    # Users
     db.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -164,7 +163,6 @@ def init_db():
         )
     ''')
     
-    # Notifications
     db.execute('''
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -189,8 +187,9 @@ def before_request():
 def inject_globals():
     cart_count = 0
     if 'cart_id' in session:
-        cart_count = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", 
-                              [session['cart_id']], one=True)['c']
+        row = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", 
+                       [session['cart_id']], one=True)
+        cart_count = row['c'] if row else 0
     return {
         'now': datetime.now(),
         'admin_password': '78323',
@@ -230,8 +229,9 @@ def product_detail(pid):
         flash('المنتج غير موجود', 'danger')
         return redirect(url_for('products'))
     reviews = query_db("SELECT * FROM reviews WHERE product_id=? ORDER BY created_at DESC", [pid])
-    avg_rating = query_db("SELECT AVG(rating) as avg FROM reviews WHERE product_id=?", [pid], one=True)['avg'] or 0
-    return render_template('product_detail.html', product=product, reviews=reviews, avg_rating=round(avg_rating,1))
+    avg = query_db("SELECT AVG(rating) as avg FROM reviews WHERE product_id=?", [pid], one=True)
+    avg_rating = round(avg['avg'], 1) if avg and avg['avg'] else 0
+    return render_template('product_detail.html', product=product, reviews=reviews, avg_rating=avg_rating)
 
 @app.route('/cart')
 def cart():
@@ -272,21 +272,19 @@ def api_cart_add():
         execute_db("INSERT INTO cart (session_id, product_id, qty) VALUES (?,?,?)",
                    [session['cart_id'], product_id, qty])
     
-    count = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", 
-                     [session['cart_id']], one=True)['c']
-    return jsonify({'success': True, 'cart_count': count, 'message': 'تمت الإضافة للعربة ✅'})
+    row = query_db("SELECT COALESCE(SUM(qty),0) as c FROM cart WHERE session_id=?", 
+                   [session['cart_id']], one=True)
+    return jsonify({'success': True, 'cart_count': row['c'] if row else 0, 'message': 'تمت الإضافة للعربة ✅'})
 
 @app.route('/api/cart/update', methods=['POST'])
 def api_cart_update():
     data = request.get_json()
     cart_id = data.get('cart_id')
     qty = int(data.get('qty', 1))
-    
     if qty < 1:
         execute_db("DELETE FROM cart WHERE id=?", [cart_id])
     else:
         execute_db("UPDATE cart SET qty=? WHERE id=?", [qty, cart_id])
-    
     return jsonify({'success': True})
 
 @app.route('/api/cart/remove', methods=['POST'])
@@ -336,24 +334,20 @@ def api_order_checkout():
     discount = session.get('coupon_discount', 0)
     final_total = total * (1 - discount/100)
     
-    # Build items JSON
     items_json = json.dumps([{
         'id': i['product_id'], 'name': i['name'], 
         'price': i['price'], 'qty': i['qty'], 'currency': i['currency']
     } for i in cart_items])
     
-    # Save order
     order_id = execute_db('''
         INSERT INTO orders (customer_name, customer_phone, total, discount, coupon_code, payment_method, items)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', [name, phone, final_total, discount, session.get('coupon_code'), payment, items_json])
     
-    # Update coupon usage
     if session.get('coupon_code'):
         execute_db("UPDATE coupons SET used_count=used_count+1 WHERE code=?", 
                    [session['coupon_code']])
     
-    # Build WhatsApp message
     lines = [f"🛒 طلب جديد من تطبيق AREEN", f"", f"👤 العميل: {name}", f"📱 الرقم: {phone}", f""]
     for i, item in enumerate(cart_items, 1):
         lines.append(f"{i}. {item['name']} x{item['qty']} = {item['price']*item['qty']} {item['currency']}")
@@ -369,12 +363,10 @@ def api_order_checkout():
     msg = '%0A'.join(lines)
     whatsapp_url = f"https://wa.me/967773852062?text={msg}"
     
-    # Clear cart
     execute_db("DELETE FROM cart WHERE session_id=?", [session['cart_id']])
     session.pop('coupon_discount', None)
     session.pop('coupon_code', None)
     
-    # Add user
     user = query_db("SELECT * FROM users WHERE phone=?", [phone], one=True)
     if not user:
         execute_db("INSERT INTO users (name, phone) VALUES (?, ?)", [name, phone])
@@ -386,7 +378,6 @@ def api_order_checkout():
         'message': 'تم إرسال الطلب! جارِ تحويلك لواتساب...'
     })
 
-# ─── Reviews API ───
 @app.route('/api/review', methods=['POST'])
 def api_review():
     data = request.get_json()
@@ -397,7 +388,6 @@ def api_review():
           data.get('rating', 5), data.get('comment')])
     return jsonify({'success': True, 'message': 'شكراً لتقييمك! ⭐'})
 
-# ─── Share API ───
 @app.route('/api/share/product/<int:pid>')
 def api_share_product(pid):
     product = query_db("SELECT * FROM products WHERE id=?", [pid], one=True)
@@ -411,7 +401,6 @@ def api_share_product(pid):
         'facebook_url': f"https://www.facebook.com/sharer/sharer.php?u={request.host_url}product/{pid}"
     })
 
-# ─── API: Notify Me ───
 @app.route('/api/notify-me', methods=['POST'])
 def api_notify_me():
     data = request.get_json()
@@ -425,7 +414,6 @@ def api_notify_me():
     ''', [phone, f"سيتم إشعارك عند توفر المنتج #{product_id}"])
     return jsonify({'success': True, 'message': 'سنخبرك فور توفر المنتج ✅'})
 
-# ─── API: Service Request ───
 @app.route('/api/service-request', methods=['POST'])
 def api_service_request():
     data = request.get_json()
@@ -480,7 +468,6 @@ def programming():
 @app.route('/location')
 def location():
     return render_template('location.html')
-
 
 # ═══════════════════════════════════════════════════════
 # ADMIN ROUTES
@@ -541,7 +528,6 @@ def admin_products():
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'available', ?, ?)
         ''', [name, category, price, old_price, description, quantity, image_data, currency, rare, seo_title, seo_desc])
         
-        # Notify all users
         users = query_db("SELECT phone FROM users")
         for u in users:
             execute_db('''
@@ -608,7 +594,6 @@ def admin_coupons():
         return redirect(url_for('admin_coupons'))
     coupons_list = query_db("SELECT * FROM coupons ORDER BY created_at DESC")
     return render_template('admin/coupons.html', coupons=coupons_list)
-
 
 @app.route('/admin/reservations')
 def admin_reservations():
