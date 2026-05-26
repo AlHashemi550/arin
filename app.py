@@ -3,7 +3,7 @@ import sqlite3
 import random
 import string
 import datetime
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g, jsonify, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, jsonify
 from functools import wraps
 from werkzeug.utils import secure_filename
 
@@ -19,7 +19,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-ADMIN_PHONES = ['783234925', '779505979', '773852062']
 ADMIN_PASSWORD = '78323'
 RESERVATION_PHONE = '773852062'
 MAINTENANCE_PHONE = '779505979'
@@ -67,26 +66,6 @@ def init_db():
             status TEXT DEFAULT 'pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        CREATE TABLE IF NOT EXISTS user_devices (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER, device_name TEXT, part_name TEXT,
-            purchase_date TEXT, warranty_months INTEGER, last_notified TEXT
-        );
-        CREATE TABLE IF NOT EXISTS alerts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER, product_name TEXT, phone TEXT,
-            notified INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS notifications (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER, title TEXT, message TEXT,
-            is_read INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE TABLE IF NOT EXISTS otp_codes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            phone TEXT, code TEXT, expires_at TIMESTAMP,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
         CREATE TABLE IF NOT EXISTS blocked_customers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             phone TEXT UNIQUE, name TEXT,
@@ -112,13 +91,17 @@ def check_blocked(phone):
     return blocked
 
 def get_image_url(image_path):
-    """إرجاع مسار الصورة الصحيح"""
+    """إرجاع مسار الصورة الصحيح - مبسطة وآمنة"""
     if not image_path or image_path == 'default.jpg' or image_path == '':
-        return url_for('static', filename='uploads/default.jpg')
+        return '/static/uploads/default.jpg'
+    
+    # إذا كان المسار يبدأ بـ /
+    if image_path.startswith('/'):
+        return image_path
     
     # إذا كان المسار يبدأ بـ uploads/
     if image_path.startswith('uploads/'):
-        return url_for('static', filename=image_path)
+        return '/static/' + image_path
     
     # إذا كان المسار يبدأ بـ static/
     if image_path.startswith('static/'):
@@ -126,23 +109,27 @@ def get_image_url(image_path):
     
     # إذا كان اسم الملف فقط
     if '/' not in image_path:
-        return url_for('static', filename='uploads/' + image_path)
+        return '/static/uploads/' + image_path
     
-    return url_for('static', filename=image_path)
+    # أي حالة أخرى
+    return '/static/uploads/' + image_path
 
 def save_image(file):
     """حفظ الصورة وإرجاع المسار"""
     if not file or not file.filename:
         return 'default.jpg'
     
-    ext = secure_filename(file.filename).rsplit('.', 1)[1].lower() if '.' in file.filename else 'jpg'
-    if ext not in {'png', 'jpg', 'jpeg', 'gif', 'webp'}:
+    try:
+        ext = secure_filename(file.filename).rsplit('.', 1)[1].lower() if '.' in file.filename else 'jpg'
+        if ext not in {'png', 'jpg', 'jpeg', 'gif', 'webp'}:
+            return 'default.jpg'
+        
+        filename = f"prod_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}.{ext}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        return f"uploads/{filename}"
+    except Exception:
         return 'default.jpg'
-    
-    filename = f"prod_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}_{random.randint(1000,9999)}.{ext}"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
-    return f"uploads/{filename}"
 
 # ==================== PUBLIC ROUTES ====================
 
@@ -152,111 +139,140 @@ def splash():
 
 @app.route('/products')
 def products():
-    db = get_db()
-    category = request.args.get('category', 'all')
-    search = request.args.get('search', '').strip()
-    currency_filter = request.args.get('currency', 'all')
-    
-    query = "SELECT * FROM products WHERE 1=1"
-    params = []
-    
-    if category != 'all':
-        query += " AND category = ?"
-        params.append(category)
-    if search:
-        query += " AND (name LIKE ? OR description LIKE ?)"
-        params.append(f'%{search}%')
-        params.append(f'%{search}%')
-    if currency_filter != 'all':
-        query += " AND currency = ?"
-        params.append(currency_filter)
-    
-    query += " ORDER BY created_at DESC"
-    products = db.execute(query, params).fetchall()
-    
-    cats = db.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL").fetchall()
-    categories = [c['category'] for c in cats if c['category']]
-    
-    curr = db.execute("SELECT DISTINCT currency FROM products WHERE currency IS NOT NULL").fetchall()
-    currencies = [c['currency'] for c in curr if c['currency']]
-    
-    return render_template('products.html', 
-                         products=products, 
-                         categories=categories,
-                         currencies=currencies,
-                         current_category=category,
-                         current_currency=currency_filter,
-                         search=search,
-                         is_admin=session.get('is_admin'),
-                         shop_name=SHOP_NAME,
-                         get_image_url=get_image_url)
+    try:
+        db = get_db()
+        category = request.args.get('category', 'all')
+        search = request.args.get('search', '').strip()
+        currency_filter = request.args.get('currency', 'all')
+        
+        query = "SELECT * FROM products WHERE 1=1"
+        params = []
+        
+        if category != 'all':
+            query += " AND category = ?"
+            params.append(category)
+        if search:
+            query += " AND (name LIKE ? OR description LIKE ?)"
+            params.append(f'%{search}%')
+            params.append(f'%{search}%')
+        if currency_filter != 'all':
+            query += " AND currency = ?"
+            params.append(currency_filter)
+        
+        query += " ORDER BY created_at DESC"
+        products = db.execute(query, params).fetchall()
+        
+        cats = db.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL").fetchall()
+        categories = [c['category'] for c in cats if c['category']]
+        
+        curr = db.execute("SELECT DISTINCT currency FROM products WHERE currency IS NOT NULL").fetchall()
+        currencies = [c['currency'] for c in curr if c['currency']]
+        
+        return render_template('products.html', 
+                             products=products, 
+                             categories=categories,
+                             currencies=currencies,
+                             current_category=category,
+                             current_currency=currency_filter,
+                             search=search,
+                             is_admin=session.get('is_admin'),
+                             shop_name=SHOP_NAME,
+                             get_image_url=get_image_url)
+    except Exception as e:
+        flash(f'خطأ في تحميل المنتجات: {str(e)}', 'error')
+        return render_template('products.html', 
+                             products=[], 
+                             categories=[],
+                             currencies=[],
+                             current_category='all',
+                             current_currency='all',
+                             search='',
+                             is_admin=session.get('is_admin'),
+                             shop_name=SHOP_NAME,
+                             get_image_url=get_image_url)
 
 @app.route('/product/<int:product_id>')
 def product_detail(product_id):
-    db = get_db()
-    product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
-    if not product:
-        flash('المنتج غير موجود', 'error')
+    try:
+        db = get_db()
+        product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
+        if not product:
+            flash('المنتج غير موجود', 'error')
+            return redirect(url_for('products'))
+        
+        related = db.execute(
+            "SELECT * FROM products WHERE category = ? AND id != ? LIMIT 4",
+            (product['category'], product_id)
+        ).fetchall()
+        
+        return render_template('product_detail.html', 
+                             product=product, 
+                             related=related,
+                             is_admin=session.get('is_admin'),
+                             reservation_phone=RESERVATION_PHONE,
+                             get_image_url=get_image_url)
+    except Exception as e:
+        flash(f'خطأ في تحميل المنتج: {str(e)}', 'error')
         return redirect(url_for('products'))
-    
-    related = db.execute(
-        "SELECT * FROM products WHERE category = ? AND id != ? LIMIT 4",
-        (product['category'], product_id)
-    ).fetchall()
-    
-    return render_template('product_detail.html', 
-                         product=product, 
-                         related=related,
-                         is_admin=session.get('is_admin'),
-                         reservation_phone=RESERVATION_PHONE,
-                         get_image_url=get_image_url)
 
 @app.route('/reserve', methods=['POST'])
 def reserve():
-    db = get_db()
-    product_id = request.form.get('product_id')
-    customer_name = request.form.get('customer_name', '').strip()
-    phone = request.form.get('phone', '').strip()
-    
-    blocked = check_blocked(phone)
-    if blocked:
-        flash(f'⛔ عذراً، هذا الرقم محظور. السبب: {blocked["reason"]}', 'error')
-        return redirect(url_for('product_detail', product_id=product_id))
-    
-    if not all([product_id, customer_name, phone]):
-        flash('يرجى إدخال الاسم ورقم الهاتف', 'error')
-        return redirect(url_for('product_detail', product_id=product_id))
-    
-    product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
-    if not product:
-        flash('المنتج غير موجود', 'error')
+    try:
+        db = get_db()
+        product_id = request.form.get('product_id')
+        customer_name = request.form.get('customer_name', '').strip()
+        phone = request.form.get('phone', '').strip()
+        
+        # التحقق من الحظر
+        blocked = check_blocked(phone)
+        if blocked:
+            flash(f'⛔ عذراً، هذا الرقم محظور. السبب: {blocked["reason"]}', 'error')
+            return redirect(url_for('product_detail', product_id=product_id))
+        
+        if not all([product_id, customer_name, phone]):
+            flash('يرجى إدخال الاسم ورقم الهاتف', 'error')
+            return redirect(url_for('product_detail', product_id=product_id))
+        
+        product = db.execute("SELECT * FROM products WHERE id = ?", (product_id,)).fetchone()
+        if not product:
+            flash('المنتج غير موجود', 'error')
+            return redirect(url_for('products'))
+        
+        if product['stock'] <= 0:
+            flash('عذراً، هذا المنتج غير متوفر حالياً', 'error')
+            return redirect(url_for('product_detail', product_id=product_id))
+        
+        db.execute('''
+            INSERT INTO reservations (product_id, customer_name, phone, status)
+            VALUES (?, ?, ?, 'pending')
+        ''', (product_id, customer_name, phone))
+        
+        db.execute("UPDATE products SET stock = stock - 1 WHERE id = ?", (product_id,))
+        db.commit()
+        
+        # بناء رسالة واتساب بشكل صحيح
+        res_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+        
+        msg = f"مرحباً {APP_NAME} 👋\n\n"
+        msg += f"أريد حجز المنتج التالي:\n"
+        msg += f"📱 *{product['name']}*\n"
+        msg += f"💰 السعر: *{product['price']} {product['currency']}*\n"
+        msg += f"👤 العميل: *{customer_name}*\n"
+        msg += f"📞 الهاتف: *{phone}*\n"
+        msg += f"📦 رقم الطلب: #{res_id}\n\n"
+        msg += f"🏬 {SHOP_NAME}\n📍 {SHOP_LOCATION}"
+        
+        # ترميز الرسالة للرابط
+        import urllib.parse
+        encoded_msg = urllib.parse.quote(msg)
+        wa_url = f"https://wa.me/967{RESERVATION_PHONE}?text={encoded_msg}"
+        
+        flash('تم إرسال طلبك، سيتم توجيهك لواتساب العامل', 'success')
+        return redirect(wa_url)
+        
+    except Exception as e:
+        flash(f'خطأ في إنشاء الحجز: {str(e)}', 'error')
         return redirect(url_for('products'))
-    
-    if product['stock'] <= 0:
-        flash('عذراً، هذا المنتج غير متوفر حالياً', 'error')
-        return redirect(url_for('product_detail', product_id=product_id))
-    
-    db.execute('''
-        INSERT INTO reservations (product_id, customer_name, phone, status)
-        VALUES (?, ?, ?, 'pending')
-    ''', (product_id, customer_name, phone))
-    
-    db.execute("UPDATE products SET stock = stock - 1 WHERE id = ?", (product_id,))
-    db.commit()
-    
-    msg = f"مرحباً {APP_NAME} 👋%0A%0A"
-    msg += f"أريد حجز المنتج التالي:%0A"
-    msg += f"📱 *{product['name']}*%0A"
-    msg += f"💰 السعر: *{product['price']} {product['currency']}*%0A"
-    msg += f"👤 العميل: *{customer_name}*%0A"
-    msg += f"📞 الهاتف: *{phone}*%0A"
-    msg += f"📦 رقم الطلب: #{db.execute('SELECT last_insert_rowid()').fetchone()[0]}%0A%0A"
-    msg += f"🏬 {SHOP_NAME}%0A📍 {SHOP_LOCATION}"
-    
-    wa_url = f"https://wa.me/967{RESERVATION_PHONE}?text={msg}"
-    
-    flash('تم إرسال طلبك، سيتم توجيهك لواتساب العامل', 'success')
-    return redirect(wa_url)
 
 @app.route('/maintenance')
 def maintenance():
@@ -282,13 +298,16 @@ def my_devices():
 
 @app.route('/admin/verify', methods=['POST'])
 def admin_verify():
-    password = request.form.get('password', '').strip()
-    if password == ADMIN_PASSWORD:
-        session['is_admin'] = True
-        session.permanent = True
-        return jsonify({'success': True})
-    else:
-        return jsonify({'success': False}), 403
+    try:
+        password = request.form.get('password', '').strip()
+        if password == ADMIN_PASSWORD:
+            session['is_admin'] = True
+            session.permanent = True
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False}), 403
+    except Exception:
+        return jsonify({'success': False}), 500
 
 @app.route('/admin/logout')
 def admin_logout():
@@ -299,206 +318,177 @@ def admin_logout():
 @app.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    db = get_db()
-    stats = {
-        'total_products': db.execute("SELECT COUNT(*) as c FROM products").fetchone()['c'],
-        'total_reservations': db.execute("SELECT COUNT(*) as c FROM reservations").fetchone()['c'],
-        'pending_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='pending'").fetchone()['c'],
-        'confirmed_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='confirmed'").fetchone()['c'],
-        'cancelled_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='cancelled'").fetchone()['c'],
-        'low_stock': db.execute("SELECT COUNT(*) as c FROM products WHERE stock <= 2").fetchone()['c'],
-        'blocked_customers': db.execute("SELECT COUNT(*) as c FROM blocked_customers").fetchone()['c']
-    }
-    
-    recent_reservations = db.execute('''
-        SELECT r.*, p.name as product_name, p.price, p.currency
-        FROM reservations r
-        JOIN products p ON r.product_id = p.id
-        ORDER BY r.created_at DESC LIMIT 10
-    ''').fetchall()
-    
-    return render_template('admin/dashboard.html', 
-                         stats=stats, 
-                         reservations=recent_reservations,
-                         shop_name=SHOP_NAME)
+    try:
+        db = get_db()
+        stats = {
+            'total_products': db.execute("SELECT COUNT(*) as c FROM products").fetchone()['c'],
+            'total_reservations': db.execute("SELECT COUNT(*) as c FROM reservations").fetchone()['c'],
+            'pending_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='pending'").fetchone()['c'],
+            'confirmed_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='confirmed'").fetchone()['c'],
+            'cancelled_reservations': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='cancelled'").fetchone()['c'],
+            'low_stock': db.execute("SELECT COUNT(*) as c FROM products WHERE stock <= 2").fetchone()['c'],
+            'blocked_customers': db.execute("SELECT COUNT(*) as c FROM blocked_customers").fetchone()['c']
+        }
+        
+        recent_reservations = db.execute('''
+            SELECT r.*, p.name as product_name, p.price, p.currency
+            FROM reservations r
+            JOIN products p ON r.product_id = p.id
+            ORDER BY r.created_at DESC LIMIT 10
+        ''').fetchall()
+        
+        return render_template('admin/dashboard.html', 
+                             stats=stats, 
+                             reservations=recent_reservations,
+                             shop_name=SHOP_NAME)
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
+        return redirect('/products')
 
 @app.route('/admin/products')
 @admin_required
 def admin_products():
-    db = get_db()
-    products = db.execute("SELECT * FROM products ORDER BY created_at DESC").fetchall()
-    return render_template('admin/products.html', 
-                         products=products,
-                         shop_name=SHOP_NAME,
-                         get_image_url=get_image_url)
+    try:
+        db = get_db()
+        products = db.execute("SELECT * FROM products ORDER BY created_at DESC").fetchall()
+        return render_template('admin/products.html', 
+                             products=products,
+                             shop_name=SHOP_NAME,
+                             get_image_url=get_image_url)
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
+        return redirect('/admin/dashboard')
 
 @app.route('/admin/product/add', methods=['POST'])
 @admin_required
 def add_product():
-    db = get_db()
+    try:
+        db = get_db()
+        
+        name = request.form.get('name', '').strip()
+        price = request.form.get('price', 0)
+        original_price = request.form.get('original_price', 0)
+        description = request.form.get('description', '').strip()
+        category = request.form.get('category', '').strip()
+        stock = request.form.get('stock', 1)
+        currency = request.form.get('currency', 'ر.ي')
+        is_rare = 1 if request.form.get('is_rare') else 0
+        
+        # حفظ الصورة
+        image = 'default.jpg'
+        if 'image' in request.files:
+            image = save_image(request.files['image'])
+        elif 'image_camera' in request.files:
+            image = save_image(request.files['image_camera'])
+        
+        db.execute('''
+            INSERT INTO products (name, price, original_price, image, description, category, stock, currency, is_rare)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (name, price, original_price, image, description, category, stock, currency, is_rare))
+        db.commit()
+        
+        flash('✅ تم إضافة المنتج بنجاح', 'success')
+    except Exception as e:
+        flash(f'خطأ في إضافة المنتج: {str(e)}', 'error')
     
-    name = request.form.get('name', '').strip()
-    price = request.form.get('price', 0)
-    original_price = request.form.get('original_price', 0)
-    description = request.form.get('description', '').strip()
-    category = request.form.get('category', '').strip()
-    stock = request.form.get('stock', 1)
-    currency = request.form.get('currency', 'ر.ي')
-    is_rare = 1 if request.form.get('is_rare') else 0
-    
-    # حفظ الصورة
-    image = 'default.jpg'
-    if 'image' in request.files:
-        image = save_image(request.files['image'])
-    elif 'image_camera' in request.files:
-        image = save_image(request.files['image_camera'])
-    
-    db.execute('''
-        INSERT INTO products (name, price, original_price, image, description, category, stock, currency, is_rare)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (name, price, original_price, image, description, category, stock, currency, is_rare))
-    db.commit()
-    
-    flash('✅ تم إضافة المنتج بنجاح', 'success')
-    return redirect(url_for('admin_products'))
-
-@app.route('/admin/product/edit/<int:product_id>', methods=['POST'])
-@admin_required
-def edit_product(product_id):
-    db = get_db()
-    
-    name = request.form.get('name', '').strip()
-    price = request.form.get('price', 0)
-    original_price = request.form.get('original_price', 0)
-    description = request.form.get('description', '').strip()
-    category = request.form.get('category', '').strip()
-    stock = request.form.get('stock', 1)
-    currency = request.form.get('currency', 'ر.ي')
-    is_rare = 1 if request.form.get('is_rare') else 0
-    
-    # تحديث الصورة إذا تم رفعها
-    image_update = ""
-    params = [name, price, original_price, description, category, stock, currency, is_rare]
-    
-    if 'image' in request.files and request.files['image'].filename:
-        new_image = save_image(request.files['image'])
-        image_update = ", image = ?"
-        params.insert(3, new_image)
-    
-    params.append(product_id)
-    
-    db.execute(f'''
-        UPDATE products SET 
-            name = ?, price = ?, original_price = ?, {image_update + " " if image_update else ""}
-            description = ?, category = ?, stock = ?, currency = ?, is_rare = ?
-        WHERE id = ?
-    ''', tuple(params))
-    db.commit()
-    
-    flash('✅ تم تحديث المنتج بنجاح', 'success')
     return redirect(url_for('admin_products'))
 
 @app.route('/admin/product/delete/<int:product_id>')
 @admin_required
 def delete_product(product_id):
-    db = get_db()
-    db.execute("DELETE FROM reservations WHERE product_id = ?", (product_id,))
-    db.execute("DELETE FROM products WHERE id = ?", (product_id,))
-    db.commit()
-    flash('🗑️ تم حذف المنتج نهائياً', 'success')
+    try:
+        db = get_db()
+        db.execute("DELETE FROM reservations WHERE product_id = ?", (product_id,))
+        db.execute("DELETE FROM products WHERE id = ?", (product_id,))
+        db.commit()
+        flash('🗑️ تم حذف المنتج نهائياً', 'success')
+    except Exception as e:
+        flash(f'خطأ في الحذف: {str(e)}', 'error')
     return redirect(url_for('admin_products'))
 
 @app.route('/admin/reservations')
 @admin_required
 def admin_reservations():
-    db = get_db()
-    status_filter = request.args.get('status', 'all')
-    
-    query = '''
-        SELECT r.*, p.name as product_name, p.price, p.currency, p.image, p.stock
-        FROM reservations r
-        JOIN products p ON r.product_id = p.id
-        WHERE 1=1
-    '''
-    params = []
-    
-    if status_filter != 'all':
-        query += " AND r.status = ?"
-        params.append(status_filter)
-    
-    query += " ORDER BY r.created_at DESC"
-    reservations = db.execute(query, params).fetchall()
-    
-    stats = {
-        'pending': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='pending'").fetchone()['c'],
-        'confirmed': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='confirmed'").fetchone()['c'],
-        'cancelled': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='cancelled'").fetchone()['c']
-    }
-    
-    return render_template('admin/reservations.html', 
-                         reservations=reservations,
-                         stats=stats,
-                         current_status=status_filter,
-                         shop_name=SHOP_NAME,
-                         get_image_url=get_image_url)
+    try:
+        db = get_db()
+        status_filter = request.args.get('status', 'all')
+        
+        query = '''
+            SELECT r.*, p.name as product_name, p.price, p.currency, p.image, p.stock
+            FROM reservations r
+            JOIN products p ON r.product_id = p.id
+            WHERE 1=1
+        '''
+        params = []
+        
+        if status_filter != 'all':
+            query += " AND r.status = ?"
+            params.append(status_filter)
+        
+        query += " ORDER BY r.created_at DESC"
+        reservations = db.execute(query, params).fetchall()
+        
+        stats = {
+            'pending': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='pending'").fetchone()['c'],
+            'confirmed': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='confirmed'").fetchone()['c'],
+            'cancelled': db.execute("SELECT COUNT(*) as c FROM reservations WHERE status='cancelled'").fetchone()['c']
+        }
+        
+        return render_template('admin/reservations.html', 
+                             reservations=reservations,
+                             stats=stats,
+                             current_status=status_filter,
+                             shop_name=SHOP_NAME,
+                             get_image_url=get_image_url)
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
+        return redirect('/admin/dashboard')
 
 @app.route('/admin/reservation/confirm/<int:res_id>')
 @admin_required
 def confirm_reservation(res_id):
-    db = get_db()
-    res = db.execute("SELECT * FROM reservations WHERE id = ?", (res_id,)).fetchone()
-    
-    if res:
-        db.execute("UPDATE reservations SET status = 'confirmed' WHERE id = ?", (res_id,))
-        db.commit()
+    try:
+        db = get_db()
+        res = db.execute("SELECT * FROM reservations WHERE id = ?", (res_id,)).fetchone()
         
-        product = db.execute("SELECT * FROM products WHERE id = ?", (res['product_id'],)).fetchone()
-        if product and res['phone']:
-            msg = f"مرحباً {res['customer_name']} 👋%0A%0A"
-            msg += f"✅ تم *تأكيد* حجزك للمنتج:%0A"
-            msg += f"📱 {product['name']}%0A"
-            msg += f"💰 {product['price']} {product['currency']}%0A%0A"
-            msg += f"🏬 {SHOP_NAME}%0A📍 {SHOP_LOCATION}%0A"
-            msg += f"📞 للاستفسار: {RESERVATION_PHONE}"
-            wa_url = f"https://wa.me/967{res['phone']}?text={msg}"
-            flash('تم تأكيد الحجز وإرسال إشعار للعميل', 'success')
-            return redirect(wa_url)
+        if res:
+            db.execute("UPDATE reservations SET status = 'confirmed' WHERE id = ?", (res_id,))
+            db.commit()
+            flash('تم تأكيد الحجز بنجاح', 'success')
         
-        flash('تم تأكيد الحجز بنجاح', 'success')
-    
-    return redirect(url_for('admin_reservations'))
+        return redirect(url_for('admin_reservations'))
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
+        return redirect(url_for('admin_reservations'))
 
 @app.route('/admin/reservation/cancel/<int:res_id>')
 @admin_required
 def cancel_reservation(res_id):
-    db = get_db()
-    res = db.execute("SELECT * FROM reservations WHERE id = ?", (res_id,)).fetchone()
-    
-    if res:
-        db.execute("UPDATE products SET stock = stock + 1 WHERE id = ?", (res['product_id'],))
-        db.execute("UPDATE reservations SET status = 'cancelled' WHERE id = ?", (res_id,))
-        db.commit()
+    try:
+        db = get_db()
+        res = db.execute("SELECT * FROM reservations WHERE id = ?", (res_id,)).fetchone()
         
-        if res['phone']:
-            msg = f"مرحباً {res['customer_name']} 😔%0A%0A"
-            msg += f"❌ تم *إلغاء* حجزك للمنتج.%0A"
-            msg += f"🏬 {SHOP_NAME}%0A"
-            msg += f"📞 للاستفسار: {RESERVATION_PHONE}"
-            wa_url = f"https://wa.me/967{res['phone']}?text={msg}"
-            flash('تم إلغاء الحجز وإشعار العميل', 'info')
-            return redirect(wa_url)
+        if res:
+            db.execute("UPDATE products SET stock = stock + 1 WHERE id = ?", (res['product_id'],))
+            db.execute("UPDATE reservations SET status = 'cancelled' WHERE id = ?", (res_id,))
+            db.commit()
+            flash('تم إلغاء الحجز', 'info')
         
-        flash('تم إلغاء الحجز', 'info')
-    
-    return redirect(url_for('admin_reservations'))
+        return redirect(url_for('admin_reservations'))
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
+        return redirect(url_for('admin_reservations'))
 
 @app.route('/admin/reservation/delete/<int:res_id>')
 @admin_required
 def delete_reservation(res_id):
-    db = get_db()
-    db.execute("DELETE FROM reservations WHERE id = ?", (res_id,))
-    db.commit()
-    flash('🗑️ تم حذف الحجز نهائياً', 'success')
+    try:
+        db = get_db()
+        db.execute("DELETE FROM reservations WHERE id = ?", (res_id,))
+        db.commit()
+        flash('🗑️ تم حذف الحجز نهائياً', 'success')
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
     return redirect(url_for('admin_reservations'))
 
 # ==================== BLOCK CUSTOMERS ====================
@@ -506,66 +496,53 @@ def delete_reservation(res_id):
 @app.route('/admin/blocked')
 @admin_required
 def blocked_customers():
-    db = get_db()
-    blocked = db.execute("SELECT * FROM blocked_customers ORDER BY created_at DESC").fetchall()
-    return render_template('admin/blocked.html', blocked=blocked, shop_name=SHOP_NAME)
+    try:
+        db = get_db()
+        blocked = db.execute("SELECT * FROM blocked_customers ORDER BY created_at DESC").fetchall()
+        return render_template('admin/blocked.html', blocked=blocked, shop_name=SHOP_NAME)
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
+        return redirect('/admin/dashboard')
 
 @app.route('/admin/block/add', methods=['POST'])
 @admin_required
 def add_blocked():
-    db = get_db()
-    phone = request.form.get('phone', '').strip()
-    name = request.form.get('name', '').strip()
-    reason = request.form.get('reason', '').strip()
-    
-    if not phone:
-        flash('يرجى إدخال رقم الهاتف', 'error')
-        return redirect(url_for('blocked_customers'))
-    
     try:
+        db = get_db()
+        phone = request.form.get('phone', '').strip()
+        name = request.form.get('name', '').strip()
+        reason = request.form.get('reason', '').strip()
+        
+        if not phone:
+            flash('يرجى إدخال رقم الهاتف', 'error')
+            return redirect(url_for('blocked_customers'))
+        
         db.execute('''
             INSERT INTO blocked_customers (phone, name, reason, blocked_by)
             VALUES (?, ?, ?, ?)
-        ''', (phone, name, reason, session.get('admin_phone', 'Admin')))
+        ''', (phone, name, reason, 'Admin'))
         db.commit()
-        flash(f'⛅ تم حظر العميل {phone} بنجاح', 'success')
+        flash(f'⛔ تم حظر العميل {phone} بنجاح', 'success')
     except sqlite3.IntegrityError:
         flash('هذا الرقم محظور مسبقاً', 'warning')
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
     
     return redirect(url_for('blocked_customers'))
 
 @app.route('/admin/block/remove/<int:block_id>')
 @admin_required
 def remove_blocked(block_id):
-    db = get_db()
-    blocked = db.execute("SELECT * FROM blocked_customers WHERE id = ?", (block_id,)).fetchone()
-    if blocked:
-        db.execute("DELETE FROM blocked_customers WHERE id = ?", (block_id,))
-        db.commit()
-        flash(f'✅ تم إلغاء حظر {blocked["phone"]}', 'success')
+    try:
+        db = get_db()
+        blocked = db.execute("SELECT * FROM blocked_customers WHERE id = ?", (block_id,)).fetchone()
+        if blocked:
+            db.execute("DELETE FROM blocked_customers WHERE id = ?", (block_id,))
+            db.commit()
+            flash(f'✅ تم إلغاء حظر {blocked["phone"]}', 'success')
+    except Exception as e:
+        flash(f'خطأ: {str(e)}', 'error')
     return redirect(url_for('blocked_customers'))
-
-# ==================== API ROUTES ====================
-
-@app.route('/api/search')
-def api_search():
-    db = get_db()
-    q = request.args.get('q', '').strip()
-    if not q:
-        return jsonify([])
-    
-    products = db.execute(
-        "SELECT id, name, price, image, currency FROM products WHERE name LIKE ? LIMIT 10",
-        (f'%{q}%',)
-    ).fetchall()
-    
-    return jsonify([dict(p) for p in products])
-
-@app.route('/api/categories')
-def api_categories():
-    db = get_db()
-    cats = db.execute("SELECT DISTINCT category FROM products WHERE category IS NOT NULL").fetchall()
-    return jsonify([c['category'] for c in cats if c['category']])
 
 # ==================== MAIN ====================
 if __name__ == '__main__':
